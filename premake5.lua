@@ -36,6 +36,23 @@ project "Rutile"
 		"src/**.cpp"
 	}
 
-	includedirs {
-		"src"
+	defines {
+		"GLEW_STATIC"
 	}
+
+	includedirs {
+		"src",
+		"3rdParty/GLEW/include",
+		"3rdParty/GLFW/include"
+	}
+
+	libdirs {
+        "3rdParty/GLFW/lib-vc2022",
+        "3rdParty/GLEW/lib/Release/x64"
+    }
+
+	links {
+        "glew32s",
+        "opengl32",
+        "glfw3"
+    }
