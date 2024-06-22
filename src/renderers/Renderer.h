@@ -5,6 +5,7 @@
 
 namespace Rutile {
     using Pixel = uint32_t;
+    using Byte = uint8_t;
 
 	class Renderer {
 	public:
