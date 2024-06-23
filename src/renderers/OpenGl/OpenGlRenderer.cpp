@@ -108,17 +108,6 @@ namespace Rutile {
         unsigned int VBO;
         unsigned int EBO;
 
-        //std::vector<float> vertices = {
-        //    // Positions              // Colors
-        //    -0.5f, -0.5f, 0.0f,       1.0f, 0.0f, 0.0f,
-        //     0.0f,  0.5f, 0.0f,       0.0f, 1.0f, 0.0f,
-        //     0.5f, -0.5f, 0.0f,       0.0f, 0.0f, 1.0f
-        //};
-
-        //std::vector<unsigned int> indices = {
-        //    0, 1, 2
-        //};
-
         std::vector<Vertex> vertices = bundle.packets[0].vertexData;
         std::vector<Index> indices = bundle.packets[0].indexData;
 
