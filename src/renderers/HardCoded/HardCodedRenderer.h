@@ -14,7 +14,7 @@ namespace Rutile {
         ~HardCodedRenderer() override = default;
 
         void Init(size_t width, size_t height) override;
-        std::vector<Pixel> Render(const Bundle& bundle) override;
+        std::vector<Pixel> Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) override;
         void Cleanup() override;
 
         void Resize(size_t width, size_t height) override;

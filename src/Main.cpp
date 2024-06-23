@@ -17,6 +17,9 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
 GLFWwindow* window;
 
 size_t width = 600;
@@ -271,7 +274,15 @@ int main() {
         geometryPreprocessor.Add(Primitive::TRIANGLE);
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
-        std::vector<Pixel> pixels = renderer->Render(bundle);
+
+        glm::vec3 cameraPos     { 0.0f,  0.0f,  5.0f };
+        glm::vec3 cameraFront   { 0.0f,  0.0f, -1.0f };
+        glm::vec3 cameraUp      { 0.0f,  1.0f,  0.0f };
+
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
+
+        std::vector<Pixel> pixels = renderer->Render(bundle, view, projection);
 
         // Rendering texture with pixel data
         {

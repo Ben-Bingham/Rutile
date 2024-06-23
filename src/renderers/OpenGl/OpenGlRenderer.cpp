@@ -101,7 +101,7 @@ namespace Rutile {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle) {
+    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) {
         GLFWwindow* currentContextBackup = glfwGetCurrentContext();
 
         unsigned int VAO;
