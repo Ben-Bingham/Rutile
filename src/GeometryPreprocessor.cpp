@@ -31,6 +31,67 @@ namespace Rutile {
             m_CurrentBundle.transforms.push_back(std::vector{ transform });
 
             break;
+
+        case Primitive::CUBE:
+            packet.vertexData = {
+                //      Position                         Normal                         Color                          Uv
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+            };
+
+            packet.indexData = {
+                 0,  1,  2,
+                 2,  3,  0,
+
+                 4,  5,  6,
+                 6,  7,  4,
+
+                 8,  9, 10,
+                10, 11,  8,
+
+                12, 13, 14,
+                14, 15, 12,
+
+                16, 17, 18,
+                18, 19, 16,
+
+                20, 21, 22,
+                22, 23, 20,
+            };
+
+            packet.highestSupportedMaterialType = MaterialType::FLAT;
+
+            m_CurrentBundle.packets.push_back(packet);
+            m_CurrentBundle.transforms.push_back(std::vector{ transform });
+
+            break;
         case Primitive::SQUARE:
             packet.vertexData = {
                 //      Position                         Normal                         Color                          Uv

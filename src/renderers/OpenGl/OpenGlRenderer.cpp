@@ -108,10 +108,12 @@ namespace Rutile {
     std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) {
         GLFWwindow* currentContextBackup = glfwGetCurrentContext();
 
+        glEnable(GL_DEPTH_TEST);
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(m_ShaderProgram);
 
@@ -179,6 +181,8 @@ namespace Rutile {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        glDisable(GL_DEPTH_TEST);
 
         glfwMakeContextCurrent(currentContextBackup);
 

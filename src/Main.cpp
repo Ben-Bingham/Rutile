@@ -284,11 +284,11 @@ int main() {
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::SQUARE, transform);
+        geometryPreprocessor.Add(Primitive::CUBE, transform);
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::SQUARE, transform);
+        geometryPreprocessor.Add(Primitive::CUBE, transform);
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
