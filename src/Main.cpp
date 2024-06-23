@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "GeometryPreprocessor.h"
-#include "renderers/RainbowTime/RainbowTimeRenderer.h"
 #include "renderers/renderer.h"
+#include "renderers/HardCoded/HardCodedRenderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
@@ -70,9 +70,9 @@ void glfwErrorCallback(int error, const char* description) {
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int w, int h) {
-    width = w;
-    height = h;
-    glViewport(0, 0, width, height);
+    width = static_cast<size_t>(w);
+    height = static_cast<size_t>(h);
+    glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
 }
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
@@ -194,7 +194,7 @@ int main() {
 
     screenInit();
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<RainbowTimeRenderer>();
+    std::unique_ptr<Renderer> renderer = std::make_unique<HardCodedRenderer>();
     renderer->Init();
 
     IMGUI_CHECKVERSION();
@@ -234,7 +234,7 @@ int main() {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
             glGenerateMipmap(GL_TEXTURE_2D);
 
-            glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
             glActiveTexture(GL_TEXTURE0);

@@ -4,7 +4,7 @@
 
 namespace Rutile {
     void RainbowTimeRenderer::Init() {
-        std::cout << "Initializing hardCodedRenderer" << std::endl;
+        std::cout << "Initializing rainbowTimeRenderer" << std::endl;
         m_StartTime = std::chrono::system_clock::now();
     }
 
@@ -38,6 +38,6 @@ namespace Rutile {
     }
 
     void RainbowTimeRenderer::Cleanup() {
-        std::cout << "Cleaning up hardCodedRenderer" << std::endl;
+        std::cout << "Cleaning up rainbowTimeRenderer" << std::endl;
     }
 }
