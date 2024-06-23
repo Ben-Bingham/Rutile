@@ -70,10 +70,14 @@ void glfwErrorCallback(int error, const char* description) {
     std::cout << description << std::endl;
 }
 
+bool resize = false;
+
 void framebufferSizeCallback(GLFWwindow* window, int w, int h) {
     width = static_cast<size_t>(w);
     height = static_cast<size_t>(h);
     glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+    resize = true;
 }
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
@@ -196,7 +200,7 @@ int main() {
     screenInit();
 
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
-    renderer->Init();
+    renderer->Init(width, height);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -219,11 +223,14 @@ int main() {
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-        //ImGui::Begin("Window");
-        std::vector<Pixel> pixels = renderer->Render(bundle, width, height);
-        //ImGui::End();
+        if (resize) {
+            renderer->Resize(width, height);
+            resize = false;
+        }
 
-        { // Rendering to texture
+        std::vector<Pixel> pixels = renderer->Render(bundle);
+
+        { // Rendering texture with pixel data
             unsigned int texture;
 
             glGenTextures(1, &texture);

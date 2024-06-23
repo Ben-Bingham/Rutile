@@ -13,11 +13,16 @@ namespace Rutile {
         RainbowTimeRenderer& operator=(RainbowTimeRenderer&& other) noexcept = default;
         ~RainbowTimeRenderer() override = default;
 
-        void Init() override;
-        std::vector<Pixel> Render(const Bundle& bundle, size_t width, size_t height) override;
+        void Init(size_t width, size_t height) override;
+        std::vector<Pixel> Render(const Bundle& bundle) override;
         void Cleanup() override;
+
+        void Resize(size_t width, size_t height) override;
 
     private:
         std::chrono::system_clock::time_point m_StartTime{};
+
+        size_t m_Width;
+        size_t m_Height;
     };
 }

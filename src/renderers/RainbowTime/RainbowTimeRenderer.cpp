@@ -3,15 +3,17 @@
 #include <iostream>
 
 namespace Rutile {
-    void RainbowTimeRenderer::Init() {
+    void RainbowTimeRenderer::Init(size_t width, size_t height) {
+        m_Width = width;
+        m_Height = height;
         std::cout << "Initializing rainbowTimeRenderer" << std::endl;
         m_StartTime = std::chrono::system_clock::now();
     }
 
-    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle, size_t width, size_t height) {
+    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle) {
         std::vector<Pixel> pixels{ };
 
-        pixels.reserve(width * height);
+        pixels.reserve(m_Width * m_Height);
 
         auto currentTime = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsedSeconds = currentTime - m_StartTime;
@@ -20,8 +22,8 @@ namespace Rutile {
         const Byte g = (Byte)(std::sin(elapsedSeconds.count()) * 255.0f);
         const Byte b = (Byte)(std::tan(elapsedSeconds.count()) * 255.0f);
 
-        for (size_t x = 0; x < width; ++x) {
-            for (size_t y = 0; y < height; ++y) {
+        for (size_t x = 0; x < m_Width; ++x) {
+            for (size_t y = 0; y < m_Height; ++y) {
                 Pixel pixel = 0;
                 Byte* bytePixel = (Byte*)&pixel;
 
@@ -39,5 +41,10 @@ namespace Rutile {
 
     void RainbowTimeRenderer::Cleanup() {
         std::cout << "Cleaning up rainbowTimeRenderer" << std::endl;
+    }
+
+    void RainbowTimeRenderer::Resize(size_t width, size_t height) {
+        m_Width = width;
+        m_Height = height;
     }
 }

@@ -16,8 +16,10 @@ namespace Rutile {
         Renderer& operator=(Renderer&& other) noexcept = default;
         virtual ~Renderer() = default;
 
-        virtual void Init() = 0;
-        virtual std::vector<Pixel> Render(const Bundle& bundle, size_t width, size_t height) = 0;
+        virtual void Init(size_t width, size_t height) = 0;
+        virtual std::vector<Pixel> Render(const Bundle& bundle) = 0;
         virtual void Cleanup() = 0;
+
+        virtual void Resize(size_t width, size_t height) = 0;
     };
 }

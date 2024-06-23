@@ -31,7 +31,10 @@ namespace Rutile {
         "   outFragColor = vec4(color.r, color.g, color.b, 1.0);\n"
         "}\n\0";
 
-    void OpenGlRenderer::Init() {
+    void OpenGlRenderer::Init(size_t width, size_t height) {
+        m_Width = width;
+        m_Height = height;
+
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
         glCompileShader(vertexShader);
@@ -70,9 +73,33 @@ namespace Rutile {
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        // Framebuffer creation
+        glGenFramebuffers(1, &m_FBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+
+        glGenTextures(1, &m_FBOTexture);
+        glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FBOTexture, 0);
+
+        glGenRenderbuffers(1, &m_RBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, size_t width, size_t height) {
+    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle) {
         GLFWwindow* currentContextBackup = glfwGetCurrentContext();
 
         unsigned int VAO;
@@ -90,6 +117,7 @@ namespace Rutile {
             0, 1, 2
         };
 
+        // Vertex data creation
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
@@ -114,37 +142,8 @@ namespace Rutile {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        // Framebuffer
-
-        unsigned int FBO;
-        unsigned int framebufferTexture;
-
-        glGenFramebuffers(1, &FBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-        glGenTextures(1, &framebufferTexture);
-        glBindTexture(GL_TEXTURE_2D, framebufferTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
-
-        unsigned int RBO;
-
-        glGenRenderbuffers(1, &RBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        // Rendering
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -153,18 +152,14 @@ namespace Rutile {
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
 
-        glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+        glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
         std::vector<Pixel> pixels{ };
-        pixels.resize(width * height);
+        pixels.resize(m_Width * m_Height);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels.data());
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-
-        glDeleteRenderbuffers(1, &RBO);
-        glDeleteTextures(1, &framebufferTexture);
-        glDeleteFramebuffers(1, &FBO);
 
         glDeleteBuffers(1, &EBO);
         glDeleteBuffers(1, &VBO);
@@ -175,7 +170,32 @@ namespace Rutile {
         return pixels;
     }
 
+    void OpenGlRenderer::Resize(size_t width, size_t height) {
+        m_Width = width;
+        m_Height = height;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+
+        glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FBOTexture, 0);
+        
+        glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }
+
     void OpenGlRenderer::Cleanup() {
+        glDeleteRenderbuffers(1, &m_RBO);
+        glDeleteTextures(1, &m_FBOTexture);
+        glDeleteFramebuffers(1, &m_FBO);
+
         glDeleteProgram(m_ShaderProgram);
     }
 }
