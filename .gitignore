@@ -5,3 +5,5 @@ build/
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
+
+*.ini
