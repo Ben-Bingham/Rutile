@@ -2,6 +2,9 @@
 
 #include "../Renderer.h"
 
+#include <gl/glew.h>
+#include <GLFW/glfw3.h>
+
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
 	public:
@@ -15,5 +18,8 @@ namespace Rutile {
         void Init() override;
         std::vector<Pixel> Render(const Bundle& bundle, size_t width, size_t height) override;
         void Cleanup() override;
+
+	private:
+        unsigned int m_ShaderProgram;
     };
 }

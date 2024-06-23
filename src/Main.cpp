@@ -2,7 +2,7 @@
 
 #include "GeometryPreprocessor.h"
 #include "renderers/renderer.h"
-#include "renderers/HardCoded/HardCodedRenderer.h"
+#include "renderers/OpenGl/OpenGlRenderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
@@ -13,6 +13,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
 
 GLFWwindow* window;
 
@@ -194,7 +195,7 @@ int main() {
 
     screenInit();
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<HardCodedRenderer>();
+    std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
     renderer->Init();
 
     IMGUI_CHECKVERSION();
@@ -216,12 +217,11 @@ int main() {
 
         ImGui::ShowDemoWindow();
 
-        ImGui::Begin("Window");
-        ImGui::End();
-
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
+        //ImGui::Begin("Window");
         std::vector<Pixel> pixels = renderer->Render(bundle, width, height);
+        //ImGui::End();
 
         { // Rendering to texture
             unsigned int texture;
