@@ -86,7 +86,7 @@ void screenInit() {
     }
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    window = glfwCreateWindow(width, height, "Rutile", nullptr, nullptr);
+    window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), "Rutile", nullptr, nullptr);
 
     if (!window) {
         std::cout << "ERROR: Failed to create window." << std::endl;
@@ -231,7 +231,7 @@ int main() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
             glGenerateMipmap(GL_TEXTURE_2D);
 
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
