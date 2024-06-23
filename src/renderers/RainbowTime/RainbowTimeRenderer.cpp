@@ -1,14 +1,14 @@
-#include "HardCodedRenderer.h"
+#include "RainbowTimeRenderer.h"
 
 #include <iostream>
 
 namespace Rutile {
-    void HardCodedRenderer::Init() {
+    void RainbowTimeRenderer::Init() {
         std::cout << "Initializing hardCodedRenderer" << std::endl;
         m_StartTime = std::chrono::system_clock::now();
     }
 
-    std::vector<Pixel> HardCodedRenderer::Render(const Bundle& bundle, size_t width, size_t height) {
+    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle, size_t width, size_t height) {
         std::vector<Pixel> pixels{ };
 
         pixels.reserve(width * height);
@@ -37,7 +37,7 @@ namespace Rutile {
         return pixels;
     }
 
-    void HardCodedRenderer::Cleanup() {
+    void RainbowTimeRenderer::Cleanup() {
         std::cout << "Cleaning up hardCodedRenderer" << std::endl;
     }
 }

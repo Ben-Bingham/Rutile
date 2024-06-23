@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.h"
+#include "../Renderer.h"
 
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {

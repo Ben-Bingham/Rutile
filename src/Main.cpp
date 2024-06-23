@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "GeometryPreprocessor.h"
-#include "renderers/HardCodedRenderer.h"
+#include "renderers/RainbowTime/RainbowTimeRenderer.h"
 #include "renderers/renderer.h"
 
 #include <gl/glew.h>
@@ -183,7 +183,7 @@ int main() {
 
     screenInit();
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<HardCodedRenderer>();
+    std::unique_ptr<Renderer> renderer = std::make_unique<RainbowTimeRenderer>();
     renderer->Init();
 
     // Main loop
