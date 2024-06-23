@@ -1,6 +1,8 @@
 #pragma once
 #include "Renderer.h"
 
+#include <chrono>
+
 namespace Rutile {
     class HardCodedRenderer : public Renderer {
     public:
@@ -14,5 +16,8 @@ namespace Rutile {
         void Init() override;
         std::vector<Pixel> Render(const Bundle& bundle, size_t width, size_t height) override;
         void Cleanup() override;
+
+    private:
+        std::chrono::system_clock::time_point m_StartTime{};
     };
 }

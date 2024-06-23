@@ -12,8 +12,8 @@
 
 GLFWwindow* window;
 
-constexpr size_t width = 600 * 3;
-constexpr size_t height = 400 * 3;
+constexpr size_t width = 600;
+constexpr size_t height = 400;
 
 unsigned int shaderProgram;
 
@@ -48,18 +48,17 @@ unsigned int VBO;
 unsigned int EBO;
 
 std::vector<float> vertices = {
+    // Positions              // Uvs
     -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
-    -1.0f, 1.0f, 0.0f,       0.0f, 1.0f,
-    1.0f, 1.0f, 0.0f,       1.0f, 1.0f,
-    1.0f, -1.0f, 0.0f,       1.0f, 0.0f,
+    -1.0f,  1.0f, 0.0f,       0.0f, 1.0f,
+     1.0f,  1.0f, 0.0f,       1.0f, 1.0f,
+     1.0f, -1.0f, 0.0f,       1.0f, 0.0f,
 };
 
 std::vector<unsigned int> indices = {
     0, 1, 2,
     0, 2, 3
 };
-
-unsigned int texture;
 
 void glfwErrorCallback(int error, const char* description) {
     std::cout << "ERROR: GLFW has thrown an error: " << std::endl;
@@ -162,45 +161,11 @@ void screenInit() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int imageWidth;
-    int imageHeight;
-    int channelCount;
-    std::string imagePath{ "assets\\TextureCreation.png" };
-
-    stbi_set_flip_vertically_on_load(true);
-
-    unsigned char* imageData = stbi_load(imagePath.c_str(), &imageWidth, &imageHeight, &channelCount, 0);
-
-    GLint imageFormat = GL_RGB;
-    if (channelCount == 4) {
-        imageFormat = GL_RGBA;
-    }
-
-    if (imageData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, imageFormat, GL_UNSIGNED_BYTE, imageData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        std::cout << "ERROR: Failed to load image: " << imagePath << std::endl;
-    }
-
-    stbi_image_free(imageData);
-
     glUseProgram(shaderProgram);
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 }
 
 void screenCleanup() {
-    glDeleteTextures(1, &texture);
     glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
@@ -227,7 +192,19 @@ int main() {
 
         std::vector<Pixel> pixels = renderer->Render(bundle, width, height);
 
-        // Present to screen
+        unsigned int texture;
+
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        glGenerateMipmap(GL_TEXTURE_2D);
 
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -238,6 +215,8 @@ int main() {
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+        glDeleteTextures(1, &texture);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
