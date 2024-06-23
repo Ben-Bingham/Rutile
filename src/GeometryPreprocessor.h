@@ -8,7 +8,9 @@ namespace Rutile {
     };
 
     enum class Primitive {
-        TRIANGLE
+        TRIANGLE,
+		SQUARE,
+		CUBE
     };
 
 	class GeometryPreprocessor {

@@ -282,9 +282,17 @@ int main() {
         transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
         geometryPreprocessor.Add(Primitive::TRIANGLE, transform);
 
+        transform = glm::mat4{ 1.0f };
+        transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
+        geometryPreprocessor.Add(Primitive::SQUARE, transform);
+
+        transform = glm::mat4{ 1.0f };
+        transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
+        geometryPreprocessor.Add(Primitive::SQUARE, transform);
+
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-        glm::vec3 cameraPos     { 0.0f,  0.0f,  10.0f };
+        glm::vec3 cameraPos     { 0.0f,  0.0f,  7.5f };
         glm::vec3 cameraFront   { 0.0f,  0.0f, -1.0f };
         glm::vec3 cameraUp      { 0.0f,  1.0f,  0.0f };
 
