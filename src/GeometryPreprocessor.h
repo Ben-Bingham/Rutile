@@ -15,7 +15,7 @@ namespace Rutile {
 	public:
 		Bundle GetBundle(GeometryMode mode);
 
-		void Add(Primitive primitive);
+		void Add(Primitive primitive, glm::mat4 transform);
 
 	private:
 		Bundle m_CurrentBundle;

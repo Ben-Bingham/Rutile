@@ -9,7 +9,7 @@ namespace Rutile {
         return bundle;
     }
 
-    void GeometryPreprocessor::Add(Primitive primitive) {
+    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4 transform) {
         switch (primitive) {
         case Primitive::TRIANGLE:
             Packet packet;
@@ -28,8 +28,7 @@ namespace Rutile {
             packet.highestSupportedMaterialType = MaterialType::FLAT;
 
             m_CurrentBundle.packets.push_back(packet);
-            m_CurrentBundle.packetQuantities.push_back(1);
-            m_CurrentBundle.transforms.push_back(std::vector{ glm::mat4{ 1.0f } });
+            m_CurrentBundle.transforms.push_back(std::vector{ transform });
 
             break;
         }
