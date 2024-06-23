@@ -9,16 +9,16 @@ namespace Rutile {
         return bundle;
     }
 
-    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4 transform) {
+    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4 transform, glm::vec3 color) {
         Packet packet;
         switch (primitive) {
         case Primitive::TRIANGLE:
 
             packet.vertexData = {
-                //      Position                         Normal                         Color                          Uv
-                Vertex{ glm::vec3{ -0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.0f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 0.0f, 0.5f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 0.0f } },
+                //      Position                         Normal                         Color  Uv
+                Vertex{ glm::vec3{ -0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.0f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 0.0f, 0.5f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 1.0f, 0.0f } },
             };
 
             packet.indexData = {
@@ -34,36 +34,36 @@ namespace Rutile {
 
         case Primitive::CUBE:
             packet.vertexData = {
-                //      Position                         Normal                         Color                          Uv
-                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+                //      Position                         Normal                             Color  Uv
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, color, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  0.0f, -1.0f }, color, glm::vec2{ 0.0f, 1.0f } },
 
-                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, color, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  0.0f,  1.0f }, color, glm::vec2{ 0.0f, 1.0f } },
 
-                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
-                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, color, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{ -1.0f,  0.0f,  0.0f }, color, glm::vec2{ 0.0f, 0.0f } },
 
-                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, color, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  1.0f,  0.0f,  0.0f }, color, glm::vec2{ 0.0f, 0.0f } },
 
-                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, color, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, -0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f, -0.5f,  0.5f }, glm::vec3{  0.0f, -1.0f,  0.0f }, color, glm::vec2{ 0.0f, 0.0f } },
 
-                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 0.0f } },
-                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, color, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, -0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, color, glm::vec2{ 1.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f,  0.5f }, glm::vec3{  0.0f,  1.0f,  0.0f }, color, glm::vec2{ 0.0f, 0.0f } },
             };
 
             packet.indexData = {
@@ -94,11 +94,11 @@ namespace Rutile {
             break;
         case Primitive::SQUARE:
             packet.vertexData = {
-                //      Position                         Normal                         Color                          Uv
-                Vertex{ glm::vec3{ -0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.3f, 0.1f, 0.7f }, glm::vec2{ 0.0f, 0.0f } },
-                Vertex{ glm::vec3{ -0.5f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.6f, 0.2f, 0.8f }, glm::vec2{ 0.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.5f, 0.4f, 0.1f }, glm::vec2{ 1.0f, 1.0f } },
-                Vertex{ glm::vec3{  0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec3{ 0.2f, 0.9f, 0.3f }, glm::vec2{ 1.0f, 0.0f } },
+                //      Position                         Normal                         Color  Uv
+                Vertex{ glm::vec3{ -0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 0.0f, 0.0f } },
+                Vertex{ glm::vec3{ -0.5f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 0.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 1.0f, 1.0f } },
+                Vertex{ glm::vec3{  0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, color, glm::vec2{ 1.0f, 0.0f } },
             };
 
             packet.indexData = {
