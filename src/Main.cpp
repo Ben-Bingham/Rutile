@@ -51,15 +51,12 @@ std::vector<float> vertices = {
     -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
     -1.0f, 1.0f, 0.0f,       0.0f, 1.0f,
     1.0f, 1.0f, 0.0f,       1.0f, 1.0f,
-
-    -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
-    1.0f, 1.0f, 0.0f,       1.0f, 1.0f,
     1.0f, -1.0f, 0.0f,       1.0f, 0.0f,
 };
 
 std::vector<unsigned int> indices = {
     0, 1, 2,
-    3, 4, 5
+    0, 2, 3
 };
 
 unsigned int texture;
