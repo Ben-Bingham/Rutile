@@ -12,8 +12,8 @@
 
 GLFWwindow* window;
 
-constexpr size_t width = 600;
-constexpr size_t height = 400;
+constexpr size_t width = 600 * 3;
+constexpr size_t height = 400 * 3;
 
 unsigned int shaderProgram;
 
@@ -37,8 +37,10 @@ const char* fragmentShaderSource = \
     "\n"
     "in vec2 uv;\n"
     "\n"
+    "uniform sampler2D tex;\n"
+    "\n"
     "void main() {\n"
-    "   outFragColor = vec4(uv.x, uv.y, 0.0f, 1.0f);\n"
+    "   outFragColor = texture(tex, uv);\n"
     "}\n\0";
 
 unsigned int VAO;
@@ -134,6 +136,27 @@ void screenInit() {
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int imageWidth;
+    int imageHeight;
+    int channelCount;
+    std::string imagePath{ "assets\\TextureCreation.png" };
+
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned char* imageData = stbi_load(imagePath.c_str(), &imageWidth, &imageHeight, &channelCount, 3);
+
+    if (imageData) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "ERROR: Failed to load image: " << imagePath << std::endl;
+    }
+
+    stbi_image_free(imageData);
+
+    glUseProgram(shaderProgram);
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 }
 
 void screenCleanup() {
@@ -166,6 +189,9 @@ int main() {
 
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
