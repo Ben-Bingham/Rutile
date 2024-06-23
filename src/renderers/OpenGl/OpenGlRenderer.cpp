@@ -11,7 +11,9 @@ namespace Rutile {
         "#version 330 core\n"
         "\n"
         "layout (location = 0) in vec3 inPos;\n"
-        "layout (location = 1) in vec3 inColor;\n"
+        "layout (location = 1) in vec3 inNormal;\n"
+        "layout (location = 2) in vec3 inColor;\n"
+        "layout (location = 3) in vec2 inUv;\n"
         "\n"
         "out vec3 color;\n"
         "\n"
@@ -106,16 +108,19 @@ namespace Rutile {
         unsigned int VBO;
         unsigned int EBO;
 
-        std::vector<float> vertices = {
-            // Positions              // Colors
-            -0.5f, -0.5f, 0.0f,       1.0f, 0.0f, 0.0f,
-             0.0f,  0.5f, 0.0f,       0.0f, 1.0f, 0.0f,
-             0.5f, -0.5f, 0.0f,       0.0f, 0.0f, 1.0f
-        };
+        //std::vector<float> vertices = {
+        //    // Positions              // Colors
+        //    -0.5f, -0.5f, 0.0f,       1.0f, 0.0f, 0.0f,
+        //     0.0f,  0.5f, 0.0f,       0.0f, 1.0f, 0.0f,
+        //     0.5f, -0.5f, 0.0f,       0.0f, 0.0f, 1.0f
+        //};
 
-        std::vector<unsigned int> indices = {
-            0, 1, 2
-        };
+        //std::vector<unsigned int> indices = {
+        //    0, 1, 2
+        //};
+
+        std::vector<Vertex> vertices = bundle.packets[0].vertexData;
+        std::vector<Index> indices = bundle.packets[0].indexData;
 
         // Vertex data creation
         glGenVertexArrays(1, &VAO);
@@ -125,21 +130,25 @@ namespace Rutile {
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0 * sizeof(float)));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
         glEnableVertexAttribArray(1);
 
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+        glEnableVertexAttribArray(2);
+
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(3);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
         glBindVertexArray(0);
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         // Rendering
