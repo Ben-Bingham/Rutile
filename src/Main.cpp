@@ -14,6 +14,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "renderers/HardCoded/HardCodedRenderer.h"
+#include "renderers/RainbowTime/RainbowTimeRenderer.h"
 
 GLFWwindow* window;
 
@@ -107,7 +109,6 @@ void screenInit() {
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        std::cout << "OPENGL DEBUG OUTPUT FOUND" << std::endl;
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(glDebugOutput, nullptr);
@@ -194,7 +195,6 @@ void screenCleanup() {
 using namespace Rutile;
 
 enum RendererEnum {
-    NONE            = 0,
     OPENGL          = 1,
     HARD_CODED      = 2,
     RAINBOW_TIME    = 3
@@ -228,27 +228,51 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        // Renderer Switching
+        int lastRenderer = currentRenderer;
         { ImGui::Begin("Rutile");
 
             ImGui::Text("Renderer");
 
-            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL); ImGui::SameLine();
-            ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME); ImGui::SameLine();
+            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL);          ImGui::SameLine();
+            ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME);    ImGui::SameLine();
             ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
             
         } ImGui::End();
 
-        Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
+        if (lastRenderer != currentRenderer) {
+            renderer->Cleanup();
+
+            renderer.reset();
+
+            switch (currentRenderer) {
+            case OPENGL:
+                renderer = std::make_unique<OpenGlRenderer>();
+                break;
+
+            case HARD_CODED:
+                renderer = std::make_unique<HardCodedRenderer>();
+                break;
+
+            case RAINBOW_TIME:
+                renderer = std::make_unique<RainbowTimeRenderer>();
+                break;
+            }
+
+            renderer->Init(width, height);
+        }
 
         if (resize) {
             renderer->Resize(width, height);
             resize = false;
         }
 
+        // Rendering
+        Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
         std::vector<Pixel> pixels = renderer->Render(bundle);
 
-        { // Rendering texture with pixel data
+        // Rendering texture with pixel data
+        {
             unsigned int texture;
 
             glGenTextures(1, &texture);

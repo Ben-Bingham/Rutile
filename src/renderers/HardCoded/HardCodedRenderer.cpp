@@ -1,7 +1,5 @@
 #include "HardCodedRenderer.h"
 
-#include <iostream>
-
 namespace Rutile {
     std::vector<Pixel> CreatePixels(size_t width, size_t height) {
         std::vector<Pixel> pixels{ };
@@ -33,9 +31,7 @@ namespace Rutile {
         return m_Pixels;
     }
 
-    void HardCodedRenderer::Cleanup() {
-        std::cout << "Cleaning up hardCodedRenderer" << std::endl;
-    }
+    void HardCodedRenderer::Cleanup() { }
 
     void HardCodedRenderer::Resize(size_t width, size_t height) {
         m_Pixels = CreatePixels(width, height);

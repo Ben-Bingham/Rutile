@@ -1,12 +1,9 @@
 #include "RainbowTimeRenderer.h"
 
-#include <iostream>
-
 namespace Rutile {
     void RainbowTimeRenderer::Init(size_t width, size_t height) {
         m_Width = width;
         m_Height = height;
-        std::cout << "Initializing rainbowTimeRenderer" << std::endl;
         m_StartTime = std::chrono::system_clock::now();
     }
 
@@ -39,9 +36,7 @@ namespace Rutile {
         return pixels;
     }
 
-    void RainbowTimeRenderer::Cleanup() {
-        std::cout << "Cleaning up rainbowTimeRenderer" << std::endl;
-    }
+    void RainbowTimeRenderer::Cleanup() { }
 
     void RainbowTimeRenderer::Resize(size_t width, size_t height) {
         m_Width = width;
