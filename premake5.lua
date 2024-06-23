@@ -14,6 +14,10 @@ workspace "Rutile-Renderer"
 
 	startproject "Rutile"
 
+	group "3rdParty"
+		include "3rdParty/ImGui"
+	group ""
+
 project "Rutile"
 	kind "ConsoleApp"
 	language "C++"
@@ -44,7 +48,8 @@ project "Rutile"
 		"src",
 		"3rdParty/GLEW/include",
 		"3rdParty/GLFW/include",
-		"3rdParty/stb"
+		"3rdParty/stb",
+		"3rdParty/ImGui/src"
 	}
 
 	libdirs {
@@ -55,5 +60,6 @@ project "Rutile"
 	links {
         "glew32s",
         "opengl32",
-        "glfw3"
+        "glfw3",
+		"ImGui"
     }
