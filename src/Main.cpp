@@ -16,8 +16,8 @@
 
 GLFWwindow* window;
 
-constexpr size_t width = 600;
-constexpr size_t height = 400;
+size_t width = 600;
+size_t height = 400;
 
 unsigned int shaderProgram;
 
@@ -69,6 +69,12 @@ void glfwErrorCallback(int error, const char* description) {
     std::cout << description << std::endl;
 }
 
+void framebufferSizeCallback(GLFWwindow* window, int w, int h) {
+    width = w;
+    height = h;
+    glViewport(0, 0, width, height);
+}
+
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
     GLsizei length, const char* message, const void* userParam);
 
@@ -87,6 +93,7 @@ void screenInit() {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
