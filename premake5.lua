@@ -43,7 +43,8 @@ project "Rutile"
 	includedirs {
 		"src",
 		"3rdParty/GLEW/include",
-		"3rdParty/GLFW/include"
+		"3rdParty/GLFW/include",
+		"3rdParty/stb"
 	}
 
 	libdirs {
