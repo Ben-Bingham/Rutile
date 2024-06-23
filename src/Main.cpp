@@ -47,9 +47,13 @@ unsigned int VAO;
 unsigned int VBO;
 
 std::vector vertices = {
-    -0.5f, 0.0f, 0.0f,      0.0f, 0.0f,
-     0.0f, 0.5f, 0.0f,      0.5f, 1.0f,
-     0.5f, 0.0f, 0.0f,      1.0f, 0.0f
+    -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f,       0.0f, 1.0f,
+    1.0f, 1.0f, 0.0f,       1.0f, 1.0f,
+
+    -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
+    1.0f, 1.0f, 0.0f,       1.0f, 1.0f,
+    1.0f, -1.0f, 0.0f,       1.0f, 0.0f,
 };
 
 unsigned int texture;
@@ -144,10 +148,15 @@ void screenInit() {
 
     stbi_set_flip_vertically_on_load(true);
 
-    unsigned char* imageData = stbi_load(imagePath.c_str(), &imageWidth, &imageHeight, &channelCount, 3);
+    unsigned char* imageData = stbi_load(imagePath.c_str(), &imageWidth, &imageHeight, &channelCount, 0);
+
+    GLint imageFormat = GL_RGB;
+    if (channelCount == 4) {
+        imageFormat = GL_RGBA;
+    }
 
     if (imageData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, imageFormat, GL_UNSIGNED_BYTE, imageData);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
         std::cout << "ERROR: Failed to load image: " << imagePath << std::endl;
@@ -195,7 +204,7 @@ int main() {
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
