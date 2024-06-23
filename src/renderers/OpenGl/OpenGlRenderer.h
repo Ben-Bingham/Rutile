@@ -2,9 +2,6 @@
 
 #include "../Renderer.h"
 
-#include <gl/glew.h>
-#include <GLFW/glfw3.h>
-
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
 	public:

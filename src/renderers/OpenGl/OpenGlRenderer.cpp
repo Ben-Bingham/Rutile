@@ -6,6 +6,8 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/gtc/type_ptr.inl>
+
 namespace Rutile {
     const char* vertexShaderSource = \
         "#version 330 core\n"
@@ -17,8 +19,10 @@ namespace Rutile {
         "\n"
         "out vec3 color;\n"
         "\n"
+        "uniform mat4 mvp;\n"
+        "\n"
         "void main() {\n"
-        "   gl_Position = vec4(inPos.x, inPos.y, inPos.z, 1.0);\n"
+        "   gl_Position = mvp * vec4(inPos.x, inPos.y, inPos.z, 1.0);\n"
         "   color = inColor;\n"
         "}\n\0";
 
@@ -111,6 +115,8 @@ namespace Rutile {
         std::vector<Vertex> vertices = bundle.packets[0].vertexData;
         std::vector<Index> indices = bundle.packets[0].indexData;
 
+        glm::mat4 mvp = projection * view * bundle.transforms[0][0];
+
         // Vertex data creation
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -147,6 +153,9 @@ namespace Rutile {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(m_ShaderProgram);
+
+        glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
 
