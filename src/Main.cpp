@@ -193,6 +193,15 @@ void screenCleanup() {
 
 using namespace Rutile;
 
+enum RendererEnum {
+    NONE            = 0,
+    OPENGL          = 1,
+    HARD_CODED      = 2,
+    RAINBOW_TIME    = 3
+};
+
+int currentRenderer = OPENGL;
+
 int main() {
     GeometryPreprocessor geometryPreprocessor{ };
     // geometryPreprocessor.add();
@@ -220,6 +229,15 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
+        { ImGui::Begin("Rutile");
+
+            ImGui::Text("Renderer");
+
+            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL); ImGui::SameLine();
+            ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME); ImGui::SameLine();
+            ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
+            
+        } ImGui::End();
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
