@@ -4,6 +4,9 @@
 #include "renderers/renderer.h"
 #include "renderers/OpenGl/OpenGlRenderer.h"
 
+#include "renderers/HardCoded/HardCodedRenderer.h"
+#include "renderers/RainbowTime/RainbowTimeRenderer.h"
+
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -13,9 +16,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#include "renderers/HardCoded/HardCodedRenderer.h"
-#include "renderers/RainbowTime/RainbowTimeRenderer.h"
 
 GLFWwindow* window;
 
@@ -204,7 +204,7 @@ int currentRenderer = OPENGL;
 
 int main() {
     GeometryPreprocessor geometryPreprocessor{ };
-    // geometryPreprocessor.add();
+    geometryPreprocessor.Add(Primitive::TRIANGLE);
 
     screenInit();
 
@@ -268,6 +268,8 @@ int main() {
         }
 
         // Rendering
+        geometryPreprocessor.Add(Primitive::TRIANGLE);
+
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
         std::vector<Pixel> pixels = renderer->Render(bundle);
 
