@@ -16,6 +16,7 @@ workspace "Rutile-Renderer"
 
 	group "3rdParty"
 		include "3rdParty/ImGui"
+		include "3rdParty/glm"
 	group ""
 
 project "Rutile"
@@ -49,7 +50,8 @@ project "Rutile"
 		"3rdParty/GLEW/include",
 		"3rdParty/GLFW/include",
 		"3rdParty/stb",
-		"3rdParty/ImGui/src"
+		"3rdParty/ImGui/src",
+		"3rdParty/glm"
 	}
 
 	libdirs {
@@ -61,5 +63,6 @@ project "Rutile"
         "glew32s",
         "opengl32",
         "glfw3",
-		"ImGui"
+		"ImGui",
+		"glm"
     }

@@ -12,8 +12,8 @@ project "ImGui"
         optimize "on"
     filter {}
 
-	targetdir "%{wks.location}/build/vendor/bin/%{prj.name}"
-	objdir "%{wks.location}/build/vendor/bin-int/%{prj.name}"
+	targetdir "%{wks.location}/build/3rdParty/bin/%{prj.name}"
+	objdir "%{wks.location}/build/3rdParty/bin-int/%{prj.name}"
 
     files {
         "src/**.cpp",
