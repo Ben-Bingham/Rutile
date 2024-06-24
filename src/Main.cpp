@@ -205,6 +205,13 @@ enum RendererEnum {
 
 int currentRenderer = OPENGL;
 
+struct Settings {
+    bool gpuVsync{ false };
+    bool cpuVsync{ false };
+};
+
+Settings settings;
+
 int main() {
     GeometryPreprocessor geometryPreprocessor{ };
 
@@ -224,11 +231,15 @@ int main() {
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
+        auto frameStart = std::chrono::system_clock::now();
+
         glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
 
         // Renderer Switching
         int lastRenderer = currentRenderer;
@@ -239,7 +250,11 @@ int main() {
             ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL);          ImGui::SameLine();
             ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME);    ImGui::SameLine();
             ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
-            
+
+            ImGui::Text("Settings");
+            ImGui::Checkbox("GPU Vsync", &settings.gpuVsync);
+            ImGui::Checkbox("CPU Vsync", &settings.cpuVsync);
+
         } ImGui::End();
 
         if (lastRenderer != currentRenderer) {
@@ -269,6 +284,12 @@ int main() {
             resize = false;
         }
 
+        if (settings.gpuVsync) {
+            glfwSwapInterval(1);
+        } else {
+            glfwSwapInterval(0);
+        }
+
         // Rendering
         glm::mat4 transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
@@ -280,7 +301,7 @@ int main() {
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, glm::vec3{ 1.0f, 1.0f, 1.0f });
+        geometryPreprocessor.Add(Primitive::SQUARE, transform, glm::vec3{ 1.0f, 1.0f, 1.0f });
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
@@ -341,6 +362,27 @@ int main() {
         }
 
         glfwSwapBuffers(window);
+
+        auto frameEnd = std::chrono::system_clock::now();
+
+        std::chrono::duration<double> frameTime = frameEnd - frameStart;
+
+        if (settings.cpuVsync) {
+            auto elapsedTime = frameEnd - frameStart;
+
+            auto frameDuration = std::chrono::duration<double>(1.0 / 60.0);
+
+            auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
+
+            if (elapsedTimeSeconds < frameDuration) {
+                auto timeToWait = frameDuration - elapsedTimeSeconds;
+                std::this_thread::sleep_for(timeToWait);
+            }
+
+            frameTime = std::chrono::system_clock::now() - frameStart;
+        }
+
+        std::cout << frameTime << std::endl;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
