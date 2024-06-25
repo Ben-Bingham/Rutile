@@ -87,6 +87,13 @@ void framebufferSizeCallback(GLFWwindow* window, int w, int h) {
     resize = true;
 }
 
+int mouseX = 0;
+int mouseY = 0;
+void mouseMoveCallback(GLFWwindow* window, double x, double y) {
+    mouseX = (int)x;
+    mouseY = (int)y;
+}
+
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
     GLsizei length, const char* message, const void* userParam);
 
@@ -106,6 +113,7 @@ void screenInit() {
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
@@ -232,11 +240,84 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 
+    std::chrono::duration<double> frameTime = std::chrono::duration<double>(1.0 / 60.0);
+
+    glm::vec3 cameraPos  { 0.0f,  0.0f,  7.5f };
+    glm::vec3 cameraFront{ 0.0f,  0.0f, -1.0f };
+    glm::vec3 cameraUp   { 0.0f,  1.0f,  0.0f };
+    glm::vec3 cameraRight{ 1.0f,  0.0f,  0.0f };
+    float cameraSpeed = 5.0f;
+    float cameraYaw = -90.0f;
+    float cameraPitch = 0.0f;
+    float mouseSensitivity = 0.25f;
+
+    bool mouseDown = false;
+
+    int lastMouseX = 0;
+    int lastMouseY = 0;
+
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         auto frameStart = std::chrono::system_clock::now();
 
         glfwPollEvents();
+
+        float dt = static_cast<float>(frameTime.count());
+        float velocity = cameraSpeed * dt;
+        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            cameraPos += cameraFront * velocity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            cameraPos -= cameraFront * velocity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            cameraPos += cameraRight * velocity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            cameraPos -= cameraRight * velocity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            cameraPos += cameraUp * velocity;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+            cameraPos -= cameraUp * velocity;
+        }
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+            if (mouseDown == false) {
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+
+            mouseDown = true;
+        }
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
+            mouseDown = false;
+        }
+
+        if (mouseDown) {
+            float xDelta = (float)mouseX - (float)lastMouseX;
+            float yDelta = (float)lastMouseY - (float)mouseY; // reversed since y-coordinates go from bottom to top
+
+            cameraYaw += xDelta * mouseSensitivity;
+            cameraPitch += yDelta * mouseSensitivity;
+
+            if (cameraPitch > 89.9f) {
+                cameraPitch = 89.9f;
+            } else if (cameraPitch < -89.9f) {
+                cameraPitch = -89.9f;
+            }
+
+            cameraFront.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
+            cameraFront.y = sin(glm::radians(cameraPitch));
+            cameraFront.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
+            cameraFront = glm::normalize(cameraFront);
+
+            cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        }
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -317,10 +398,6 @@ int main() {
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-        glm::vec3 cameraPos     { 0.0f,  0.0f,  7.5f };
-        glm::vec3 cameraFront   { 0.0f,  0.0f, -1.0f };
-        glm::vec3 cameraUp      { 0.0f,  1.0f,  0.0f };
-
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
@@ -369,7 +446,7 @@ int main() {
 
         auto frameEnd = std::chrono::system_clock::now();
 
-        std::chrono::duration<double> frameTime = frameEnd - frameStart;
+        frameTime = frameEnd - frameStart;
 
         if (settings.cpuVsync) {
             auto elapsedTime = frameEnd - frameStart;
