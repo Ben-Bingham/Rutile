@@ -84,6 +84,10 @@ namespace Rutile {
     void OpenGlRenderer::Init() {
         m_SolidShader = createShader("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = createShader("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
+
+        m_FBO        = 0;
+        m_FBOTexture = 0;
+        m_RBO        = 0;
     }
 
     void OpenGlRenderer::Cleanup() {
@@ -105,30 +109,30 @@ namespace Rutile {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        std::vector<unsigned int> VAOs;
-        std::vector<unsigned int> VBOs;
-        std::vector<unsigned int> EBOs;
+        //std::vector<unsigned int> VAOs;
+        //std::vector<unsigned int> VBOs;
+        //std::vector<unsigned int> EBOs;
 
-        VAOs.resize(m_Bundle.packets.size());
-        VBOs.resize(m_Bundle.packets.size());
-        EBOs.resize(m_Bundle.packets.size());
+        //VAOs.resize(m_Bundle.packets.size());
+        //VBOs.resize(m_Bundle.packets.size());
+        //EBOs.resize(m_Bundle.packets.size());
 
-        glGenVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
-        glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
-        glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
+        //glGenVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
+        //glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
+        //glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
 
-        for (size_t i = 0; i < m_Bundle.packets.size(); ++i) {
-            std::vector<Vertex> vertices = m_Bundle.packets[i].vertexData;
-            std::vector<Index> indices = m_Bundle.packets[i].indexData;
+        for (size_t i = 0; i < m_PacketCount; ++i) {
+            //std::vector<Vertex> vertices = m_Bundle.packets[i].vertexData;
+            //std::vector<Index> indices = m_Bundle.packets[i].indexData;
 
-            MaterialType type = m_Bundle.packets[i].materialType;
-            Material* material = m_Bundle.packets[i].material;
+            //MaterialType type = m_Bundle.packets[i].materialType;
+            //Material* material = m_Bundle.packets[i].material;
 
             unsigned int* shaderProgram = nullptr;
 
-            switch (type) {
+            switch (m_MaterialTypes[i]) {
                 case MaterialType::SOLID: {
-                    Solid* solid = dynamic_cast<Solid*>(material);
+                    Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
 
                     shaderProgram = &m_SolidShader;
                     glUseProgram(m_SolidShader);
@@ -137,7 +141,7 @@ namespace Rutile {
                     break;
                 }
                 case MaterialType::PHONG: {
-                    Phong* phong = dynamic_cast<Phong*>(material);
+                    Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
 
                     shaderProgram = &m_PhongShader;
                     glUseProgram(m_PhongShader);
@@ -147,49 +151,49 @@ namespace Rutile {
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.specular"), 1, glm::value_ptr(phong->ambient));
                     glUniform1f(glGetUniformLocation(m_PhongShader, "phong.shininess"), phong->shininess);
 
-                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Bundle.transforms[i][0]));
+                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Transforms[i]));
 
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(camera.position));
                     break;
                 }
             }
 
-            for (auto transform : m_Bundle.transforms[i]) {
-                // TODO Each transfrom is for a different instance of the same vertex/index data
-            }
+            //for (auto transform : m_Bundle.transforms[i]) {
+            //    // TODO Each transfrom is for a different instance of the same vertex/index data
+            //}
 
-            glBindVertexArray(VAOs[i]);
+            //glBindVertexArray(m_VAOs[i]);
 
-            glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+            //glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
+            //glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
+            //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-            glEnableVertexAttribArray(0);
+            //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            //glEnableVertexAttribArray(0);
 
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-            glEnableVertexAttribArray(1);
+            //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            //glEnableVertexAttribArray(1);
 
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-            glEnableVertexAttribArray(2);
+            //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+            //glEnableVertexAttribArray(2);
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            //glBindBuffer(GL_ARRAY_BUFFER, 0);
+            //glBindVertexArray(0);
+            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            glm::mat4 mvp = projection * camera.View() * m_Bundle.transforms[i][0];
+            glm::mat4 mvp = projection * camera.View() * m_Transforms[i];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
-            glBindVertexArray(VAOs[i]);
-            glDrawElements(GL_TRIANGLES, (int)m_Bundle.packets[i].indexData.size(), GL_UNSIGNED_INT, nullptr);
+            glBindVertexArray(m_VAOs[i]);
+            glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
 
-        glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
-        glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
-        glDeleteVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
+        //glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
+        //glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
+        //glDeleteVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
 
         glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
         std::vector<Pixel> pixels{ };
@@ -197,9 +201,7 @@ namespace Rutile {
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels.data());
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glBindTexture(GL_TEXTURE_2D, 0);
-
         glDisable(GL_DEPTH_TEST);
 
         glfwMakeContextCurrent(currentContextBackup);
@@ -241,6 +243,66 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::SetBundle(const Bundle& bundle) {
-        m_Bundle = bundle;
+        glDeleteBuffers(     static_cast<GLsizei>(m_PacketCount), m_EBOs.data());
+        glDeleteBuffers(     static_cast<GLsizei>(m_PacketCount), m_VBOs.data());
+        glDeleteVertexArrays(static_cast<GLsizei>(m_PacketCount), m_VAOs.data());
+
+        m_VAOs         .clear();
+        m_VBOs         .clear();
+        m_EBOs         .clear();
+
+        m_IndexCounts  .clear();
+        m_Transforms   .clear();
+
+        m_MaterialTypes.clear();
+        m_Materials    .clear();
+
+        m_PacketCount = bundle.packets.size();
+
+        m_VAOs         .resize(m_PacketCount);
+        m_VBOs         .resize(m_PacketCount);
+        m_EBOs         .resize(m_PacketCount);
+
+        m_IndexCounts  .resize(m_PacketCount);
+        m_Transforms   .resize(m_PacketCount);
+
+        m_MaterialTypes.resize(m_PacketCount);
+        m_Materials    .resize(m_PacketCount);
+
+        glGenVertexArrays(static_cast<GLsizei>(m_PacketCount), m_VAOs.data());
+        glGenBuffers(     static_cast<GLsizei>(m_PacketCount), m_VBOs.data());
+        glGenBuffers(     static_cast<GLsizei>(m_PacketCount), m_EBOs.data());
+
+        for (size_t i = 0; i < m_PacketCount; ++i) {
+            std::vector<Vertex> vertices = bundle.packets[i].vertexData;
+            std::vector<Index> indices = bundle.packets[i].indexData;
+
+            m_IndexCounts[i] = indices.size();
+            m_Transforms[i] = bundle.transforms[i][0];
+
+            m_MaterialTypes[i] = bundle.packets[i].materialType;
+            m_Materials[i] = bundle.packets[i].material;
+
+            glBindVertexArray(m_VAOs[i]);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[i]);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBOs[i]);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+            glEnableVertexAttribArray(2);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
     }
 }

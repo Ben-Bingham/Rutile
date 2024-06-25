@@ -29,16 +29,26 @@ namespace Rutile {
         RenderingMode renderingMode{ LOWEST_COMMON_MATERIAL };
 
     private:
-        Bundle m_Bundle;
-
         unsigned int m_SolidShader;
         unsigned int m_PhongShader;
 
-        unsigned int m_FBO{ 0 };
-        unsigned int m_FBOTexture{ 0 };
-        unsigned int m_RBO{ 0 };
+        unsigned int m_FBO;
+        unsigned int m_FBOTexture;
+        unsigned int m_RBO;
 
         size_t m_Width;
         size_t m_Height;
-    };
+
+        size_t m_PacketCount;
+
+        std::vector<unsigned int> m_VAOs;
+        std::vector<unsigned int> m_VBOs;
+        std::vector<unsigned int> m_EBOs;
+
+        std::vector<size_t> m_IndexCounts;
+        std::vector<glm::mat4> m_Transforms;
+
+        std::vector<MaterialType> m_MaterialTypes;
+        std::vector<Material*> m_Materials;
+	};
 }
