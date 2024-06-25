@@ -22,6 +22,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+#include "rendering/Camera.h"
+
 GLFWwindow* window;
 
 size_t width = 600;
@@ -243,14 +245,15 @@ int main() {
 
     std::chrono::duration<double> frameTime = std::chrono::duration<double>(1.0 / 60.0);
 
-    glm::vec3 cameraPos  { 0.0f,  0.0f,  7.5f };
+    /*glm::vec3 cameraPos  { 0.0f,  0.0f,  7.5f };
     glm::vec3 cameraFront{ 0.0f,  0.0f, -1.0f };
     glm::vec3 cameraUp   { 0.0f,  1.0f,  0.0f };
     glm::vec3 cameraRight{ 1.0f,  0.0f,  0.0f };
     float cameraSpeed = 5.0f;
     float cameraYaw = -90.0f;
     float cameraPitch = 0.0f;
-    float mouseSensitivity = 0.25f;
+    float mouseSensitivity = 0.25f;*/
+    Camera camera;
 
     bool mouseDown = false;
 
@@ -264,24 +267,24 @@ int main() {
         glfwPollEvents();
 
         float dt = static_cast<float>(frameTime.count());
-        float velocity = cameraSpeed * dt;
+        float velocity = camera.speed * dt;
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            cameraPos += cameraFront * velocity;
+            camera.position += camera.frontVector * velocity;
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            cameraPos -= cameraFront * velocity;
+            camera.position -= camera.frontVector * velocity;
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            cameraPos += cameraRight * velocity;
+            camera.position += camera.rightVector * velocity;
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            cameraPos -= cameraRight * velocity;
+            camera.position -= camera.rightVector * velocity;
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-            cameraPos += cameraUp * velocity;
+            camera.position += camera.upVector * velocity;
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-            cameraPos -= cameraUp * velocity;
+            camera.position -= camera.upVector * velocity;
         }
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
@@ -300,21 +303,21 @@ int main() {
             float xDelta = (float)mouseX - (float)lastMouseX;
             float yDelta = (float)lastMouseY - (float)mouseY; // reversed since y-coordinates go from bottom to top
 
-            cameraYaw += xDelta * mouseSensitivity;
-            cameraPitch += yDelta * mouseSensitivity;
+            camera.yaw += xDelta * camera.lookSensitivity;
+            camera.pitch += yDelta * camera.lookSensitivity;
 
-            if (cameraPitch > 89.9f) {
-                cameraPitch = 89.9f;
-            } else if (cameraPitch < -89.9f) {
-                cameraPitch = -89.9f;
+            if (camera.pitch > 89.9f) {
+                camera.pitch = 89.9f;
+            } else if (camera.pitch < -89.9f) {
+                camera.pitch = -89.9f;
             }
 
-            cameraFront.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
-            cameraFront.y = sin(glm::radians(cameraPitch));
-            cameraFront.z = sin(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
-            cameraFront = glm::normalize(cameraFront);
+            camera.frontVector.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+            camera.frontVector.y = sin(glm::radians(camera.pitch));
+            camera.frontVector.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
+            camera.frontVector   = glm::normalize(camera.frontVector);
 
-            cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+            camera.rightVector   = glm::normalize(glm::cross(camera.frontVector, camera.upVector));
 
             lastMouseX = mouseX;
             lastMouseY = mouseY;
@@ -383,6 +386,12 @@ int main() {
         Solid solid2;
         solid2.color = { 0.2f, 0.5f, 0.7f };
 
+        Phong phong;
+        phong.ambient = glm::vec3{ 1.0f, 0.5f, 0.31f };
+        phong.diffuse = glm::vec3{ 1.0f, 0.5f, 0.31f };
+        phong.specular = glm::vec3{ 0.5f, 0.5f, 0.5f };
+        phong.shininess = 32.0f;
+
         glm::mat4 transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
         geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid);
@@ -401,14 +410,14 @@ int main() {
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid);
+        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.frontVector, camera.upVector);
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-        std::vector<Pixel> pixels = renderer->Render(bundle, view, projection);
+        std::vector<Pixel> pixels = renderer->Render(bundle, view, projection, camera);
 
         // Rendering texture with pixel data
         {

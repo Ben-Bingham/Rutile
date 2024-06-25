@@ -32,11 +32,8 @@ namespace Rutile {
         return shader;
     }
 
-    void OpenGlRenderer::Init(size_t width, size_t height) {
-        m_Width = width;
-        m_Height = height;
-
-        std::string vertexShaderSource = readShader("assets\\shaders\\renderers\\OpenGl\\primary.vert");
+    unsigned int createShader(const std::string& vertexPath, const std::string& fragmentPath) {
+        std::string vertexShaderSource = readShader(vertexPath);
         const char* vertexSource = vertexShaderSource.c_str();
 
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -52,7 +49,7 @@ namespace Rutile {
             std::cout << infoLog << std::endl;
         }
 
-        std::string fragmentShaderSource = readShader("assets\\shaders\\renderers\\OpenGl\\primary.frag");
+        std::string fragmentShaderSource = readShader(fragmentPath);
         const char* fragmentSource = fragmentShaderSource.c_str();
 
         unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -66,20 +63,30 @@ namespace Rutile {
             std::cout << infoLog << std::endl;
         }
 
-        m_ShaderProgram = glCreateProgram();
-        glAttachShader(m_ShaderProgram, vertexShader);
-        glAttachShader(m_ShaderProgram, fragmentShader);
-        glLinkProgram(m_ShaderProgram);
+        unsigned int shaderProgram = glCreateProgram();
+        glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, fragmentShader);
+        glLinkProgram(shaderProgram);
 
-        glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
+        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
         if (!success) {
-            glGetProgramInfoLog(m_ShaderProgram, 512, nullptr, infoLog);
+            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
             std::cout << "ERROR: Shader program failed to link:" << std::endl;
             std::cout << infoLog << std::endl;
         }
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        return shaderProgram;
+    }
+
+    void OpenGlRenderer::Init(size_t width, size_t height) {
+        m_Width = width;
+        m_Height = height;
+
+        m_SolidShader = createShader("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
+        m_PhongShader = createShader("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
 
         // Framebuffer creation
         glGenFramebuffers(1, &m_FBO);
@@ -106,7 +113,7 @@ namespace Rutile {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) {
+    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) {
         GLFWwindow* currentContextBackup = glfwGetCurrentContext();
 
         glEnable(GL_DEPTH_TEST);
@@ -115,8 +122,6 @@ namespace Rutile {
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glUseProgram(m_ShaderProgram);
 
         std::vector<unsigned int> VAOs;
         std::vector<unsigned int> VBOs;
@@ -137,12 +142,34 @@ namespace Rutile {
             MaterialType type = bundle.packets[i].materialType;
             Material* material = bundle.packets[i].material;
 
-            glm::vec3 color;
+            unsigned int* shaderProgram = nullptr;
+
             switch (type) {
-            case MaterialType::SOLID:
-                Solid* solid = dynamic_cast<Solid*>(material);
-                color = solid->color;
-                break;
+                case MaterialType::SOLID: {
+                    Solid* solid = dynamic_cast<Solid*>(material);
+
+                    shaderProgram = &m_SolidShader;
+                    glUseProgram(m_SolidShader);
+
+                    glUniform3fv(glGetUniformLocation(m_SolidShader, "color"), 1, glm::value_ptr(solid->color));
+                    break;
+                }
+                case MaterialType::PHONG: {
+                    Phong* phong = dynamic_cast<Phong*>(material);
+
+                    shaderProgram = &m_PhongShader;
+                    glUseProgram(m_PhongShader);
+
+                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.ambient"), 1, glm::value_ptr(phong->ambient));
+                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.diffuse"), 1, glm::value_ptr(phong->diffuse));
+                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.specular"), 1, glm::value_ptr(phong->ambient));
+                    glUniform1f(glGetUniformLocation(m_PhongShader, "phong.shininess"), phong->shininess);
+
+                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(bundle.transforms[i][0]));
+
+                    glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(camera.position));
+                    break;
+                }
             }
 
             for (auto transform : bundle.transforms[i]) {
@@ -172,8 +199,7 @@ namespace Rutile {
 
             glm::mat4 mvp = projection * view * bundle.transforms[i][0];
 
-            glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-            glUniform3fv(glGetUniformLocation(m_ShaderProgram, "color"), 1, glm::value_ptr(color));
+            glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
             glBindVertexArray(VAOs[i]);
             glDrawElements(GL_TRIANGLES, (int)bundle.packets[i].indexData.size(), GL_UNSIGNED_INT, nullptr);
@@ -225,6 +251,7 @@ namespace Rutile {
         glDeleteTextures(1, &m_FBOTexture);
         glDeleteFramebuffers(1, &m_FBO);
 
-        glDeleteProgram(m_ShaderProgram);
+        glDeleteProgram(m_PhongShader);
+        glDeleteProgram(m_SolidShader);
     }
 }

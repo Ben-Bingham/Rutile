@@ -14,7 +14,7 @@ namespace Rutile {
         ~RainbowTimeRenderer() override = default;
 
         void Init(size_t width, size_t height) override;
-        std::vector<Pixel> Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) override;
+        std::vector<Pixel> Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) override;
         void Cleanup() override;
 
         void Resize(size_t width, size_t height) override;

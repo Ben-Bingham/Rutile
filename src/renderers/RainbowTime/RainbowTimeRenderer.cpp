@@ -7,7 +7,7 @@ namespace Rutile {
         m_StartTime = std::chrono::system_clock::now();
     }
 
-    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection) {
+    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) {
         std::vector<Pixel> pixels{ };
 
         pixels.reserve(m_Width * m_Height);
