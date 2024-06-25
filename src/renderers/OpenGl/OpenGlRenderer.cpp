@@ -14,16 +14,15 @@ namespace Rutile {
         "\n"
         "layout (location = 0) in vec3 inPos;\n"
         "layout (location = 1) in vec3 inNormal;\n"
-        "layout (location = 2) in vec3 inColor;\n"
-        "layout (location = 3) in vec2 inUv;\n"
+        "layout (location = 2) in vec2 inUv;\n"
         "\n"
-        "out vec3 color;\n"
+        //"out vec3 color;\n"
         "\n"
         "uniform mat4 mvp;\n"
         "\n"
         "void main() {\n"
         "   gl_Position = mvp * vec4(inPos.x, inPos.y, inPos.z, 1.0);\n"
-        "   color = inColor;\n"
+        //"   color = vec3(1.0, 1.0, 0.0);\n"
         "}\n\0";
 
     const char* fragmentShaderSource = \
@@ -31,7 +30,8 @@ namespace Rutile {
         "\n"
         "out vec4 outFragColor;\n"
         "\n"
-        "in vec3 color;\n"
+        //"in vec3 color;\n"
+        "uniform vec3 color;\n"
         "\n"
         "void main() {\n"
         "   outFragColor = vec4(color.r, color.g, color.b, 1.0);\n"
@@ -133,6 +133,21 @@ namespace Rutile {
             std::vector<Vertex> vertices = bundle.packets[i].vertexData;
             std::vector<Index> indices = bundle.packets[i].indexData;
 
+            MaterialType type = bundle.packets[i].materialType;
+            Material* material = bundle.packets[i].material;
+
+            glm::vec3 color;
+            switch (type) {
+            case MaterialType::SOLID:
+                Solid* solid = dynamic_cast<Solid*>(material);
+                color = solid->color;
+                break;
+
+            //case MaterialType::PHONG:
+
+            //    break;
+            }
+
             for (auto transform : bundle.transforms[i]) {
                 // TODO Each transfrom is for a different instance of the same vertex/index data
             }
@@ -151,11 +166,8 @@ namespace Rutile {
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
             glEnableVertexAttribArray(1);
 
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
             glEnableVertexAttribArray(2);
-
-            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-            glEnableVertexAttribArray(3);
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
@@ -164,6 +176,7 @@ namespace Rutile {
             glm::mat4 mvp = projection * view * bundle.transforms[i][0];
 
             glUniformMatrix4fv(glGetUniformLocation(m_ShaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+            glUniform3fv(glGetUniformLocation(m_ShaderProgram, "color"), 1, glm::value_ptr(color));
 
             glBindVertexArray(VAOs[i]);
             glDrawElements(GL_TRIANGLES, (int)bundle.packets[i].indexData.size(), GL_UNSIGNED_INT, nullptr);

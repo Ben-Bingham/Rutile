@@ -3,19 +3,19 @@
 
 #include <glm/glm.hpp>
 
+#include "rendering/Material.h"
+
 namespace Rutile {
     struct Vertex {
         glm::vec3 position;
         glm::vec3 normal;
-        glm::vec3 color;
         glm::vec2 uv;
     };
 
     using Index = uint32_t;
 
     enum class MaterialType {
-        FLAT,
-        COLOR,
+        SOLID,
         PHONG
     };
 
@@ -23,8 +23,8 @@ namespace Rutile {
         std::vector<Vertex> vertexData;
         std::vector<Index> indexData;
 
-        MaterialType highestSupportedMaterialType;
+        MaterialType materialType;
 
-        // std::shared_ptr<Texture> texture; // Or maybe an index
+        Material* material;
     };
 }

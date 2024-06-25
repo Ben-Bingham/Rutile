@@ -377,25 +377,31 @@ int main() {
         }
 
         // Rendering
+        Solid solid;
+        solid.color = { 1.0f, 0.0f, 1.0f };
+
+        Solid solid2;
+        solid2.color = { 0.2f, 0.5f, 0.7f };
+
         glm::mat4 transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, glm::vec3{ 1.0f, 0.0f, 0.0f });
+        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid);
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ -1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, glm::vec3{ 0.5f, 0.0f, 0.0f });
+        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid2);
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::SQUARE, transform, glm::vec3{ 1.0f, 1.0f, 1.0f });
+        geometryPreprocessor.Add(Primitive::SQUARE, transform, MaterialType::SOLID, &solid);
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, transform, glm::vec3{ 0.5f, 0.0f, 1.0f });
+        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid2);
 
         transform = glm::mat4{ 1.0f };
         transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, transform, glm::vec3{ 1.0f, 0.3f, 1.0f });
+        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid);
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
