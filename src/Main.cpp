@@ -245,14 +245,6 @@ int main() {
 
     std::chrono::duration<double> frameTime = std::chrono::duration<double>(1.0 / 60.0);
 
-    /*glm::vec3 cameraPos  { 0.0f,  0.0f,  7.5f };
-    glm::vec3 cameraFront{ 0.0f,  0.0f, -1.0f };
-    glm::vec3 cameraUp   { 0.0f,  1.0f,  0.0f };
-    glm::vec3 cameraRight{ 1.0f,  0.0f,  0.0f };
-    float cameraSpeed = 5.0f;
-    float cameraYaw = -90.0f;
-    float cameraPitch = 0.0f;
-    float mouseSensitivity = 0.25f;*/
     Camera camera;
 
     bool mouseDown = false;
@@ -327,8 +319,8 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
-        ImPlot::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
+        //ImPlot::ShowDemoWindow();
 
         // Renderer Switching
         int lastRenderer = currentRenderer;
