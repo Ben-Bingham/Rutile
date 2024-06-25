@@ -23,6 +23,7 @@
 #include <glm/ext/matrix_transform.hpp>
 
 #include "rendering/Camera.h"
+#include "rendering/Material.h"
 
 /*
  * TODO The current SetBundle (with opengl) will not work once I implement modifying materials and or transforms with ImGui, but
@@ -37,8 +38,8 @@
 
 GLFWwindow* window;
 
-size_t width = 600;
-size_t height = 400;
+size_t width = 1200;
+size_t height = 800;
 
 unsigned int shaderProgram;
 

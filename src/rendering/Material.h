@@ -2,6 +2,11 @@
 #include <glm/vec3.hpp>
 
 namespace Rutile {
+    enum class MaterialType {
+        SOLID,
+        PHONG
+    };
+
     class Material {
     public:
         Material() = default;

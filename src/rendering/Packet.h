@@ -14,11 +14,6 @@ namespace Rutile {
 
     using Index = uint32_t;
 
-    enum class MaterialType {
-        SOLID,
-        PHONG
-    };
-
     struct Packet {
         std::vector<Vertex> vertexData;
         std::vector<Index> indexData;
