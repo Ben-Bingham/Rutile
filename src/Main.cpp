@@ -243,6 +243,7 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
+        ImPlot::ShowDemoWindow();
 
         // Renderer Switching
         int lastRenderer = currentRenderer;
@@ -384,8 +385,6 @@ int main() {
 
             frameTime = std::chrono::system_clock::now() - frameStart;
         }
-
-        std::cout << frameTime << std::endl;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
