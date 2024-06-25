@@ -109,25 +109,7 @@ namespace Rutile {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //std::vector<unsigned int> VAOs;
-        //std::vector<unsigned int> VBOs;
-        //std::vector<unsigned int> EBOs;
-
-        //VAOs.resize(m_Bundle.packets.size());
-        //VBOs.resize(m_Bundle.packets.size());
-        //EBOs.resize(m_Bundle.packets.size());
-
-        //glGenVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
-        //glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
-        //glGenBuffers     (static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
-
         for (size_t i = 0; i < m_PacketCount; ++i) {
-            //std::vector<Vertex> vertices = m_Bundle.packets[i].vertexData;
-            //std::vector<Index> indices = m_Bundle.packets[i].indexData;
-
-            //MaterialType type = m_Bundle.packets[i].materialType;
-            //Material* material = m_Bundle.packets[i].material;
-
             unsigned int* shaderProgram = nullptr;
 
             switch (m_MaterialTypes[i]) {
@@ -158,31 +140,6 @@ namespace Rutile {
                 }
             }
 
-            //for (auto transform : m_Bundle.transforms[i]) {
-            //    // TODO Each transfrom is for a different instance of the same vertex/index data
-            //}
-
-            //glBindVertexArray(m_VAOs[i]);
-
-            //glBindBuffer(GL_ARRAY_BUFFER, VBOs[i]);
-            //glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[i]);
-            //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-            //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-            //glEnableVertexAttribArray(0);
-
-            //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-            //glEnableVertexAttribArray(1);
-
-            //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-            //glEnableVertexAttribArray(2);
-
-            //glBindBuffer(GL_ARRAY_BUFFER, 0);
-            //glBindVertexArray(0);
-            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
             glm::mat4 mvp = projection * camera.View() * m_Transforms[i];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
@@ -190,10 +147,6 @@ namespace Rutile {
             glBindVertexArray(m_VAOs[i]);
             glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
-
-        //glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), EBOs.data());
-        //glDeleteBuffers(static_cast<GLsizei>(m_Bundle.packets.size()), VBOs.data());
-        //glDeleteVertexArrays(static_cast<GLsizei>(m_Bundle.packets.size()), VAOs.data());
 
         glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
         std::vector<Pixel> pixels{ };
