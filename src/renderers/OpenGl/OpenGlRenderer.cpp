@@ -113,7 +113,7 @@ namespace Rutile {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) {
+    std::vector<Pixel> OpenGlRenderer::Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) {
         GLFWwindow* currentContextBackup = glfwGetCurrentContext();
 
         glEnable(GL_DEPTH_TEST);
@@ -197,7 +197,7 @@ namespace Rutile {
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            glm::mat4 mvp = projection * view * bundle.transforms[i][0];
+            glm::mat4 mvp = projection * camera.View() * bundle.transforms[i][0];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 

@@ -27,7 +27,7 @@ namespace Rutile {
         m_Pixels = CreatePixels(width, height);
     }
 
-    std::vector<Pixel> HardCodedRenderer::Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) {
+    std::vector<Pixel> HardCodedRenderer::Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) {
         return m_Pixels;
     }
 

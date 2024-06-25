@@ -20,7 +20,7 @@ namespace Rutile {
 
         virtual void Init(size_t width, size_t height) = 0;         // TODO Dont pass in view, instead give camera a function that returns view, and pass in a "Screen"
                                                                     // That gives projection matrix
-        virtual std::vector<Pixel> Render(const Bundle& bundle, const glm::mat4& view, const glm::mat4& projection, const Camera& camera) = 0;
+        virtual std::vector<Pixel> Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) = 0;
         virtual void Cleanup() = 0;
 
         virtual void Resize(size_t width, size_t height) = 0;

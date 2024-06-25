@@ -406,10 +406,9 @@ int main() {
 
         Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-        glm::mat4 view = glm::lookAt(camera.position, camera.position + camera.frontVector, camera.upVector);
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-        std::vector<Pixel> pixels = renderer->Render(bundle, view, projection, camera);
+        std::vector<Pixel> pixels = renderer->Render(bundle, camera, projection);
 
         // Rendering texture with pixel data
         {

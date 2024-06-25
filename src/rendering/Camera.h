@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 
 namespace Rutile {
     struct Camera {
@@ -12,5 +12,7 @@ namespace Rutile {
         float yaw = -90.0f;
         float pitch = 0.0f;
         float lookSensitivity = 0.25f;
+
+        glm::mat4 View() const;
     };
 }
