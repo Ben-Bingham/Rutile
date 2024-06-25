@@ -136,6 +136,52 @@ namespace Rutile {
                     glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Transforms[i]));
 
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(camera.position));
+
+                    // Lighting
+                    glUniform1i(glGetUniformLocation(m_PhongShader, "pointLightCount"), static_cast<int>(m_PointLights.size()));
+                    for (size_t j = 0; j < m_PointLights.size(); ++j) {
+                        std::string prefix = "pointLights[" + std::to_string(j) + "].";
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_PointLights[j]->position));
+
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "constant").c_str()), m_PointLights[j]->constant);
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "linear").c_str()), m_PointLights[j]->linear);
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "quadratic").c_str()), m_PointLights[j]->quadratic);
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_PointLights[j]->ambient));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_PointLights[j]->diffuse));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_PointLights[j]->specular));
+                    }
+
+                    glUniform1i(glGetUniformLocation(m_PhongShader, "directionalLightCount"), static_cast<int>(m_DirectionalLights.size()));
+                    for (size_t j = 0; j < m_DirectionalLights.size(); ++j) {
+                        std::string prefix = "directionalLights[" + std::to_string(j) + "].";
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "direction").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->direction));
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->ambient));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->diffuse));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->specular));
+                    }
+
+                    glUniform1i(glGetUniformLocation(m_PhongShader, "spotLightCount"), static_cast<int>(m_SpotLights.size()));
+                    for (size_t j = 0; j < m_SpotLights.size(); ++j) {
+                        std::string prefix = "spotLights[" + std::to_string(j) + "].";
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_SpotLights[j]->position));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "direction").c_str()), 1, glm::value_ptr(m_SpotLights[j]->direction));
+
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "cutOff").c_str()), m_SpotLights[j]->cutOff);
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "outerCutOff").c_str()), m_SpotLights[j]->outerCutOff);
+
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "constant").c_str()), m_SpotLights[j]->constant);
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "linear").c_str()), m_SpotLights[j]->linear);
+                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "quadratic").c_str()), m_SpotLights[j]->quadratic);
+
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_SpotLights[j]->ambient));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_SpotLights[j]->diffuse));
+                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_SpotLights[j]->specular));
+                    }
                     break;
                 }
             }
@@ -196,6 +242,31 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::SetBundle(const Bundle& bundle) {
+        // Lights
+        m_PointLights.clear();
+        m_DirectionalLights.clear();
+        m_SpotLights.clear();
+
+        for (size_t i = 0; i < bundle.lights.size(); ++i) {
+            LightType type = bundle.lightTypes[i];
+
+            switch (type) {
+                case LightType::POINT: {
+                    m_PointLights.push_back(dynamic_cast<PointLight*>(bundle.lights[i]));
+                    break;
+                }
+                case LightType::DIRECTION: {
+                    m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(bundle.lights[i]));
+                    break;
+                }
+                case LightType::SPOTLIGHT: {
+                    m_SpotLights.push_back(dynamic_cast<SpotLight*>(bundle.lights[i]));
+                    break;
+                }
+            }
+        }
+
+        // Geometry
         glDeleteBuffers(     static_cast<GLsizei>(m_PacketCount), m_EBOs.data());
         glDeleteBuffers(     static_cast<GLsizei>(m_PacketCount), m_VBOs.data());
         glDeleteVertexArrays(static_cast<GLsizei>(m_PacketCount), m_VAOs.data());

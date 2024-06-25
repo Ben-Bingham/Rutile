@@ -2,6 +2,8 @@
 
 #include "../Renderer.h"
 
+#include <GLFW/glfw3native.h>
+
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
 	public:
@@ -38,6 +40,10 @@ namespace Rutile {
 
         size_t m_Width;
         size_t m_Height;
+
+        std::vector<PointLight*> m_PointLights;
+        std::vector<DirectionalLight*> m_DirectionalLights;
+        std::vector<SpotLight*> m_SpotLights;
 
         size_t m_PacketCount;
 

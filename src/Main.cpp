@@ -246,9 +246,9 @@ int main() {
     solid2.color = { 0.2f, 0.5f, 0.7f };
 
     Phong phong;
-    phong.ambient = glm::vec3{ 1.0f, 0.5f, 0.31f };
-    phong.diffuse = glm::vec3{ 1.0f, 0.5f, 0.31f };
-    phong.specular = glm::vec3{ 0.5f, 0.5f, 0.5f };
+    phong.ambient = { 1.0f, 0.5f, 0.31f };
+    phong.diffuse = { 1.0f, 0.5f, 0.31f };
+    phong.specular = { 0.5f, 0.5f, 0.5f };
     phong.shininess = 32.0f;
 
     glm::mat4 transform = glm::mat4{ 1.0f };
@@ -270,6 +270,45 @@ int main() {
     transform = glm::mat4{ 1.0f };
     transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
     geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
+
+    //PointLight pointLight;
+    //pointLight.position = { -2.0f, 2.0f, 2.0f };
+
+    //pointLight.ambient = { 0.05f, 0.05f, 0.05f };
+    //pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
+    //pointLight.specular = { 1.0f, 1.0f, 1.0f };
+
+    //pointLight.constant = 1.0f;
+    //pointLight.linear = 0.09f;
+    //pointLight.quadratic = 0.032f;
+
+    //geometryPreprocessor.Add(LightType::POINT, &pointLight);
+
+    //DirectionalLight directionalLight;
+    //directionalLight.direction = { 0.0f, -1.0f, 0.0f };
+
+    //directionalLight.ambient = { 0.05f, 0.05f, 0.05f };
+    //directionalLight.diffuse = { 0.4f, 0.4f, 0.4f };
+    //directionalLight.specular = { 0.5f, 0.5f, 0.5f };
+
+    //geometryPreprocessor.Add(LightType::DIRECTION, &directionalLight);
+
+    SpotLight spotLight;
+    spotLight.position = { 0.0f, 0.0f, 0.0f };
+    spotLight.direction = { 0.0f, 0.0f, -1.0f };
+
+    spotLight.ambient = { 0.0f, 0.0f, 0.0f };
+    spotLight.diffuse = { 1.0f, 1.0f, 1.0f };
+    spotLight.specular = { 1.0f, 1.0f, 1.0f };
+
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+
+    spotLight.cutOff = glm::cos(glm::radians(12.5f));
+    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+
+    geometryPreprocessor.Add(LightType::SPOTLIGHT, &spotLight);
 
     Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
@@ -362,6 +401,9 @@ int main() {
             lastMouseX = mouseX;
             lastMouseY = mouseY;
         }
+
+        spotLight.position = camera.position;
+        spotLight.direction = camera.frontVector;
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();

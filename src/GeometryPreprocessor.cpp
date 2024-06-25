@@ -117,4 +117,9 @@ namespace Rutile {
             break;
         }
     }
+
+    void GeometryPreprocessor::Add(LightType type, Light* light) {
+        m_CurrentBundle.lightTypes.push_back(type);
+        m_CurrentBundle.lights.push_back(light);
+    }
 }

@@ -19,6 +19,8 @@ namespace Rutile {
 
 		void Add(Primitive primitive, glm::mat4 transform, MaterialType materialType, Material* material);
 
+		void Add(LightType type, Light* light);
+
 	private:
 		Bundle m_CurrentBundle;
 	};

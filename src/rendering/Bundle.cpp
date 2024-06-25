@@ -9,5 +9,8 @@ namespace Rutile {
         }
 
         bundle.transforms.clear();
+
+        bundle.lightTypes.clear();
+        bundle.lights.clear();
     }
 }
