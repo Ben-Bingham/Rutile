@@ -271,27 +271,27 @@ int main() {
     transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
     geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
 
-    //PointLight pointLight;
-    //pointLight.position = { -2.0f, 2.0f, 2.0f };
+    PointLight pointLight;
+    pointLight.position = { -2.0f, 2.0f, 2.0f };
 
-    //pointLight.ambient = { 0.05f, 0.05f, 0.05f };
-    //pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
-    //pointLight.specular = { 1.0f, 1.0f, 1.0f };
+    pointLight.ambient = { 0.05f, 0.05f, 0.05f };
+    pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
+    pointLight.specular = { 1.0f, 1.0f, 1.0f };
 
-    //pointLight.constant = 1.0f;
-    //pointLight.linear = 0.09f;
-    //pointLight.quadratic = 0.032f;
+    pointLight.constant = 1.0f;
+    pointLight.linear = 0.09f;
+    pointLight.quadratic = 0.032f;
 
-    //geometryPreprocessor.Add(LightType::POINT, &pointLight);
+    geometryPreprocessor.Add(LightType::POINT, &pointLight);
 
-    //DirectionalLight directionalLight;
-    //directionalLight.direction = { 0.0f, -1.0f, 0.0f };
+    DirectionalLight directionalLight;
+    directionalLight.direction = { 0.0f, -1.0f, 0.0f };
 
-    //directionalLight.ambient = { 0.05f, 0.05f, 0.05f };
-    //directionalLight.diffuse = { 0.4f, 0.4f, 0.4f };
-    //directionalLight.specular = { 0.5f, 0.5f, 0.5f };
+    directionalLight.ambient = { 0.05f, 0.05f, 0.05f };
+    directionalLight.diffuse = { 0.4f, 0.4f, 0.4f };
+    directionalLight.specular = { 0.5f, 0.5f, 0.5f };
 
-    //geometryPreprocessor.Add(LightType::DIRECTION, &directionalLight);
+    geometryPreprocessor.Add(LightType::DIRECTION, &directionalLight);
 
     SpotLight spotLight;
     spotLight.position = { 0.0f, 0.0f, 0.0f };
