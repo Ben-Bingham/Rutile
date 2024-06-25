@@ -29,6 +29,10 @@
  * TODO if instead of storing copies of both materials and transforms, the renderers can either store pointers, or simply indices
  * TODO into a global list of materials/transforms, than if they are modified there is no need to recreate the whole bundle, instead
  * TODO the bundle only needs to be "re Set" when a new packet is added, or when the geometry of a packet is modified.
+ *
+ * TODO Instanced Rendering
+ *
+ * TODO Frame Time Stats
  */
 
 GLFWwindow* window;
@@ -315,10 +319,10 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
             camera.position -= camera.rightVector * velocity;
         }
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
             camera.position += camera.upVector * velocity;
         }
-        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             camera.position -= camera.upVector * velocity;
         }
 
