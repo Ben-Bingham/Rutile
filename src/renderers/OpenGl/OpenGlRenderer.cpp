@@ -2,6 +2,8 @@
 #include "imgui.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
@@ -9,40 +11,36 @@
 #include <glm/gtc/type_ptr.inl>
 
 namespace Rutile {
-    const char* vertexShaderSource = \
-        "#version 330 core\n"
-        "\n"
-        "layout (location = 0) in vec3 inPos;\n"
-        "layout (location = 1) in vec3 inNormal;\n"
-        "layout (location = 2) in vec2 inUv;\n"
-        "\n"
-        //"out vec3 color;\n"
-        "\n"
-        "uniform mat4 mvp;\n"
-        "\n"
-        "void main() {\n"
-        "   gl_Position = mvp * vec4(inPos.x, inPos.y, inPos.z, 1.0);\n"
-        //"   color = vec3(1.0, 1.0, 0.0);\n"
-        "}\n\0";
+    std::string readShader(const std::string& path) {
+        std::string shader;
+        std::ifstream file;
 
-    const char* fragmentShaderSource = \
-        "#version 330 core\n"
-        "\n"
-        "out vec4 outFragColor;\n"
-        "\n"
-        //"in vec3 color;\n"
-        "uniform vec3 color;\n"
-        "\n"
-        "void main() {\n"
-        "   outFragColor = vec4(color.r, color.g, color.b, 1.0);\n"
-        "}\n\0";
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        try {
+            file.open(path);
+
+            std::stringstream shaderStream;
+            shaderStream << file.rdbuf();
+
+            file.close();
+            shader = shaderStream.str();
+        }
+        catch (std::ifstream::failure& e) {
+            std::cout << "ERROR: Could not successfully read shader with path: " << path << "And error: " << e.what() << std::endl;
+        }
+
+        return shader;
+    }
 
     void OpenGlRenderer::Init(size_t width, size_t height) {
         m_Width = width;
         m_Height = height;
 
+        std::string vertexShaderSource = readShader("assets\\shaders\\renderers\\OpenGl\\primary.vert");
+        const char* vertexSource = vertexShaderSource.c_str();
+
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+        glShaderSource(vertexShader, 1, &vertexSource, nullptr);
         glCompileShader(vertexShader);
 
         int success;
@@ -54,8 +52,11 @@ namespace Rutile {
             std::cout << infoLog << std::endl;
         }
 
+        std::string fragmentShaderSource = readShader("assets\\shaders\\renderers\\OpenGl\\primary.frag");
+        const char* fragmentSource = fragmentShaderSource.c_str();
+
         unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+        glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
         glCompileShader(fragmentShader);
 
         glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
@@ -142,10 +143,6 @@ namespace Rutile {
                 Solid* solid = dynamic_cast<Solid*>(material);
                 color = solid->color;
                 break;
-
-            //case MaterialType::PHONG:
-
-            //    break;
             }
 
             for (auto transform : bundle.transforms[i]) {

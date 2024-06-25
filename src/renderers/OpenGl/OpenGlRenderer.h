@@ -18,6 +18,14 @@ namespace Rutile {
 
         void Resize(size_t width, size_t height) override;
 
+        enum RenderingMode {
+            LOWEST_COMMON_MATERIAL,
+            HIGHTEST_COMMON_MATERIAL,
+            INDIVIDUAL_MATERIALS
+        };
+
+        RenderingMode renderingMode{ LOWEST_COMMON_MATERIAL };
+
     private:
         unsigned int m_ShaderProgram;
 
