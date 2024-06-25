@@ -1,13 +1,13 @@
 #include "RainbowTimeRenderer.h"
 
 namespace Rutile {
-    void RainbowTimeRenderer::Init(size_t width, size_t height) {
-        m_Width = width;
-        m_Height = height;
+    void RainbowTimeRenderer::Init() {
         m_StartTime = std::chrono::system_clock::now();
     }
 
-    std::vector<Pixel> RainbowTimeRenderer::Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) {
+    void RainbowTimeRenderer::Cleanup() { }
+
+    std::vector<Pixel> RainbowTimeRenderer::Render(const Camera& camera, const glm::mat4& projection) {
         std::vector<Pixel> pixels{ };
 
         pixels.reserve(m_Width * m_Height);
@@ -36,10 +36,10 @@ namespace Rutile {
         return pixels;
     }
 
-    void RainbowTimeRenderer::Cleanup() { }
-
-    void RainbowTimeRenderer::Resize(size_t width, size_t height) {
+    void RainbowTimeRenderer::SetSize(size_t width, size_t height) {
         m_Width = width;
         m_Height = height;
     }
+
+    void RainbowTimeRenderer::SetBundle(const Bundle& bundle) { }
 }

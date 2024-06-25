@@ -12,11 +12,13 @@ namespace Rutile {
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override = default;
 
-        void Init(size_t width, size_t height) override;
-        std::vector<Pixel> Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) override;
+        void Init() override;
         void Cleanup() override;
 
-        void Resize(size_t width, size_t height) override;
+        std::vector<Pixel> Render(const Camera& camera, const glm::mat4& projection) override;
+
+        void SetSize(size_t width, size_t height) override;
+        void SetBundle(const Bundle& bundle) override;
 
         enum RenderingMode {
             LOWEST_COMMON_MATERIAL,
@@ -27,12 +29,14 @@ namespace Rutile {
         RenderingMode renderingMode{ LOWEST_COMMON_MATERIAL };
 
     private:
+        Bundle m_Bundle;
+
         unsigned int m_SolidShader;
         unsigned int m_PhongShader;
 
-        unsigned int m_FBO;
-        unsigned int m_FBOTexture;
-        unsigned int m_RBO;
+        unsigned int m_FBO{ 0 };
+        unsigned int m_FBOTexture{ 0 };
+        unsigned int m_RBO{ 0 };
 
         size_t m_Width;
         size_t m_Height;

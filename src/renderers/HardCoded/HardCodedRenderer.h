@@ -13,11 +13,13 @@ namespace Rutile {
         HardCodedRenderer& operator=(HardCodedRenderer&& other) noexcept = default;
         ~HardCodedRenderer() override = default;
 
-        void Init(size_t width, size_t height) override;
-        std::vector<Pixel> Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) override;
+        void Init() override;
         void Cleanup() override;
 
-        void Resize(size_t width, size_t height) override;
+        std::vector<Pixel> Render(const Camera& camera, const glm::mat4& projection) override;
+
+        void SetSize(size_t width, size_t height) override;
+        void SetBundle(const Bundle& bundle) override;
 
     private:
         std::vector<Pixel> m_Pixels;

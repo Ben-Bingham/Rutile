@@ -227,10 +227,46 @@ Settings settings;
 int main() {
     GeometryPreprocessor geometryPreprocessor{ };
 
+    Solid solid;
+    solid.color = { 1.0f, 0.0f, 1.0f };
+
+    Solid solid2;
+    solid2.color = { 0.2f, 0.5f, 0.7f };
+
+    Phong phong;
+    phong.ambient = glm::vec3{ 1.0f, 0.5f, 0.31f };
+    phong.diffuse = glm::vec3{ 1.0f, 0.5f, 0.31f };
+    phong.specular = glm::vec3{ 0.5f, 0.5f, 0.5f };
+    phong.shininess = 32.0f;
+
+    glm::mat4 transform = glm::mat4{ 1.0f };
+    transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid);
+
+    transform = glm::mat4{ 1.0f };
+    transform = glm::translate(transform, glm::vec3{ -1.0f, -1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid2);
+
+    transform = glm::mat4{ 1.0f };
+    transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::SQUARE, transform, MaterialType::SOLID, &solid);
+
+    transform = glm::mat4{ 1.0f };
+    transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid2);
+
+    transform = glm::mat4{ 1.0f };
+    transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
+
+    Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
+
     screenInit();
 
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
-    renderer->Init(width, height);
+    renderer->Init();
+    renderer->SetSize(width, height);
+    renderer->SetBundle(bundle);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -357,11 +393,13 @@ int main() {
                 break;
             }
 
-            renderer->Init(width, height);
+            renderer->Init();
+            renderer->SetSize(width, height);
+            renderer->SetBundle(bundle);
         }
 
         if (resize) {
-            renderer->Resize(width, height);
+            renderer->SetSize(width, height);
             resize = false;
         }
 
@@ -372,43 +410,9 @@ int main() {
         }
 
         // Rendering
-        Solid solid;
-        solid.color = { 1.0f, 0.0f, 1.0f };
-
-        Solid solid2;
-        solid2.color = { 0.2f, 0.5f, 0.7f };
-
-        Phong phong;
-        phong.ambient = glm::vec3{ 1.0f, 0.5f, 0.31f };
-        phong.diffuse = glm::vec3{ 1.0f, 0.5f, 0.31f };
-        phong.specular = glm::vec3{ 0.5f, 0.5f, 0.5f };
-        phong.shininess = 32.0f;
-
-        glm::mat4 transform = glm::mat4{ 1.0f };
-        transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid);
-
-        transform = glm::mat4{ 1.0f };
-        transform = glm::translate(transform, glm::vec3{ -1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid2);
-
-        transform = glm::mat4{ 1.0f };
-        transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::SQUARE, transform, MaterialType::SOLID, &solid);
-
-        transform = glm::mat4{ 1.0f };
-        transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid2);
-
-        transform = glm::mat4{ 1.0f };
-        transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
-
-        Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
-
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-        std::vector<Pixel> pixels = renderer->Render(bundle, camera, projection);
+        std::vector<Pixel> pixels = renderer->Render(camera, projection);
 
         // Rendering texture with pixel data
         {

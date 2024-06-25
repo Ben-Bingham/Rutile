@@ -1,10 +1,17 @@
 #include "HardCodedRenderer.h"
 
 namespace Rutile {
-    std::vector<Pixel> CreatePixels(size_t width, size_t height) {
-        std::vector<Pixel> pixels{ };
+    void HardCodedRenderer::Init() { }
 
-        pixels.reserve(width * height);
+    void HardCodedRenderer::Cleanup() { }
+
+    std::vector<Pixel> HardCodedRenderer::Render(const Camera& camera, const glm::mat4& projection) {
+        return m_Pixels;
+    }
+
+    void HardCodedRenderer::SetSize(size_t width, size_t height) {
+        m_Pixels.clear();
+        m_Pixels.reserve(width * height);
 
         for (size_t x = 0; x < width; ++x) {
             for (size_t y = 0; y < height; ++y) {
@@ -16,24 +23,10 @@ namespace Rutile {
                 bytePixel[2] = 0;
                 bytePixel[3] = 255;
 
-                pixels.push_back(pixel);
+                m_Pixels.push_back(pixel);
             }
         }
-
-        return pixels;
     }
 
-    void HardCodedRenderer::Init(size_t width, size_t height) {
-        m_Pixels = CreatePixels(width, height);
-    }
-
-    std::vector<Pixel> HardCodedRenderer::Render(const Bundle& bundle, const Camera& camera, const glm::mat4& projection) {
-        return m_Pixels;
-    }
-
-    void HardCodedRenderer::Cleanup() { }
-
-    void HardCodedRenderer::Resize(size_t width, size_t height) {
-        m_Pixels = CreatePixels(width, height);
-    }
+    void HardCodedRenderer::SetBundle(const Bundle& bundle) { }
 }
