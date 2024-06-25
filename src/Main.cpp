@@ -24,6 +24,13 @@
 
 #include "rendering/Camera.h"
 
+/*
+ * TODO The current SetBundle (with opengl) will not work once I implement modifying materials and or transforms with ImGui, but
+ * TODO if instead of storing copies of both materials and transforms, the renderers can either store pointers, or simply indices
+ * TODO into a global list of materials/transforms, than if they are modified there is no need to recreate the whole bundle, instead
+ * TODO the bundle only needs to be "re Set" when a new packet is added, or when the geometry of a packet is modified.
+ */
+
 GLFWwindow* window;
 
 size_t width = 600;
