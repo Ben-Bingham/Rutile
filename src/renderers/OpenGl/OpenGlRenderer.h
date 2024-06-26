@@ -17,7 +17,7 @@ namespace Rutile {
         GLFWwindow* Init() override;
         void Cleanup(GLFWwindow* window) override;
 
-        std::vector<Pixel> Render(const Camera& camera, const glm::mat4& projection) override;
+        std::vector<Pixel> Render(const glm::mat4& projection) override;
 
         void SetBundle(const Bundle& bundle) override;
 

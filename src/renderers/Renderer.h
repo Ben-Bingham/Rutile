@@ -24,7 +24,7 @@ namespace Rutile {
         virtual GLFWwindow* Init() = 0;
         virtual void Cleanup(GLFWwindow* window) = 0;
 
-        virtual std::vector<Pixel> Render(const Camera& camera, const glm::mat4& projection) = 0;
+        virtual std::vector<Pixel> Render(const glm::mat4& projection) = 0;
 
         virtual void SetBundle(const Bundle& bundle) = 0;
 

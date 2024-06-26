@@ -32,8 +32,11 @@ namespace Rutile {
         inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
 
+        inline static Camera camera;
+
         inline static bool mouseDown = false;
         inline static glm::ivec2 mousePosition = { 0, 0 };
+        inline static glm::ivec2 lastMousePosition = mousePosition;
 
         inline static std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
         inline static std::chrono::duration<double> frameTime = idealFrameTime;

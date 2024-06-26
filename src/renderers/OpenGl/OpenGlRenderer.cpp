@@ -124,7 +124,7 @@ namespace Rutile {
         glfwDestroyWindow(window);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const Camera& camera, const glm::mat4& projection) {
+    std::vector<Pixel> OpenGlRenderer::Render(const glm::mat4& projection) {
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -155,7 +155,7 @@ namespace Rutile {
 
                     glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(*m_Transforms[i]));
 
-                    glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(camera.position));
+                    glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(App::camera.position));
 
                     // Lighting
                     glUniform1i(glGetUniformLocation(m_PhongShader, "pointLightCount"), static_cast<int>(m_PointLights.size()));
@@ -206,7 +206,7 @@ namespace Rutile {
                 }
             }
 
-            glm::mat4 mvp = projection * camera.View() * *m_Transforms[i];
+            glm::mat4 mvp = projection * App::camera.View() * *m_Transforms[i];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 

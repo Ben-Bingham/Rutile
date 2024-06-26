@@ -20,6 +20,8 @@
 #include "rendering/Camera.h"
 #include "rendering/Material.h"
 
+#include "tools/CameraMovement.h"
+
 using namespace Rutile;
 
 void CreateCurrentRenderer(App::RendererType type) {
@@ -133,77 +135,13 @@ int main() {
 
     CreateCurrentRenderer(App::currentRendererType);
 
-    Camera camera;
-
-    int lastMouseX = 0;
-    int lastMouseY = 0;
-
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
         auto frameStart = std::chrono::system_clock::now();
 
         glfwPollEvents();
-        // Movement
-        {
-            float dt = static_cast<float>(App::frameTime.count());
-            float velocity = camera.speed * dt;
-            if (glfwGetKey(App::window, GLFW_KEY_W) == GLFW_PRESS) {
-                camera.position += camera.frontVector * velocity;
-            }
-            if (glfwGetKey(App::window, GLFW_KEY_S) == GLFW_PRESS) {
-                camera.position -= camera.frontVector * velocity;
-            }
-            if (glfwGetKey(App::window, GLFW_KEY_D) == GLFW_PRESS) {
-                camera.position += camera.rightVector * velocity;
-            }
-            if (glfwGetKey(App::window, GLFW_KEY_A) == GLFW_PRESS) {
-                camera.position -= camera.rightVector * velocity;
-            }
-            if (glfwGetKey(App::window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-                camera.position += camera.upVector * velocity;
-            }
-            if (glfwGetKey(App::window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-                camera.position -= camera.upVector * velocity;
-            }
 
-            if (glfwGetMouseButton(App::window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-                if (App::mouseDown == false) {
-                    lastMouseX = App::mousePosition.x;
-                    lastMouseY = App::mousePosition.y;
-                }
-
-                App::mouseDown = true;
-            }
-
-            if (glfwGetMouseButton(App::window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
-                App::mouseDown = false;
-            }
-
-            if (App::mouseDown) {
-                float xDelta = (float)App::mousePosition.x - (float)lastMouseX;
-                float yDelta = (float)lastMouseY - (float)App::mousePosition.y; // reversed since y-coordinates go from bottom to top
-
-                camera.yaw += xDelta * camera.lookSensitivity;
-                camera.pitch += yDelta * camera.lookSensitivity;
-
-                if (camera.pitch > 89.9f) {
-                    camera.pitch = 89.9f;
-                }
-                else if (camera.pitch < -89.9f) {
-                    camera.pitch = -89.9f;
-                }
-
-                camera.frontVector.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-                camera.frontVector.y = sin(glm::radians(camera.pitch));
-                camera.frontVector.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
-                camera.frontVector = glm::normalize(camera.frontVector);
-
-                camera.rightVector = glm::normalize(glm::cross(camera.frontVector, camera.upVector));
-
-                lastMouseX = App::mousePosition.x;
-                lastMouseY = App::mousePosition.y;
-            }
-        }
+        MoveCamera();
 
         { // Reacting to settings changes
             if (App::restartRenderer) {
@@ -229,7 +167,7 @@ int main() {
             MainGuiWindow();
 
             glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
-            std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
+            std::vector<Pixel> pixels = App::renderer->Render(projection);
 
             App::imGui.FinishFrame();
 
