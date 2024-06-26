@@ -221,7 +221,7 @@ namespace Rutile {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void OpenGlRenderer::SetBundle(const Bundle& bundle) {
+    void OpenGlRenderer::SetBundle(const Scene& bundle) {
         // Lights
         m_PointLights.clear();
         m_DirectionalLights.clear();

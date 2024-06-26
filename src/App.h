@@ -4,7 +4,7 @@
 
 #include "glm/glm.hpp"
 
-#include "rendering/Bundle.h"
+#include "rendering/Scene.h"
 #include "tools/ImGuiInstance.h"
 #include "tools/GLFW.h"
 
@@ -26,7 +26,7 @@ namespace Rutile {
         inline static GLFW glfw{ };
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
-        inline static Bundle bundle;
+        inline static Scene bundle;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 

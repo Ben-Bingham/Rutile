@@ -1,5 +1,5 @@
 #pragma once
-#include "rendering/Bundle.h"
+#include "rendering/Scene.h"
 
 namespace Rutile {
     enum class GeometryMode {
@@ -15,13 +15,13 @@ namespace Rutile {
 
 	class GeometryPreprocessor {
 	public:
-		Bundle GetBundle(GeometryMode mode);
+		Scene GetBundle(GeometryMode mode);
 
 		void Add(Primitive primitive, glm::mat4* transform, MaterialType materialType, Material* material);
 
 		void Add(LightType type, Light* light);
 
 	private:
-		Bundle m_CurrentBundle;
+		Scene m_CurrentBundle;
 	};
 }

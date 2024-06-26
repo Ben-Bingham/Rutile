@@ -1,8 +1,8 @@
 #include "GeometryPreprocessor.h"
 
 namespace Rutile {
-    Bundle GeometryPreprocessor::GetBundle(GeometryMode mode) {
-        Bundle bundle = m_CurrentBundle;
+    Scene GeometryPreprocessor::GetBundle(GeometryMode mode) {
+        Scene bundle = m_CurrentBundle;
 
         Clear(m_CurrentBundle);
 

@@ -1,7 +1,7 @@
-#include "Bundle.h"
+#include "Scene.h"
 
 namespace Rutile {
-    void Clear(Bundle& bundle) {
+    void Clear(Scene& bundle) {
         bundle.packets.clear();
 
         for (auto& vec : bundle.transforms) {

@@ -20,7 +20,7 @@ namespace Rutile {
 
         void Render() override;
 
-        void SetBundle(const Bundle& bundle) override;
+        void SetBundle(const Scene& bundle) override;
 
         void WindowResize() override;
 

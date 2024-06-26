@@ -6,7 +6,7 @@
 #include "Packet.h"
 
 namespace Rutile {
-    struct Bundle {
+    struct Scene {
         std::vector<Packet> packets;
 
         std::vector<std::vector<glm::mat4*>> transforms;
@@ -15,5 +15,5 @@ namespace Rutile {
         std::vector<Light*> lights;
     };
 
-    void Clear(Bundle& bundle);
+    void Clear(Scene& bundle);
 }

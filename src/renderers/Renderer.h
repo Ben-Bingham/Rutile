@@ -3,7 +3,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "rendering/Bundle.h"
+#include "rendering/Scene.h"
 
 namespace Rutile {
 	class Renderer {
@@ -20,7 +20,7 @@ namespace Rutile {
 
         virtual void Render() = 0;
 
-        virtual void SetBundle(const Bundle& bundle) = 0;
+        virtual void SetBundle(const Scene& bundle) = 0;
 
         virtual void WindowResize();
     };
