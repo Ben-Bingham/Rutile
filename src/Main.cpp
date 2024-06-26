@@ -17,7 +17,6 @@
 
 #include "GUI/MainGUIWindow.h"
 
-#include "rendering/Camera.h"
 #include "rendering/Material.h"
 
 #include "tools/CameraMovement.h"
