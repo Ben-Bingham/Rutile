@@ -139,11 +139,7 @@ int main() {
 
     imGui.Init(window);
 
-    std::chrono::duration<double> frameTime = std::chrono::duration<double>(1.0 / 60.0);
-
     Camera camera;
-
-    bool mouseDown = false;
 
     int lastMouseX = 0;
     int lastMouseY = 0;
@@ -155,7 +151,7 @@ int main() {
         glfwPollEvents();
         // Movement
         {
-            float dt = static_cast<float>(frameTime.count());
+            float dt = static_cast<float>(App::frameTime.count());
             float velocity = camera.speed * dt;
             if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
                 camera.position += camera.frontVector * velocity;
@@ -177,18 +173,18 @@ int main() {
             }
 
             if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-                if (mouseDown == false) {
+                if (App::mouseDown == false) {
                     lastMouseX = App::mousePosition.x;
                     lastMouseY = App::mousePosition.y;
                 }
 
-                mouseDown = true;
+                App::mouseDown = true;
             }
             if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
-                mouseDown = false;
+                App::mouseDown = false;
             }
 
-            if (mouseDown) {
+            if (App::mouseDown) {
                 float xDelta = (float)App::mousePosition.x - (float)lastMouseX;
                 float yDelta = (float)lastMouseY - (float)App::mousePosition.y; // reversed since y-coordinates go from bottom to top
 
@@ -214,7 +210,7 @@ int main() {
             }
         }
 
-        //spotLight.position = camera.position;
+        //spotLight.position = camera.position; // TODO
         //spotLight.direction = camera.frontVector;
 
         imGui.StartNewFrame();
@@ -228,9 +224,17 @@ int main() {
 
             ImGui::Text("Renderer");
 
-            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL);          ImGui::SameLine();
-            ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME);    ImGui::SameLine();
-            ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
+            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL);          //ImGui::SameLine();
+            //ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME);    ImGui::SameLine();
+            //ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
+
+            if (ImGui::Button("Change")) {
+                if (lastRenderer == HARD_CODED) {
+                    lastRenderer == RAINBOW_TIME;
+                } else {
+                    lastRenderer = HARD_CODED;
+                }
+            }
 
             ImGui::Text("Settings");
             ImGui::Checkbox("GPU Vsync", &settings.gpuVsync);
@@ -391,6 +395,20 @@ int main() {
 
         } ImGui::End();
 
+        if (settings.gpuVsync) {
+            glfwSwapInterval(1);
+        } else {
+            glfwSwapInterval(0);
+        }
+
+        // Rendering
+        glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
+        std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
+
+        imGui.FinishFrame();
+
+        glfwSwapBuffers(window);
+
         if (lastRenderer != currentRenderer) {
             imGui.Cleanup();
 
@@ -422,25 +440,11 @@ int main() {
             imGui.Init(window);
         }
 
-        if (settings.gpuVsync) {
-            glfwSwapInterval(1);
-        } else {
-            glfwSwapInterval(0);
-        }
-
-        // Rendering
-        glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
-        std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
-
-        imGui.FinishFrame();
-
-        glfwSwapBuffers(window);
-
         // Timing the frame
         {
             auto frameEnd = std::chrono::system_clock::now();
 
-            frameTime = frameEnd - frameStart;
+            App::frameTime = frameEnd - frameStart;
 
             if (settings.cpuVsync) {
                 auto elapsedTime = frameEnd - frameStart;
@@ -454,7 +458,7 @@ int main() {
                     std::this_thread::sleep_for(timeToWait);
                 }
 
-                frameTime = std::chrono::system_clock::now() - frameStart;
+                App::frameTime = std::chrono::system_clock::now() - frameStart;
             }
         }
     }

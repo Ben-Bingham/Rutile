@@ -85,7 +85,7 @@ namespace Rutile {
 
     GLFWwindow* OpenGlRenderer::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-        GLFWwindow* window = glfwCreateWindow(static_cast<int>(App::screenWidth), static_cast<int>(App::screenHeight), "Rutile", nullptr, nullptr);
+        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, "Rutile", nullptr, nullptr);
     
         if (!window) {
             std::cout << "ERROR: Failed to create window." << std::endl;
