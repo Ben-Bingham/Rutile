@@ -5,14 +5,12 @@
 #include "glm/glm.hpp"
 
 #include "rendering/Bundle.h"
-
 #include "tools/ImGuiInstance.h"
-
 #include "tools/GLFW.h"
 
-namespace Rutile {
-    class Renderer;
+#include "renderers/Renderer.h"
 
+namespace Rutile {
     struct App {
         static inline std::string name = "Rutile";
 
@@ -26,12 +24,6 @@ namespace Rutile {
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 
-        inline static bool mouseDown = false;
-        inline static glm::ivec2 mousePosition = { 0, 0 };
-
-        inline static std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
-        inline static std::chrono::duration<double> frameTime = idealFrameTime;
-
         enum class RendererType {
             OPENGL
         };
@@ -39,5 +31,11 @@ namespace Rutile {
         inline static RendererType currentRendererType = RendererType::OPENGL;
         inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
+
+        inline static bool mouseDown = false;
+        inline static glm::ivec2 mousePosition = { 0, 0 };
+
+        inline static std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
+        inline static std::chrono::duration<double> frameTime = idealFrameTime;
     };
 }
