@@ -239,6 +239,94 @@ struct Settings {
 Settings settings;
 
 int main() {
+    /* // TODO Implement this:
+    Renderer rendereer;
+    // In the init function for OpenGl a GLEW instance can be made
+    // In the init function for Vulkan a Vulkan instance can be made
+    // etc...
+    GLFWwindow* window = renderer.init();
+
+    renderer.setSize();
+    renderer.setBundle();
+
+    AddAllWindowThings(window); // Assign call backs, set up mouse movement, and key movement stuff
+
+    while (window is open) {
+        GUI(); // ImGui window
+
+        if (lastRenderer != currentRenderer) {
+            disconnectAllWindowThings();
+
+            renderer->Cleanup();
+
+            renderer.reset();
+
+            switch (currentRenderer) {
+            case OPENGL:
+                renderer = std::make_unique<OpenGlRenderer>();
+                break;
+
+            case HARD_CODED:
+                renderer = std::make_unique<HardCodedRenderer>();
+                break;
+
+            case RAINBOW_TIME:
+                renderer = std::make_unique<RainbowTimeRenderer>();
+                break;
+            }
+
+            window = renderer->Init();
+
+            addAllWindowThings();
+
+            renderer->SetSize(width, height);
+            renderer->SetBundle(bundle);
+        }
+
+        renderer->render();
+    }
+    */
+
+    // Materials need to be reuploaded every frame
+    // Transforms need to be reuploaded every frame
+        // They only need to be recalculated when they change tho
+    // Lights DO NOT need to be reuploaded every frame
+        // But when something changes they do need to be
+
+
+    // Renderer changes:
+    // Add on a SetLight(size_t lightIndex, Light* newLight); function that sets the light at the specified index to the new light
+        // This hopes that the renderer will be able to modify only one light at a time, if not a renderer could reset them all, and have
+        // initialy saved a copy of the full bundle
+    // Add on SetPacket(size_t packetIndex, const Packet& newPacket);  same as setlight but for packets
+
+    // IF A LIGHT IS SET TO nullptr, IT IS CONSIDERD DELETED
+    // IF A PACKET IS SET WITH NO VERTICES, IT IS CONSIDERD DELETED
+
+    // More renderer changes:
+    // Add a AddLight(Light* light); function that adds on a new light onto the end of the current list of lights;
+    // Add a AddPacket(Packet) function that adds on a new packet to the end of the current list;
+
+    /*    
+    struct Packet {
+        std::vector<vertices>
+        std::vector<indices>
+
+        Transform* transform
+
+        Material* material
+    };
+
+    
+    struct Bundle {
+        std::vector<lights> lights;
+        std::vector<bools> doesThisLightNeedToBeReuploaded; //DEFAULT TRUE, but set to false every time we do an upload
+
+        std::vector<Renderable> renderables;
+        std::vector<bool> doesThisRenderableNowHaveNewGeometry;
+    };
+     */
+
     GeometryPreprocessor geometryPreprocessor{ };
 
     Solid solid;
@@ -443,7 +531,9 @@ int main() {
                             if (ImGui::TreeNode(("Point light #" + std::to_string(pointLightCount)).c_str())) {
                                 ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
 
-                                ImGui::DragFloat(("Constant Attenuation Component##" + std::to_string(i)).c_str(), &light->constant, 0.005f, 0.0f, 1.0f);
+                                if (ImGui::DragFloat(("Constant Attenuation Component##" + std::to_string(i)).c_str(), &light->constant, 0.005f, 0.0f, 1.0f)) {
+                                    std::cout << "DRAGGING " << std::endl;
+                                }
                                 ImGui::DragFloat(("Linear Attenuation Component##" + std::to_string(i)).c_str(), &light->linear, 0.005f, 0.0f, 1.0f);
                                 ImGui::DragFloat(("Quadratic Attenuation Component##" + std::to_string(i)).c_str(), &light->quadratic, 0.005f, 1.0f);
 
@@ -682,8 +772,6 @@ int main() {
 
             frameTime = std::chrono::system_clock::now() - frameStart;
         }
-
-        std::cout << frameTime << std::endl;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
