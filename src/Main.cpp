@@ -254,6 +254,12 @@ int main() {
     while (window is open) {
         GUI(); // ImGui window
 
+        // Switch Scene
+        // Switch Renderer Settings
+        // Add on new items to bundle
+        // Remove items from bundle
+        // Modify items in bundle
+
         if (lastRenderer != currentRenderer) {
             disconnectAllWindowThings();
 
