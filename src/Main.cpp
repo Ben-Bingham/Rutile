@@ -4,9 +4,6 @@
 #include "renderers/renderer.h"
 #include "renderers/OpenGl/OpenGlRenderer.h"
 
-#include "renderers/HardCoded/HardCodedRenderer.h"
-#include "renderers/RainbowTime/RainbowTimeRenderer.h"
-
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -25,27 +22,38 @@
 #include "rendering/Camera.h"
 #include "rendering/Material.h"
 
-#include "tools/GLFW.h"
-#include "tools/ImGuiInstance.h"
-
 using namespace Rutile;
 
-enum RendererEnum {
-    OPENGL          = 1,
-    HARD_CODED      = 2,
-    RAINBOW_TIME    = 3
-};
+void CreateCurrentRenderer(App::RendererType type) {
+    switch (App::currentRendererType) {
+    case App::RendererType::OPENGL:
+        App::renderer = std::make_unique<OpenGlRenderer>();
+        break;
+    }
 
-int currentRenderer = OPENGL;
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
-struct Settings {
-    bool gpuVsync{ false };
-    bool cpuVsync{ false };
-};
+    App::window = App::renderer->Init();
+    App::renderer->SetBundle(App::bundle);
 
-Settings settings;
+    App::glfw.AttachOntoWindow(App::window);
+
+    App::imGui.Init(App::window);
+}
+
+void ShutDownCurrentRenderer() {
+    App::imGui.Cleanup();
+
+    App::glfw.DetachFromWindow(App::window);
+
+    App::renderer->Cleanup(App::window);
+    App::renderer.reset();
+}
 
 int main() {
+    App::glfw.Init();
+
     GeometryPreprocessor geometryPreprocessor{ };
     // Setting up bundle
     {
@@ -123,21 +131,9 @@ int main() {
 
         geometryPreprocessor.Add(LightType::SPOTLIGHT, &spotLight);
     }
-    Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
+    App::bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-    GLFW glfw{ };
-
-    GLFWwindow* window = nullptr;
-
-    App::renderer = std::make_unique<OpenGlRenderer>();
-    window = App::renderer->Init();
-    App::renderer->SetBundle(bundle);
-
-    glfw.AttachOntoWindow(window);
-
-    ImGuiInstance imGui{ };
-
-    imGui.Init(window);
+    CreateCurrentRenderer(App::currentRendererType);
 
     Camera camera;
 
@@ -145,7 +141,7 @@ int main() {
     int lastMouseY = 0;
 
     // Main loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(App::window)) {
         auto frameStart = std::chrono::system_clock::now();
 
         glfwPollEvents();
@@ -153,26 +149,26 @@ int main() {
         {
             float dt = static_cast<float>(App::frameTime.count());
             float velocity = camera.speed * dt;
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_W) == GLFW_PRESS) {
                 camera.position += camera.frontVector * velocity;
             }
-            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_S) == GLFW_PRESS) {
                 camera.position -= camera.frontVector * velocity;
             }
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_D) == GLFW_PRESS) {
                 camera.position += camera.rightVector * velocity;
             }
-            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_A) == GLFW_PRESS) {
                 camera.position -= camera.rightVector * velocity;
             }
-            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_SPACE) == GLFW_PRESS) {
                 camera.position += camera.upVector * velocity;
             }
-            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            if (glfwGetKey(App::window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
                 camera.position -= camera.upVector * velocity;
             }
 
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+            if (glfwGetMouseButton(App::window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
                 if (App::mouseDown == false) {
                     lastMouseX = App::mousePosition.x;
                     lastMouseY = App::mousePosition.y;
@@ -180,7 +176,7 @@ int main() {
 
                 App::mouseDown = true;
             }
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
+            if (glfwGetMouseButton(App::window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
                 App::mouseDown = false;
             }
 
@@ -210,45 +206,45 @@ int main() {
             }
         }
 
-        //spotLight.position = camera.position; // TODO
-        //spotLight.direction = camera.frontVector;
+        if (App::restartRenderer) {
+            ShutDownCurrentRenderer();
 
-        imGui.StartNewFrame();
+            CreateCurrentRenderer(App::currentRendererType);
+
+            App::restartRenderer = false;
+        }
+
+        if (App::lastRendererType != App::currentRendererType) {
+            ShutDownCurrentRenderer();
+
+            CreateCurrentRenderer(App::currentRendererType);
+        }
+
+        App::lastRendererType = App::currentRendererType;
+
+        App::imGui.StartNewFrame();
 
         //ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
 
         // GUI
-        int lastRenderer = currentRenderer;
         { ImGui::Begin("Rutile");
 
             ImGui::Text("Renderer");
 
-            ImGui::RadioButton("OpenGl",        &currentRenderer, OPENGL);          //ImGui::SameLine();
-            //ImGui::RadioButton("Rainbow Time",  &currentRenderer, RAINBOW_TIME);    ImGui::SameLine();
-            //ImGui::RadioButton("Hard Coded",    &currentRenderer, HARD_CODED);
-
-            if (ImGui::Button("Change")) {
-                if (lastRenderer == HARD_CODED) {
-                    lastRenderer == RAINBOW_TIME;
-                } else {
-                    lastRenderer = HARD_CODED;
-                }
+            if (ImGui::Button("Restart Renderer")) {
+                App::restartRenderer = true;
             }
-
-            ImGui::Text("Settings");
-            ImGui::Checkbox("GPU Vsync", &settings.gpuVsync);
-            ImGui::Checkbox("CPU Vsync", &settings.cpuVsync);
 
             if (ImGui::CollapsingHeader("Lights")) {
                 int pointLightCount = 1;
                 int directionalLightCount = 1;
                 int spotLightCount = 1;
                 int i = 0;
-                for (auto lightType : bundle.lightTypes) {
+                for (auto lightType : App::bundle.lightTypes) {
                     switch (lightType) {
                         case LightType::POINT: {
-                            PointLight* light = dynamic_cast<PointLight*>(bundle.lights[i]);
+                            PointLight* light = dynamic_cast<PointLight*>(App::bundle.lights[i]);
                             if (ImGui::TreeNode(("Point light #" + std::to_string(pointLightCount)).c_str())) {
                                 ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
 
@@ -268,8 +264,8 @@ int main() {
                             ++pointLightCount;
                             break;
                         }
-                        case LightType::DIRECTION: { // TODO
-                            DirectionalLight* light = dynamic_cast<DirectionalLight*>(bundle.lights[i]);
+                        case LightType::DIRECTION: {
+                            DirectionalLight* light = dynamic_cast<DirectionalLight*>(App::bundle.lights[i]);
                             if (ImGui::TreeNode(("Directional light #" + std::to_string(directionalLightCount)).c_str())) {
                                 ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
 
@@ -284,7 +280,7 @@ int main() {
                             break;
                         }
                         case LightType::SPOTLIGHT: {
-                            SpotLight* light = dynamic_cast<SpotLight*>(bundle.lights[i]);
+                            SpotLight* light = dynamic_cast<SpotLight*>(App::bundle.lights[i]);
                             if (ImGui::TreeNode(("Spotlight #" + std::to_string(spotLightCount)).c_str())) {
                                 ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
                                 ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
@@ -295,8 +291,8 @@ int main() {
                                 ImGui::DragFloat(("Inner Cut Off##" + std::to_string(i)).c_str(), &cutOff, 0.5f, 0.0f, 180.0f);
                                 ImGui::DragFloat(("Outer Cut Off##" + std::to_string(i)).c_str(), &outerCutOff, 0.5f, 0.0f, 180.0f);
 
-                                /*spotLight.cutOff = glm::cos(glm::radians(cutOff));
-                                spotLight.outerCutOff = glm::cos(glm::radians(outerCutOff));*/
+                                light->cutOff = glm::cos(glm::radians(cutOff));
+                                light->outerCutOff = glm::cos(glm::radians(outerCutOff));
 
                                 ImGui::DragFloat(("Constant Attenuation Component##" + std::to_string(i)).c_str(), &light->constant, 0.005f, 0.0f, 1.0f);
                                 ImGui::DragFloat(("Linear Attenuation Component##" + std::to_string(i)).c_str(), &light->linear, 0.005f, 0.0f, 1.0f);
@@ -318,7 +314,7 @@ int main() {
 
             if (ImGui::CollapsingHeader("Materials")) {
                 std::vector<std::pair<MaterialType, Material*>> materials;
-                for (auto packet : bundle.packets) {
+                for (auto packet : App::bundle.packets) {
                     MaterialType type = packet.materialType;
                     Material* material = packet.material;
 
@@ -372,7 +368,7 @@ int main() {
             if (ImGui::CollapsingHeader("Transforms")) {
                 int transformCount = 1;
                 int i = 0;
-                for (auto t : bundle.transforms) {
+                for (auto t : App::bundle.transforms) {
                     glm::mat4* transform = t[0];
 
                     if (ImGui::TreeNode(("Transform #" + std::to_string(transformCount)).c_str())) {
@@ -395,77 +391,27 @@ int main() {
 
         } ImGui::End();
 
-        if (settings.gpuVsync) {
-            glfwSwapInterval(1);
-        } else {
-            glfwSwapInterval(0);
-        }
-
         // Rendering
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
         std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
 
-        imGui.FinishFrame();
+        App::imGui.FinishFrame();
 
-        glfwSwapBuffers(window);
-
-        if (lastRenderer != currentRenderer) {
-            imGui.Cleanup();
-
-            glfw.DetachFromWindow(window);
-
-            App::renderer->Cleanup(window);
-
-            App::renderer.reset();
-
-            switch (currentRenderer) {
-            case OPENGL:
-                App::renderer = std::make_unique<OpenGlRenderer>();
-                break;
-
-            case HARD_CODED:
-                //renderer = std::make_unique<HardCodedRenderer>();
-                break;
-
-            case RAINBOW_TIME:
-                //renderer = std::make_unique<RainbowTimeRenderer>();
-                break;
-            }
-
-            App::renderer->Init();
-            App::renderer->SetBundle(bundle);
-
-            glfw.AttachOntoWindow(window);
-
-            imGui.Init(window);
-        }
+        glfwSwapBuffers(App::window);
 
         // Timing the frame
         {
             auto frameEnd = std::chrono::system_clock::now();
 
             App::frameTime = frameEnd - frameStart;
-
-            if (settings.cpuVsync) {
-                auto elapsedTime = frameEnd - frameStart;
-
-                auto frameDuration = std::chrono::duration<double>(1.0 / 60.0);
-
-                auto elapsedTimeSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
-
-                if (elapsedTimeSeconds < frameDuration) {
-                    auto timeToWait = frameDuration - elapsedTimeSeconds;
-                    std::this_thread::sleep_for(timeToWait);
-                }
-
-                App::frameTime = std::chrono::system_clock::now() - frameStart;
-            }
         }
     }
 
-    imGui.Cleanup();
+    App::imGui.Cleanup();
 
-    glfw.DetachFromWindow(window);
+    App::glfw.DetachFromWindow(App::window);
 
-    App::renderer->Cleanup(window);
+    App::renderer->Cleanup(App::window);
+
+    App::glfw.Cleanup();
 }

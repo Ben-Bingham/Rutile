@@ -7,63 +7,12 @@
 * TODO Instanced Rendering
 *
 * TODO Frame Time Stats
-*/
 
-   
-/* // TODO Implement this:
-Renderer rendereer;
-// In the init function for OpenGl a GLEW instance can be made
-// In the init function for Vulkan a Vulkan instance can be made
-// etc...
-// Before the window function is called, a GLFW instance will have been created
-// The cleanup function needs to destroy the GLFW window
-GLFWwindow* window = renderer.init();
+// TODO Vsync
 
-renderer.setSize();
-renderer.setBundle();
+Renderer switching
 
-AddAllWindowThings(window); // Assign call backs, set up mouse movement, and key movement stuff
-
-while (window is open) {
-    GUI(); // ImGui window
-
-    // Switch Scene
-    // Switch Renderer Settings
-    // Add on new items to bundle
-    // Remove items from bundle
-    // Modify items in bundle
-
-    if (lastRenderer != currentRenderer) {
-        disconnectAllWindowThings();
-
-        renderer->Cleanup();
-
-        renderer.reset();
-
-        switch (currentRenderer) {
-        case OPENGL:
-            renderer = std::make_unique<OpenGlRenderer>();
-            break;
-
-        case HARD_CODED:
-            renderer = std::make_unique<HardCodedRenderer>();
-            break;
-
-        case RAINBOW_TIME:
-            renderer = std::make_unique<RainbowTimeRenderer>();
-            break;
-        }
-
-        window = renderer->Init();
-
-        addAllWindowThings();
-
-        renderer->SetSize(width, height);
-        renderer->SetBundle(bundle);
-    }
-
-    renderer->render();
-}
+Update cpotlight position to act as flashlight
 */
 
 // Materials need to be reuploaded every frame
