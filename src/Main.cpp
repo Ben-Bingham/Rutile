@@ -11,14 +11,11 @@
 #include <GLFW/glfw3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "App.h"
 #include <stb_image.h>
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#include "App.h"
+#include "imgui.h"
 
-#include <implot.h>
 #include <string>
 
 #include <glm/ext/matrix_clip_space.hpp>
@@ -28,21 +25,10 @@
 #include "rendering/Camera.h"
 #include "rendering/Material.h"
 
+#include "tools/GLFW.h"
+#include "tools/ImGuiInstance.h"
+
 using namespace Rutile;
-
-void frameBufferSizeCallback(GLFWwindow* window, int w, int h) {
-    App::screenWidth = w;
-    App::screenHeight = h;
-
-    if (App::renderer) {
-        App::renderer->WindowResize();
-    }
-}
-
-void mouseMoveCallback(GLFWwindow* window, double x, double y) {
-    App::mousePosition.x = static_cast<int>(x);
-    App::mousePosition.y = static_cast<int>(y);
-}
 
 enum RendererEnum {
     OPENGL          = 1,
@@ -58,33 +44,6 @@ struct Settings {
 };
 
 Settings settings;
-
-void glfwErrorCallback(int error, const char* description) {
-    std::cout << "ERROR: GLFW has thrown an error: " << std::endl;
-    std::cout << description << std::endl;
-}
-
-void CreateGLFWInstance() {
-    glfwSetErrorCallback(glfwErrorCallback);
-
-    if (!glfwInit()) {
-        std::cout << "ERROR: Failed to initialize GLFW." << std::endl;
-    }
-}
-
-void DestroyGLFWInstance() {
-    glfwTerminate();
-}
-
-void AttachOntoGLFWWindow(GLFWwindow* window) {
-    glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
-    glfwSetCursorPosCallback(window, mouseMoveCallback);
-}
-
-void DetachFromGLFWWindow(GLFWwindow* window) {
-    glfwSetCursorPosCallback(window, nullptr);
-    glfwSetFramebufferSizeCallback(window, nullptr);
-}
 
 int main() {
     GeometryPreprocessor geometryPreprocessor{ };
@@ -166,31 +125,19 @@ int main() {
     }
     Bundle bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
 
-    //screenInit();
-
-    CreateGLFWInstance();
+    GLFW glfw{ };
 
     GLFWwindow* window = nullptr;
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
-    window = renderer->Init();
-    //renderer->SetSize(width, height);
-    renderer->SetBundle(bundle);
+    App::renderer = std::make_unique<OpenGlRenderer>();
+    window = App::renderer->Init();
+    App::renderer->SetBundle(bundle);
 
-    AttachOntoGLFWWindow(window);
+    glfw.AttachOntoWindow(window);
 
-    // Init ImGui TODO USES WINDOW
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImPlot::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    io.FontGlobalScale = 2.0f;
+    ImGuiInstance imGui{ };
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init();
-    
+    imGui.Init(window);
 
     std::chrono::duration<double> frameTime = std::chrono::duration<double>(1.0 / 60.0);
 
@@ -270,12 +217,7 @@ int main() {
         //spotLight.position = camera.position;
         //spotLight.direction = camera.frontVector;
 
-        // Start ImGui frame
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-        }
+        imGui.StartNewFrame();
 
         //ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
@@ -450,15 +392,17 @@ int main() {
         } ImGui::End();
 
         if (lastRenderer != currentRenderer) {
-            DetachFromGLFWWindow(window);
+            imGui.Cleanup();
 
-            renderer->Cleanup(window);
+            glfw.DetachFromWindow(window);
 
-            renderer.reset();
+            App::renderer->Cleanup(window);
+
+            App::renderer.reset();
 
             switch (currentRenderer) {
             case OPENGL:
-                renderer = std::make_unique<OpenGlRenderer>();
+                App::renderer = std::make_unique<OpenGlRenderer>();
                 break;
 
             case HARD_CODED:
@@ -470,11 +414,12 @@ int main() {
                 break;
             }
 
-            renderer->Init();
-            //renderer->SetSize(width, height);
-            renderer->SetBundle(bundle);
+            App::renderer->Init();
+            App::renderer->SetBundle(bundle);
 
-            AttachOntoGLFWWindow(window);
+            glfw.AttachOntoWindow(window);
+
+            imGui.Init(window);
         }
 
         if (settings.gpuVsync) {
@@ -485,49 +430,9 @@ int main() {
 
         // Rendering
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
-        std::vector<Pixel> pixels = renderer->Render(camera, projection);
+        std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
 
-        // Rendering texture with pixel data
-        if (!pixels.empty()) {
-            //unsigned int texture;
-
-            //glGenTextures(1, &texture);
-            //glBindTexture(GL_TEXTURE_2D, texture);
-
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-            //glGenerateMipmap(GL_TEXTURE_2D);
-
-            //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            //glClear(GL_COLOR_BUFFER_BIT);
-
-            //glActiveTexture(GL_TEXTURE0);
-            //glBindTexture(GL_TEXTURE_2D, texture);
-
-            //glUseProgram(shaderProgram);
-            //glBindVertexArray(VAO);
-            //glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-            //glDeleteTextures(1, &texture);
-        }
-
-        // Finish ImGui frame
-        {
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-                GLFWwindow* currentContextBackup = glfwGetCurrentContext();
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                glfwMakeContextCurrent(currentContextBackup);
-            }
-        }
+        imGui.FinishFrame();
 
         glfwSwapBuffers(window);
 
@@ -554,18 +459,9 @@ int main() {
         }
     }
 
-    // Destroy ImGui
-    {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImPlot::DestroyContext();
-        ImGui::DestroyContext();
-    }
+    imGui.Cleanup();
 
-    DetachFromGLFWWindow(window);
+    glfw.DetachFromWindow(window);
 
-    renderer->Cleanup(window);
-
-    DestroyGLFWInstance();
-    //screenCleanup();
+    App::renderer->Cleanup(window);
 }
