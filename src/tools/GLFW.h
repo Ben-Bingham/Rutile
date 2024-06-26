@@ -1,6 +1,6 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
+#include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
 namespace Rutile {

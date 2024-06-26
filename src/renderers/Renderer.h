@@ -3,15 +3,9 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <vector>
-
-#include "rendering/Camera.h"
 #include "rendering/Bundle.h"
 
 namespace Rutile {
-    using Pixel = uint32_t;
-    using Byte = uint8_t;
-
 	class Renderer {
 	public:
 		Renderer() = default;
@@ -24,7 +18,7 @@ namespace Rutile {
         virtual GLFWwindow* Init() = 0;
         virtual void Cleanup(GLFWwindow* window) = 0;
 
-        virtual std::vector<Pixel> Render(const glm::mat4& projection) = 0;
+        virtual void Render() = 0;
 
         virtual void SetBundle(const Bundle& bundle) = 0;
 

@@ -10,12 +10,18 @@
 
 #include "renderers/Renderer.h"
 
+#include "rendering/Camera.h"
+
 namespace Rutile {
     struct App {
         static inline std::string name = "Rutile";
 
         inline static int screenWidth = 1200;
         inline static int screenHeight = 800;
+
+        inline static float fieldOfView = 60.0f;
+        inline static float nearPlane = 0.1f;
+        inline static float farPlane = 1000.0f;
 
         inline static GLFW glfw{ };
         inline static ImGuiInstance imGui{ };

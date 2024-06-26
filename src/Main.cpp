@@ -166,8 +166,7 @@ int main() {
 
             MainGuiWindow();
 
-            glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
-            std::vector<Pixel> pixels = App::renderer->Render(projection);
+            App::renderer->Render();
 
             App::imGui.FinishFrame();
 

@@ -10,6 +10,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtc/type_ptr.inl>
 
 namespace Rutile {
@@ -84,6 +85,8 @@ namespace Rutile {
     }
 
     GLFWwindow* OpenGlRenderer::Init() {
+        m_Projection = glm::perspective(glm::radians(App::fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::nearPlane, App::farPlane);
+
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
         GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
         glfwShowWindow(window);
@@ -124,7 +127,7 @@ namespace Rutile {
         glfwDestroyWindow(window);
     }
 
-    std::vector<Pixel> OpenGlRenderer::Render(const glm::mat4& projection) {
+    void OpenGlRenderer::Render() {
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -206,7 +209,7 @@ namespace Rutile {
                 }
             }
 
-            glm::mat4 mvp = projection * App::camera.View() * *m_Transforms[i];
+            glm::mat4 mvp = m_Projection * App::camera.View() * *m_Transforms[i];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
@@ -216,8 +219,6 @@ namespace Rutile {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
-
-        return std::vector<Pixel> {};
     }
 
     void OpenGlRenderer::SetBundle(const Bundle& bundle) {
@@ -311,5 +312,8 @@ namespace Rutile {
 
     void OpenGlRenderer::WindowResize() {
         glViewport(0, 0, App::screenWidth, App::screenHeight);
+
+        m_Projection = glm::mat4{ 1.0f };
+        m_Projection = glm::perspective(glm::radians(App::fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::nearPlane, App::farPlane);
     }
 }

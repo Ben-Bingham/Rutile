@@ -2,7 +2,8 @@
 
 #include "../Renderer.h"
 
-#include <GLFW/glfw3native.h>
+#include <gl/glew.h>
+#include <GLFW/glfw3.h>
 
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
@@ -17,13 +18,15 @@ namespace Rutile {
         GLFWwindow* Init() override;
         void Cleanup(GLFWwindow* window) override;
 
-        std::vector<Pixel> Render(const glm::mat4& projection) override;
+        void Render() override;
 
         void SetBundle(const Bundle& bundle) override;
 
         void WindowResize() override;
 
     private:
+        glm::mat4 m_Projection { 1.0f };
+
         unsigned int m_SolidShader;
         unsigned int m_PhongShader;
 
