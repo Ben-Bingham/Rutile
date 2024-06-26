@@ -85,26 +85,17 @@ namespace Rutile {
         m_SolidShader = createShader("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = createShader("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
 
-        m_FBO        = 0;
-        m_FBOTexture = 0;
-        m_RBO        = 0;
+        glEnable(GL_DEPTH_TEST);
     }
 
     void OpenGlRenderer::Cleanup() {
-        glDeleteRenderbuffers(1, &m_RBO);
-        glDeleteTextures(1, &m_FBOTexture);
-        glDeleteFramebuffers(1, &m_FBO);
+        glDisable(GL_DEPTH_TEST);
 
         glDeleteProgram(m_PhongShader);
         glDeleteProgram(m_SolidShader);
     }
 
     std::vector<Pixel> OpenGlRenderer::Render(const Camera& camera, const glm::mat4& projection) {
-        GLFWwindow* currentContextBackup = glfwGetCurrentContext();
-
-        glEnable(GL_DEPTH_TEST);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -194,51 +185,15 @@ namespace Rutile {
             glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
 
-        glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
-        std::vector<Pixel> pixels{ };
-        pixels.resize(m_Width * m_Height);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)pixels.data());
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        glDisable(GL_DEPTH_TEST);
 
-        glfwMakeContextCurrent(currentContextBackup);
-
-        return pixels;
+        return std::vector<Pixel> {};
     }
 
     void OpenGlRenderer::SetSize(size_t width, size_t height) {
         m_Width = width;
         m_Height = height;
-
-        glDeleteRenderbuffers(1, &m_RBO);
-        glDeleteTextures(1, &m_FBOTexture);
-        glDeleteFramebuffers(1, &m_FBO);
-
-        // Framebuffer creation
-        glGenFramebuffers(1, &m_FBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
-
-        glGenTextures(1, &m_FBOTexture);
-        glBindTexture(GL_TEXTURE_2D, m_FBOTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_FBOTexture, 0);
-
-        glGenRenderbuffers(1, &m_RBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 
     void OpenGlRenderer::SetBundle(const Bundle& bundle) {

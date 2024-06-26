@@ -34,10 +34,6 @@ namespace Rutile {
         unsigned int m_SolidShader;
         unsigned int m_PhongShader;
 
-        unsigned int m_FBO;
-        unsigned int m_FBOTexture;
-        unsigned int m_RBO;
-
         size_t m_Width;
         size_t m_Height;
 

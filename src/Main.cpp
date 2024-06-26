@@ -624,7 +624,7 @@ int main() {
         std::vector<Pixel> pixels = renderer->Render(camera, projection);
 
         // Rendering texture with pixel data
-        {
+        if (!pixels.empty()) {
             unsigned int texture;
 
             glGenTextures(1, &texture);
@@ -682,6 +682,8 @@ int main() {
 
             frameTime = std::chrono::system_clock::now() - frameStart;
         }
+
+        std::cout << frameTime << std::endl;
     }
 
     ImGui_ImplOpenGL3_Shutdown();
