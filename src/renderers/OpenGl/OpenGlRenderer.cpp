@@ -1,4 +1,6 @@
 #include "OpenGlRenderer.h"
+#include "App.h"
+#include "GLDebug.h"
 #include "imgui.h"
 
 #include <iostream>
@@ -81,18 +83,44 @@ namespace Rutile {
         return shaderProgram;
     }
 
-    void OpenGlRenderer::Init() {
+    GLFWwindow* OpenGlRenderer::Init() {
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+        GLFWwindow* window = glfwCreateWindow(static_cast<int>(App::screenWidth), static_cast<int>(App::screenHeight), "Rutile", nullptr, nullptr);
+    
+        if (!window) {
+            std::cout << "ERROR: Failed to create window." << std::endl;
+        }
+    
+        glfwMakeContextCurrent(window);
+    
+        if (glewInit() != GLEW_OK) {
+            std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
+        }
+
+        int flags;
+        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(glDebugOutput, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+        }
+
         m_SolidShader = createShader("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = createShader("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
 
         glEnable(GL_DEPTH_TEST);
+
+        return window;
     }
 
-    void OpenGlRenderer::Cleanup() {
+    void OpenGlRenderer::Cleanup(GLFWwindow* window) {
         glDisable(GL_DEPTH_TEST);
 
         glDeleteProgram(m_PhongShader);
         glDeleteProgram(m_SolidShader);
+
+        glfwDestroyWindow(window);
     }
 
     std::vector<Pixel> OpenGlRenderer::Render(const Camera& camera, const glm::mat4& projection) {
@@ -191,11 +219,6 @@ namespace Rutile {
         return std::vector<Pixel> {};
     }
 
-    void OpenGlRenderer::SetSize(size_t width, size_t height) {
-        m_Width = width;
-        m_Height = height;
-    }
-
     void OpenGlRenderer::SetBundle(const Bundle& bundle) {
         // Lights
         m_PointLights.clear();
@@ -283,5 +306,9 @@ namespace Rutile {
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
+    }
+
+    void OpenGlRenderer::WindowResize() {
+        glViewport(0, 0, App::screenWidth, App::screenHeight);
     }
 }

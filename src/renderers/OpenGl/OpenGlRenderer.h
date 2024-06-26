@@ -14,28 +14,18 @@ namespace Rutile {
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override = default;
 
-        void Init() override;
-        void Cleanup() override;
+        GLFWwindow* Init() override;
+        void Cleanup(GLFWwindow* window) override;
 
         std::vector<Pixel> Render(const Camera& camera, const glm::mat4& projection) override;
 
-        void SetSize(size_t width, size_t height) override;
         void SetBundle(const Bundle& bundle) override;
 
-        enum RenderingMode {
-            LOWEST_COMMON_MATERIAL,
-            HIGHTEST_COMMON_MATERIAL,
-            INDIVIDUAL_MATERIALS
-        };
-
-        RenderingMode renderingMode{ LOWEST_COMMON_MATERIAL };
+        void WindowResize() override;
 
     private:
         unsigned int m_SolidShader;
         unsigned int m_PhongShader;
-
-        size_t m_Width;
-        size_t m_Height;
 
         std::vector<PointLight*> m_PointLights;
         std::vector<DirectionalLight*> m_DirectionalLights;
