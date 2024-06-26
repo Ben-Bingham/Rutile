@@ -21,6 +21,7 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.inl>
 
 #include "rendering/Camera.h"
 #include "rendering/Material.h"
@@ -409,7 +410,7 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
 
         // Renderer Switching
@@ -425,6 +426,133 @@ int main() {
             ImGui::Text("Settings");
             ImGui::Checkbox("GPU Vsync", &settings.gpuVsync);
             ImGui::Checkbox("CPU Vsync", &settings.cpuVsync);
+
+            if (ImGui::CollapsingHeader("Lights")) {
+                int pointLightCount = 1;
+                int directionalLightCount = 1;
+                int spotLightCount = 1;
+                int i = 0;
+                for (auto lightType : bundle.lightTypes) {
+                    switch (lightType) {
+                        case LightType::POINT: {
+                            PointLight* light = dynamic_cast<PointLight*>(bundle.lights[i]);
+                            if (ImGui::TreeNode(("Point light #" + std::to_string(pointLightCount)).c_str())) {
+                                ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
+
+                                ImGui::DragFloat(("Constant Attenuation Component##" + std::to_string(i)).c_str(), &light->constant, 0.005f, 0.0f, 1.0f);
+                                ImGui::DragFloat(("Linear Attenuation Component##" + std::to_string(i)).c_str(), &light->linear, 0.005f, 0.0f, 1.0f);
+                                ImGui::DragFloat(("Quadratic Attenuation Component##" + std::to_string(i)).c_str(), &light->quadratic, 0.005f, 1.0f);
+
+                                ImGui::ColorEdit3(("Ambient Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->ambient));
+                                ImGui::ColorEdit3(("Diffuse Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->diffuse));
+                                ImGui::ColorEdit3(("Specular Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->specular));
+
+                                ImGui::TreePop();
+                            }
+
+                            ++pointLightCount;
+                            break;
+                        }
+                        case LightType::DIRECTION: { // TODO
+                            DirectionalLight* light = dynamic_cast<DirectionalLight*>(bundle.lights[i]);
+                            if (ImGui::TreeNode(("Directional light #" + std::to_string(directionalLightCount)).c_str())) {
+                                ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
+
+                                ImGui::ColorEdit3(("Ambient Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->ambient));
+                                ImGui::ColorEdit3(("Diffuse Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->diffuse));
+                                ImGui::ColorEdit3(("Specular Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->specular));
+
+                                ImGui::TreePop();
+                            }
+
+                            ++directionalLightCount;
+                            break;
+                        }
+                        case LightType::SPOTLIGHT: {
+                            SpotLight* light = dynamic_cast<SpotLight*>(bundle.lights[i]);
+                            if (ImGui::TreeNode(("Spotlight #" + std::to_string(spotLightCount)).c_str())) {
+                                ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
+                                ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
+
+                                float cutOff = glm::degrees(glm::acos(light->cutOff));
+                                float outerCutOff = glm::degrees(glm::acos(light->outerCutOff));
+
+                                ImGui::DragFloat(("Inner Cut Off##" + std::to_string(i)).c_str(), &cutOff, 0.5f, 0.0f, 180.0f);
+                                ImGui::DragFloat(("Outer Cut Off##" + std::to_string(i)).c_str(), &outerCutOff, 0.5f, 0.0f, 180.0f);
+
+                                spotLight.cutOff = glm::cos(glm::radians(cutOff));
+                                spotLight.outerCutOff = glm::cos(glm::radians(outerCutOff));
+
+                                ImGui::DragFloat(("Constant Attenuation Component##" + std::to_string(i)).c_str(), &light->constant, 0.005f, 0.0f, 1.0f);
+                                ImGui::DragFloat(("Linear Attenuation Component##" + std::to_string(i)).c_str(), &light->linear, 0.005f, 0.0f, 1.0f);
+                                ImGui::DragFloat(("Quadratic Attenuation Component##" + std::to_string(i)).c_str(), &light->quadratic, 0.005f, 1.0f);
+
+                                ImGui::ColorEdit3(("Ambient Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->ambient));
+                                ImGui::ColorEdit3(("Diffuse Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->diffuse));
+                                ImGui::ColorEdit3(("Specular Color##" + std::to_string(i)).c_str(), glm::value_ptr(light->specular));
+
+                                ImGui::TreePop();
+                            }
+                            ++spotLightCount;
+                            break;
+                        }
+                    }
+                    ++i;
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Materials")) {
+                std::vector<std::pair<MaterialType, Material*>> materials;
+                for (auto packet : bundle.packets) {
+                    MaterialType type = packet.materialType;
+                    Material* material = packet.material;
+
+                    bool alreadyHave = false;
+                    for (auto mat : materials) {
+                        if (mat.first == type && mat.second == material) {
+                            alreadyHave = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyHave) {
+                        materials.push_back(std::make_pair(type, material));
+                    }
+                }
+
+                int solidMaterialCount = 1;
+                int phongMaterialCount = 1;
+                int i = 0;
+                for (auto mat : materials) {
+                    switch (mat.first) {
+                        case MaterialType::SOLID: {
+                            Solid* material = dynamic_cast<Solid*>(mat.second);
+                            if (ImGui::TreeNode(("Solid Material #" + std::to_string(solidMaterialCount)).c_str())) {
+                                ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), glm::value_ptr(material->color));
+
+                                ImGui::TreePop();
+                            }
+                            ++solidMaterialCount;
+                            break;
+                        }
+                        case MaterialType::PHONG: {
+                            Phong* material = dynamic_cast<Phong*>(mat.second);
+                            if (ImGui::TreeNode(("Phong Material #" + std::to_string(phongMaterialCount)).c_str())) {
+                                ImGui::ColorEdit3(("Ambient Color##" + std::to_string(i)).c_str(), glm::value_ptr(material->ambient));
+                                ImGui::ColorEdit3(("Diffuse Color##" + std::to_string(i)).c_str(), glm::value_ptr(material->diffuse));
+                                ImGui::ColorEdit3(("Specular Color##" + std::to_string(i)).c_str(), glm::value_ptr(material->specular));
+
+                                ImGui::DragFloat(("Shininess##" + std::to_string(i)).c_str(), &material->shininess, 0.5f, 0.0f, 10000.0f);
+
+                                ImGui::TreePop();
+                            }
+                            ++phongMaterialCount;
+                            break;
+                        }
+                    }
+                    ++i;
+                }
+            }
 
         } ImGui::End();
 
