@@ -135,6 +135,10 @@ namespace Rutile {
         for (size_t i = 0; i < m_PacketCount; ++i) {
             unsigned int* shaderProgram = nullptr;
 
+            if (!m_ValidPackets[i]) {
+                continue;
+            }
+
             switch (m_MaterialTypes[i]) {
                 case MaterialType::SOLID: {
                     Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
@@ -156,13 +160,17 @@ namespace Rutile {
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.specular"), 1, glm::value_ptr(phong->ambient));
                     glUniform1f(glGetUniformLocation(m_PhongShader, "phong.shininess"), phong->shininess);
 
-                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(*m_Transforms[i]));
+                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Transforms[i]->matrix));
 
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(App::camera.position));
 
                     // Lighting
                     glUniform1i(glGetUniformLocation(m_PhongShader, "pointLightCount"), static_cast<int>(m_PointLights.size()));
                     for (size_t j = 0; j < m_PointLights.size(); ++j) {
+                        if (m_PointLights[j] == nullptr) {
+                            continue;
+                        }
+
                         std::string prefix = "pointLights[" + std::to_string(j) + "].";
 
                         glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_PointLights[j]->position));
@@ -178,6 +186,10 @@ namespace Rutile {
 
                     glUniform1i(glGetUniformLocation(m_PhongShader, "directionalLightCount"), static_cast<int>(m_DirectionalLights.size()));
                     for (size_t j = 0; j < m_DirectionalLights.size(); ++j) {
+                        if (m_DirectionalLights[j] == nullptr) {
+                            continue;
+                        }
+
                         std::string prefix = "directionalLights[" + std::to_string(j) + "].";
 
                         glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "direction").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->direction));
@@ -189,6 +201,10 @@ namespace Rutile {
 
                     glUniform1i(glGetUniformLocation(m_PhongShader, "spotLightCount"), static_cast<int>(m_SpotLights.size()));
                     for (size_t j = 0; j < m_SpotLights.size(); ++j) {
+                        if (m_SpotLights[j] == nullptr) {
+                            continue;
+                        }
+
                         std::string prefix = "spotLights[" + std::to_string(j) + "].";
 
                         glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_SpotLights[j]->position));
@@ -209,7 +225,7 @@ namespace Rutile {
                 }
             }
 
-            glm::mat4 mvp = m_Projection * App::camera.View() * *m_Transforms[i];
+            glm::mat4 mvp = m_Projection * App::camera.View() * m_Transforms[i]->matrix;
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
@@ -221,29 +237,33 @@ namespace Rutile {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void OpenGlRenderer::SetBundle(const Scene& bundle) {
+    void OpenGlRenderer::SetScene(const Scene& scene) {
         // Lights
         m_PointLights.clear();
         m_DirectionalLights.clear();
         m_SpotLights.clear();
 
-        for (size_t i = 0; i < bundle.lights.size(); ++i) {
-            LightType type = bundle.lightTypes[i];
+        for (size_t i = 0; i < scene.lights.size(); ++i) {
+            const LightType type = scene.lightTypes[i];
 
-            switch (type) {
+            AddLight(type, scene.lights[i]);
+
+
+
+            /*switch (type) {
                 case LightType::POINT: {
-                    m_PointLights.push_back(dynamic_cast<PointLight*>(bundle.lights[i]));
+                    m_PointLights.push_back(dynamic_cast<PointLight*>(scene.lights[i]));
                     break;
                 }
                 case LightType::DIRECTION: {
-                    m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(bundle.lights[i]));
+                    m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(scene.lights[i]));
                     break;
                 }
                 case LightType::SPOTLIGHT: {
-                    m_SpotLights.push_back(dynamic_cast<SpotLight*>(bundle.lights[i]));
+                    m_SpotLights.push_back(dynamic_cast<SpotLight*>(scene.lights[i]));
                     break;
                 }
-            }
+            }*/
         }
 
         // Geometry
@@ -261,7 +281,9 @@ namespace Rutile {
         m_MaterialTypes.clear();
         m_Materials    .clear();
 
-        m_PacketCount = bundle.packets.size();
+        m_ValidPackets.clear();
+
+        m_PacketCount = scene.packets.size();
 
         m_VAOs         .resize(m_PacketCount);
         m_VBOs         .resize(m_PacketCount);
@@ -273,19 +295,30 @@ namespace Rutile {
         m_MaterialTypes.resize(m_PacketCount);
         m_Materials    .resize(m_PacketCount);
 
+        m_ValidPackets.resize(m_PacketCount);
+
         glGenVertexArrays(static_cast<GLsizei>(m_PacketCount), m_VAOs.data());
         glGenBuffers(     static_cast<GLsizei>(m_PacketCount), m_VBOs.data());
         glGenBuffers(     static_cast<GLsizei>(m_PacketCount), m_EBOs.data());
 
         for (size_t i = 0; i < m_PacketCount; ++i) {
-            std::vector<Vertex> vertices = bundle.packets[i].vertexData;
-            std::vector<Index> indices = bundle.packets[i].indexData;
+            std::vector<Vertex> vertices = scene.packets[i].vertexData;
+
+            if (vertices.empty()) {
+                m_ValidPackets[i] = false;
+            } else {
+                m_ValidPackets[i] = true;
+            }
+
+            std::vector<Index> indices = scene.packets[i].indexData;
 
             m_IndexCounts[i] = indices.size();
-            m_Transforms[i] = bundle.transforms[i][0];
+            m_Transforms[i] = scene.packets[i].transform;
 
-            m_MaterialTypes[i] = bundle.packets[i].materialType;
-            m_Materials[i] = bundle.packets[i].material;
+            m_Transforms[i]->CalculateMatrix();
+
+            m_MaterialTypes[i] = scene.packets[i].materialType;
+            m_Materials[i] = scene.packets[i].material;
 
             glBindVertexArray(m_VAOs[i]);
 
@@ -315,5 +348,147 @@ namespace Rutile {
 
         m_Projection = glm::mat4{ 1.0f };
         m_Projection = glm::perspective(glm::radians(App::fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::nearPlane, App::farPlane);
+    }
+
+    void OpenGlRenderer::SetPacket(size_t index, Packet packet) {
+        if (packet.vertexData.empty()) {
+            m_ValidPackets[index] = false;
+        }
+        else {
+            m_ValidPackets[index] = true;
+        }
+
+        glDeleteBuffers     (1, &m_EBOs[index]);
+        glDeleteBuffers     (1, &m_VBOs[index]);
+        glDeleteVertexArrays(1, &m_VAOs[index]);
+
+        glGenVertexArrays(1, &m_VAOs[index]);
+        glGenBuffers     (1, &m_VBOs[index]);
+        glGenBuffers     (1, &m_EBOs[index]);
+
+        std::vector<Vertex> vertices = packet.vertexData;
+        std::vector<Index> indices = packet.indexData;
+
+        m_IndexCounts[index] = indices.size();
+        m_Transforms[index] = packet.transform;
+
+        m_Transforms[index]->CalculateMatrix();
+
+        m_MaterialTypes[index] = packet.materialType;
+        m_Materials[index] = packet.material;
+
+        glBindVertexArray(m_VAOs[index]);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[index]);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBOs[index]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
+
+    void OpenGlRenderer::SetLight(size_t index, LightType type, Light* light) {
+        switch (type) {
+            case LightType::POINT: {
+                m_PointLights[index] = dynamic_cast<PointLight*>(light);
+                break;
+            }
+            case LightType::DIRECTION: {
+                m_DirectionalLights[index] = dynamic_cast<DirectionalLight*>(light);
+                break;
+            }
+            case LightType::SPOTLIGHT: {
+                m_SpotLights[index] = dynamic_cast<SpotLight*>(light);
+                break;
+            }
+        }
+    }
+
+    void OpenGlRenderer::AddPacket(Packet packet) {
+        if (packet.vertexData.empty()) {
+            m_ValidPackets.push_back(false);
+        }
+        else {
+            m_ValidPackets.push_back(true);
+        }
+
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
+
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers     (1, &VBO);
+        glGenBuffers     (1, &EBO);
+
+        std::vector<Vertex> vertices = packet.vertexData;
+        std::vector<Index> indices = packet.indexData;
+
+        m_IndexCounts.push_back(indices.size());
+        m_Transforms.push_back(packet.transform);
+
+        m_Transforms.back()->CalculateMatrix();
+
+        m_MaterialTypes.push_back(packet.materialType);
+        m_Materials.push_back(packet.material);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        m_VAOs.push_back(VAO);
+        m_VBOs.push_back(VBO);
+        m_EBOs.push_back(EBO);
+
+        ++m_PacketCount;
+    }
+
+    void OpenGlRenderer::AddLight(LightType type, Light* light) {
+        switch (type) {
+            case LightType::POINT: {
+                m_PointLights.push_back(dynamic_cast<PointLight*>(light));
+                break;
+            }
+            case LightType::DIRECTION: {
+                m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(light));
+                break;
+            }
+            case LightType::SPOTLIGHT: {
+                m_SpotLights.push_back(dynamic_cast<SpotLight*>(light));
+                break;
+            }
+        }
+    }
+
+    void OpenGlRenderer::UpdatePacketTransform(size_t index) {
+        m_Transforms[index]->CalculateMatrix();
     }
 }

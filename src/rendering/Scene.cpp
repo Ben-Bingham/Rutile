@@ -1,16 +1,10 @@
 #include "Scene.h"
 
 namespace Rutile {
-    void Clear(Scene& bundle) {
-        bundle.packets.clear();
+    void Clear(Scene& scene) {
+        scene.packets.clear();
 
-        for (auto& vec : bundle.transforms) {
-            vec.clear();
-        }
-
-        bundle.transforms.clear();
-
-        bundle.lightTypes.clear();
-        bundle.lights.clear();
+        scene.lightTypes.clear();
+        scene.lights.clear();
     }
 }

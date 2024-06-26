@@ -1,4 +1,5 @@
 #pragma once
+#include "Transform.h"
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -19,7 +20,8 @@ namespace Rutile {
         std::vector<Index> indexData;
 
         MaterialType materialType;
-
         Material* material;
+
+        Transform* transform;
     };
 }

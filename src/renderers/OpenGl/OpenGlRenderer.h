@@ -20,9 +20,17 @@ namespace Rutile {
 
         void Render() override;
 
-        void SetBundle(const Scene& bundle) override;
+        void SetScene(const Scene& scene) override;
 
         void WindowResize() override;
+
+        void SetPacket(size_t index, Packet packet) override;
+        void SetLight(size_t index, LightType type, Light* light) override;
+
+        void AddPacket(Packet packet) override;
+        void AddLight(LightType type, Light* light) override;
+
+        void UpdatePacketTransform(size_t index) override;
 
     private:
         glm::mat4 m_Projection { 1.0f };
@@ -36,12 +44,14 @@ namespace Rutile {
 
         size_t m_PacketCount;
 
+        std::vector<bool> m_ValidPackets;
+
         std::vector<unsigned int> m_VAOs;
         std::vector<unsigned int> m_VBOs;
         std::vector<unsigned int> m_EBOs;
 
         std::vector<size_t> m_IndexCounts;
-        std::vector<glm::mat4*> m_Transforms;
+        std::vector<Transform*> m_Transforms;
 
         std::vector<MaterialType> m_MaterialTypes;
         std::vector<Material*> m_Materials;

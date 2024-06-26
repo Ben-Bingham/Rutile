@@ -1,4 +1,4 @@
-#include "GeometryPreprocessor.h"
+#include "SceneFactory.h"
 #include "renderers/renderer.h"
 #include "renderers/OpenGl/OpenGlRenderer.h"
 
@@ -34,7 +34,7 @@ void CreateCurrentRenderer(App::RendererType type) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
     App::window = App::renderer->Init();
-    App::renderer->SetBundle(App::bundle);
+    App::renderer->SetScene(App::scene);
 
     App::glfw.AttachOntoWindow(App::window);
 
@@ -53,8 +53,7 @@ void ShutDownCurrentRenderer() {
 int main() {
     App::glfw.Init();
 
-    GeometryPreprocessor geometryPreprocessor{ };
-    // Setting up bundle
+    SceneFactory sceneFactory{ };
     {
         Solid solid;
         solid.color = { 1.0f, 0.0f, 1.0f };
@@ -68,28 +67,25 @@ int main() {
         phong.specular = { 0.5f, 0.5f, 0.5f };
         phong.shininess = 32.0f;
 
-        Phong phong2;
-        //phong2.ambient
+        Transform transform1{ };
+        transform1.position = { 1.0f, 1.0f, 0.0f };
+        sceneFactory.Add(Primitive::TRIANGLE, &transform1, MaterialType::SOLID, &solid);
 
-        glm::mat4 transform1 = glm::mat4{ 1.0f };
-        transform1 = glm::translate(transform1, glm::vec3{ 1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, &transform1, MaterialType::SOLID, &solid);
+        Transform transform2{ };
+        transform2.position = { -1.0f, -1.0f, 0.0f };
+        sceneFactory.Add(Primitive::TRIANGLE, &transform2, MaterialType::SOLID, &solid2);
 
-        glm::mat4 transform2 = glm::mat4{ 1.0f };
-        transform2 = glm::translate(transform2, glm::vec3{ -1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::TRIANGLE, &transform2, MaterialType::SOLID, &solid2);
+        Transform transform3{ };
+        transform3.position = { 0.0f, 0.0f, 0.0f };
+        sceneFactory.Add(Primitive::SQUARE, &transform3, MaterialType::SOLID, &solid);
 
-        glm::mat4 transform3 = glm::mat4{ 1.0f };
-        transform3 = glm::translate(transform3, glm::vec3{ 0.0f, 0.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::SQUARE, &transform3, MaterialType::SOLID, &solid);
+        Transform transform4{ };
+        transform4.position = { 1.0f, -1.0f, 0.0f };
+        sceneFactory.Add(Primitive::CUBE, &transform4, MaterialType::SOLID, &solid2);
 
-        glm::mat4 transform4 = glm::mat4{ 1.0f };
-        transform4 = glm::translate(transform4, glm::vec3{ 1.0f, -1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, &transform4, MaterialType::SOLID, &solid2);
-
-        glm::mat4 transform5 = glm::mat4{ 1.0f };
-        transform5 = glm::translate(transform5, glm::vec3{ -1.0f, 1.0f, 0.0f });
-        geometryPreprocessor.Add(Primitive::CUBE, &transform5, MaterialType::PHONG, &phong);
+        Transform transform5{ };
+        transform5.position = { -1.0f, 1.0f, 0.0f };
+        sceneFactory.Add(Primitive::CUBE, &transform5, MaterialType::PHONG, &phong);
 
         PointLight pointLight;
         pointLight.position = { -2.0f, 2.0f, 2.0f };
@@ -102,7 +98,7 @@ int main() {
         pointLight.linear = 0.09f;
         pointLight.quadratic = 0.032f;
 
-        geometryPreprocessor.Add(LightType::POINT, &pointLight);
+        sceneFactory.Add(LightType::POINT, &pointLight);
 
         DirectionalLight directionalLight;
         directionalLight.direction = { 0.0f, -1.0f, 0.0f };
@@ -111,7 +107,7 @@ int main() {
         directionalLight.diffuse = { 0.4f, 0.4f, 0.4f };
         directionalLight.specular = { 0.5f, 0.5f, 0.5f };
 
-        geometryPreprocessor.Add(LightType::DIRECTION, &directionalLight);
+        sceneFactory.Add(LightType::DIRECTION, &directionalLight);
 
         SpotLight spotLight;
         spotLight.position = { 0.0f, 0.0f, 0.0f };
@@ -128,9 +124,9 @@ int main() {
         spotLight.cutOff = glm::cos(glm::radians(12.5f));
         spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
 
-        geometryPreprocessor.Add(LightType::SPOTLIGHT, &spotLight);
+        sceneFactory.Add(LightType::SPOTLIGHT, &spotLight);
     }
-    App::bundle = geometryPreprocessor.GetBundle(GeometryMode::OPTIMIZED);
+    App::scene = sceneFactory.GetScene();
 
     CreateCurrentRenderer(App::currentRendererType);
 

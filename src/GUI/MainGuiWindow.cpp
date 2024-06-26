@@ -24,10 +24,10 @@ namespace Rutile {
                 int directionalLightCount = 1;
                 int spotLightCount = 1;
                 int i = 0;
-                for (auto lightType : App::bundle.lightTypes) {
+                for (auto lightType : App::scene.lightTypes) {
                     switch (lightType) {
                     case LightType::POINT: {
-                        PointLight* light = dynamic_cast<PointLight*>(App::bundle.lights[i]);
+                        PointLight* light = dynamic_cast<PointLight*>(App::scene.lights[i]);
                         if (ImGui::TreeNode(("Point light #" + std::to_string(pointLightCount)).c_str())) {
                             ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
 
@@ -48,7 +48,7 @@ namespace Rutile {
                         break;
                     }
                     case LightType::DIRECTION: {
-                        DirectionalLight* light = dynamic_cast<DirectionalLight*>(App::bundle.lights[i]);
+                        DirectionalLight* light = dynamic_cast<DirectionalLight*>(App::scene.lights[i]);
                         if (ImGui::TreeNode(("Directional light #" + std::to_string(directionalLightCount)).c_str())) {
                             ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
 
@@ -63,7 +63,7 @@ namespace Rutile {
                         break;
                     }
                     case LightType::SPOTLIGHT: {
-                        SpotLight* light = dynamic_cast<SpotLight*>(App::bundle.lights[i]);
+                        SpotLight* light = dynamic_cast<SpotLight*>(App::scene.lights[i]);
                         if (ImGui::TreeNode(("Spotlight #" + std::to_string(spotLightCount)).c_str())) {
                             ImGui::DragFloat3(("Position##" + std::to_string(i)).c_str(), glm::value_ptr(light->position), 0.05f);
                             ImGui::DragFloat3(("Direction##" + std::to_string(i)).c_str(), glm::value_ptr(light->direction), 0.05f);
@@ -97,7 +97,7 @@ namespace Rutile {
 
             if (ImGui::CollapsingHeader("Materials")) {
                 std::vector<std::pair<MaterialType, Material*>> materials;
-                for (auto packet : App::bundle.packets) {
+                for (auto packet : App::scene.packets) {
                     MaterialType type = packet.materialType;
                     Material* material = packet.material;
 
@@ -148,10 +148,11 @@ namespace Rutile {
                 }
             }
 
+            /*
             if (ImGui::CollapsingHeader("Transforms")) {
                 int transformCount = 1;
                 int i = 0;
-                for (auto t : App::bundle.transforms) {
+                for (auto t : App::scene.transforms) {
                     glm::mat4* transform = t[0];
 
                     if (ImGui::TreeNode(("Transform #" + std::to_string(transformCount)).c_str())) {
@@ -171,7 +172,7 @@ namespace Rutile {
                     ++i;
                 }
             }
-
+            */
         }
         ImGui::End();
     }

@@ -26,7 +26,7 @@ namespace Rutile {
         inline static GLFW glfw{ };
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
-        inline static Scene bundle;
+        inline static Scene scene;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 

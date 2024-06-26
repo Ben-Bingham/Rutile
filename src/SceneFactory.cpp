@@ -1,15 +1,15 @@
-#include "GeometryPreprocessor.h"
+#include "SceneFactory.h"
 
 namespace Rutile {
-    Scene GeometryPreprocessor::GetBundle(GeometryMode mode) {
-        Scene bundle = m_CurrentBundle;
+    Scene SceneFactory::GetScene() {
+        Scene scene = m_CurrentScene;
 
-        Clear(m_CurrentBundle);
+        Clear(m_CurrentScene);
 
-        return bundle;
+        return scene;
     }
 
-    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4* transform, MaterialType materialType, Material* material) {
+    void SceneFactory::Add(Primitive primitive, Transform* transform, MaterialType materialType, Material* material) {
         Packet packet;
         switch (primitive) {
         case Primitive::TRIANGLE:
@@ -28,8 +28,9 @@ namespace Rutile {
             packet.materialType = materialType;
             packet.material = material;
 
-            m_CurrentBundle.packets.push_back(packet);
-            m_CurrentBundle.transforms.push_back(std::vector{ transform });
+            packet.transform = transform;
+
+            m_CurrentScene.packets.push_back(packet);
 
             break;
 
@@ -90,8 +91,9 @@ namespace Rutile {
             packet.materialType = materialType;
             packet.material = material;
 
-            m_CurrentBundle.packets.push_back(packet);
-            m_CurrentBundle.transforms.push_back(std::vector{ transform });
+            packet.transform = transform;
+
+            m_CurrentScene.packets.push_back(packet);
 
             break;
         case Primitive::SQUARE:
@@ -111,15 +113,16 @@ namespace Rutile {
             packet.materialType = materialType;
             packet.material = material;
 
-            m_CurrentBundle.packets.push_back(packet);
-            m_CurrentBundle.transforms.push_back(std::vector{ transform });
+            packet.transform = transform;
+
+            m_CurrentScene.packets.push_back(packet);
 
             break;
         }
     }
 
-    void GeometryPreprocessor::Add(LightType type, Light* light) {
-        m_CurrentBundle.lightTypes.push_back(type);
-        m_CurrentBundle.lights.push_back(light);
+    void SceneFactory::Add(LightType type, Light* light) {
+        m_CurrentScene.lightTypes.push_back(type);
+        m_CurrentScene.lights.push_back(light);
     }
 }
