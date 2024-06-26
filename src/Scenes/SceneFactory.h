@@ -1,5 +1,5 @@
 #pragma once
-#include "rendering/Scene.h"
+#include "Scenes/Scene.h"
 
 namespace Rutile {
     enum class Primitive {

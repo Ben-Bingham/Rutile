@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Light.h"
 #include <vector>
 
-#include "Packet.h"
+#include "rendering/Light.h"
+#include "rendering/Packet.h"
 
 namespace Rutile {
     struct Scene {

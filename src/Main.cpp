@@ -1,4 +1,4 @@
-#include "SceneFactory.h"
+#include "Scenes/SceneFactory.h"
 #include "renderers/renderer.h"
 #include "renderers/OpenGl/OpenGlRenderer.h"
 

@@ -3,7 +3,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "rendering/Scene.h"
+#include "Scenes/Scene.h"
 
 namespace Rutile {
 	class Renderer {

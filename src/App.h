@@ -4,7 +4,7 @@
 
 #include "glm/glm.hpp"
 
-#include "rendering/Scene.h"
+#include "Scenes/Scene.h"
 #include "tools/ImGuiInstance.h"
 #include "tools/GLFW.h"
 
