@@ -174,6 +174,7 @@ int main() {
 
                 App::mouseDown = true;
             }
+
             if (glfwGetMouseButton(App::window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
                 App::mouseDown = false;
             }
@@ -204,40 +205,41 @@ int main() {
             }
         }
 
-        if (App::restartRenderer) {
-            ShutDownCurrentRenderer();
+        { // Reacting to settings changes
+            if (App::restartRenderer) {
+                ShutDownCurrentRenderer();
 
-            CreateCurrentRenderer(App::currentRendererType);
+                CreateCurrentRenderer(App::currentRendererType);
 
-            App::restartRenderer = false;
+                App::restartRenderer = false;
+            }
+
+            if (App::lastRendererType != App::currentRendererType) {
+                ShutDownCurrentRenderer();
+
+                CreateCurrentRenderer(App::currentRendererType);
+            }
+
+            App::lastRendererType = App::currentRendererType;
         }
 
-        if (App::lastRendererType != App::currentRendererType) {
-            ShutDownCurrentRenderer();
+        { // Rendering
+            App::imGui.StartNewFrame();
 
-            CreateCurrentRenderer(App::currentRendererType);
+            MainGuiWindow();
+
+            glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
+            std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
+
+            App::imGui.FinishFrame();
+
+            glfwSwapBuffers(App::window);
         }
-
-        App::lastRendererType = App::currentRendererType;
-
-        App::imGui.StartNewFrame();
-
-        MainGuiWindow();
-
-        // Rendering
-        glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)App::screenWidth / (float)App::screenHeight, 0.1f, 100.0f);
-        std::vector<Pixel> pixels = App::renderer->Render(camera, projection);
-
-        App::imGui.FinishFrame();
-
-        glfwSwapBuffers(App::window);
 
         // Timing the frame
-        {
-            auto frameEnd = std::chrono::system_clock::now();
+        auto frameEnd = std::chrono::system_clock::now();
 
-            App::frameTime = frameEnd - frameStart;
-        }
+        App::frameTime = frameEnd - frameStart;
     }
 
     App::imGui.Cleanup();
