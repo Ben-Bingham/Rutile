@@ -104,6 +104,7 @@ void framebufferSizeCallback(GLFWwindow* window, int w, int h) {
 
 int mouseX = 0;
 int mouseY = 0;
+
 void mouseMoveCallback(GLFWwindow* window, double x, double y) {
     mouseX = (int)x;
     mouseY = (int)y;
@@ -251,6 +252,9 @@ int main() {
     phong.diffuse = { 1.0f, 0.5f, 0.31f };
     phong.specular = { 0.5f, 0.5f, 0.5f };
     phong.shininess = 32.0f;
+
+    Phong phong2;
+    //phong2.ambient
 
     glm::mat4 transform1 = glm::mat4{ 1.0f };
     transform1 = glm::translate(transform1, glm::vec3{ 1.0f, 1.0f, 0.0f });
@@ -413,7 +417,7 @@ int main() {
         //ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
 
-        // Renderer Switching
+        // GUI
         int lastRenderer = currentRenderer;
         { ImGui::Begin("Rutile");
 
@@ -617,7 +621,6 @@ int main() {
 
         // Rendering
         glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
-
         std::vector<Pixel> pixels = renderer->Render(camera, projection);
 
         // Rendering texture with pixel data
