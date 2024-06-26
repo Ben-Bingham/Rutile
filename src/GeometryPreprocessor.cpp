@@ -9,7 +9,7 @@ namespace Rutile {
         return bundle;
     }
 
-    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4 transform, MaterialType materialType, Material* material) {
+    void GeometryPreprocessor::Add(Primitive primitive, glm::mat4* transform, MaterialType materialType, Material* material) {
         Packet packet;
         switch (primitive) {
         case Primitive::TRIANGLE:

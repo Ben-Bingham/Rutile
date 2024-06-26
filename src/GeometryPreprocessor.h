@@ -17,7 +17,7 @@ namespace Rutile {
 	public:
 		Bundle GetBundle(GeometryMode mode);
 
-		void Add(Primitive primitive, glm::mat4 transform, MaterialType materialType, Material* material);
+		void Add(Primitive primitive, glm::mat4* transform, MaterialType materialType, Material* material);
 
 		void Add(LightType type, Light* light);
 

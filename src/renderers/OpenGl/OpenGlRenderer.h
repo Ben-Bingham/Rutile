@@ -52,7 +52,7 @@ namespace Rutile {
         std::vector<unsigned int> m_EBOs;
 
         std::vector<size_t> m_IndexCounts;
-        std::vector<glm::mat4> m_Transforms;
+        std::vector<glm::mat4*> m_Transforms;
 
         std::vector<MaterialType> m_MaterialTypes;
         std::vector<Material*> m_Materials;

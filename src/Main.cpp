@@ -252,25 +252,25 @@ int main() {
     phong.specular = { 0.5f, 0.5f, 0.5f };
     phong.shininess = 32.0f;
 
-    glm::mat4 transform = glm::mat4{ 1.0f };
-    transform = glm::translate(transform, glm::vec3{ 1.0f, 1.0f, 0.0f });
-    geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid);
+    glm::mat4 transform1 = glm::mat4{ 1.0f };
+    transform1 = glm::translate(transform1, glm::vec3{ 1.0f, 1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::TRIANGLE, &transform1, MaterialType::SOLID, &solid);
 
-    transform = glm::mat4{ 1.0f };
-    transform = glm::translate(transform, glm::vec3{ -1.0f, -1.0f, 0.0f });
-    geometryPreprocessor.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, &solid2);
+    glm::mat4 transform2 = glm::mat4{ 1.0f };
+    transform2 = glm::translate(transform2, glm::vec3{ -1.0f, -1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::TRIANGLE, &transform2, MaterialType::SOLID, &solid2);
 
-    transform = glm::mat4{ 1.0f };
-    transform = glm::translate(transform, glm::vec3{ 0.0f, 0.0f, 0.0f });
-    geometryPreprocessor.Add(Primitive::SQUARE, transform, MaterialType::SOLID, &solid);
+    glm::mat4 transform3 = glm::mat4{ 1.0f };
+    transform3 = glm::translate(transform3, glm::vec3{ 0.0f, 0.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::SQUARE, &transform3, MaterialType::SOLID, &solid);
 
-    transform = glm::mat4{ 1.0f };
-    transform = glm::translate(transform, glm::vec3{ 1.0f, -1.0f, 0.0f });
-    geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::SOLID, &solid2);
+    glm::mat4 transform4 = glm::mat4{ 1.0f };
+    transform4 = glm::translate(transform4, glm::vec3{ 1.0f, -1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::CUBE, &transform4, MaterialType::SOLID, &solid2);
 
-    transform = glm::mat4{ 1.0f };
-    transform = glm::translate(transform, glm::vec3{ -1.0f, 1.0f, 0.0f });
-    geometryPreprocessor.Add(Primitive::CUBE, transform, MaterialType::PHONG, &phong);
+    glm::mat4 transform5 = glm::mat4{ 1.0f };
+    transform5 = glm::translate(transform5, glm::vec3{ -1.0f, 1.0f, 0.0f });
+    geometryPreprocessor.Add(Primitive::CUBE, &transform5, MaterialType::PHONG, &phong);
 
     PointLight pointLight;
     pointLight.position = { -2.0f, 2.0f, 2.0f };
@@ -410,7 +410,7 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
 
         // Renderer Switching
@@ -550,6 +550,30 @@ int main() {
                             break;
                         }
                     }
+                    ++i;
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Transforms")) {
+                int transformCount = 1;
+                int i = 0;
+                for (auto t : bundle.transforms) {
+                    glm::mat4* transform = t[0];
+
+                    if (ImGui::TreeNode(("Transform #" + std::to_string(transformCount)).c_str())) {
+                        glm::vec3 translation = { (*transform)[3][0], (*transform)[3][1], (*transform)[3][2] };
+                        glm::vec3 translationBackup = translation;
+                        ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), glm::value_ptr(translation), 0.01f);
+                        *transform = glm::translate(*transform, translation - translationBackup);
+
+                        glm::vec3 scaling = { (*transform)[0][0], (*transform)[1][1], (*transform)[2][2] };
+                        glm::vec3 scalingBackup = scaling - 1.0f;
+                        ImGui::DragFloat3(("Scale##" + std::to_string(i)).c_str(), glm::value_ptr(scaling), 0.01f, 0.1f, 10000.0f);
+                        *transform = glm::scale(*transform, scaling - scalingBackup);
+
+                        ImGui::TreePop();
+                    }
+                    ++transformCount;
                     ++i;
                 }
             }

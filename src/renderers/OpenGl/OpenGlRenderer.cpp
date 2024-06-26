@@ -133,7 +133,7 @@ namespace Rutile {
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.specular"), 1, glm::value_ptr(phong->ambient));
                     glUniform1f(glGetUniformLocation(m_PhongShader, "phong.shininess"), phong->shininess);
 
-                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Transforms[i]));
+                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(*m_Transforms[i]));
 
                     glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(camera.position));
 
@@ -186,7 +186,7 @@ namespace Rutile {
                 }
             }
 
-            glm::mat4 mvp = projection * camera.View() * m_Transforms[i];
+            glm::mat4 mvp = projection * camera.View() * *m_Transforms[i];
 
             glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
