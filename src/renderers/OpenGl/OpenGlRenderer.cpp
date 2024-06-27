@@ -1,6 +1,6 @@
 #include "OpenGlRenderer.h"
 #include "Settings/App.h"
-#include "GLDebug.h"
+#include "utility/GLDebug.h"
 #include "imgui.h"
 
 #include <iostream>
