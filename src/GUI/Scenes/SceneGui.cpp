@@ -45,10 +45,17 @@ namespace Rutile {
 
     void SceneObjects() {
         if (ImGui::TreeNode("Packets")) {
-            for (Packet packet : App::scene.packets) {
-                DisplayMaterial(packet.materialType, packet.material);
+            ImGui::Separator();
 
-                DisplayTransform(packet.transform);
+            int i = 0;
+            for (Packet packet : App::scene.packets) {
+                ImGui::Text(("Packet #" + std::to_string(i + 1)).c_str());
+
+                DisplayMaterial(i, packet.materialType, packet.material);
+                DisplayTransform(i, packet.transform);
+
+                ImGui::Separator();
+                ++i;
             }
 
             ImGui::TreePop();
@@ -63,12 +70,54 @@ namespace Rutile {
         }
     }
 
-    void DisplayMaterial(MaterialType type, Material* material) {
-        
+    void DisplayMaterial(size_t i, MaterialType type, Material* material) {
+        std::string materialName{ };
+        switch (type) {
+            case MaterialType::SOLID: {
+                materialName = "Material: Solid";
+                break;
+            }
+            case MaterialType::PHONG: {
+                materialName = "Material: Phong";
+                break;
+            }
+        }
+
+        if (ImGui::TreeNode((materialName + "##" + std::to_string(i)).c_str())) {
+            switch (type) {
+                case MaterialType::SOLID: {
+                    Solid* m = dynamic_cast<Solid*>(material);
+
+                    ImGui::ColorEdit3(("Color##" + std::to_string(i)).c_str(), glm::value_ptr(m->color));
+
+                    break;
+                }
+                case MaterialType::PHONG: {
+                    Phong* m = dynamic_cast<Phong*>(material);
+
+                    ImGui::ColorEdit3(("Ambient Color##"    + std::to_string(i)).c_str(), glm::value_ptr(m->ambient));
+                    ImGui::ColorEdit3(("Diffuse Color##"    + std::to_string(i)).c_str(), glm::value_ptr(m->diffuse));
+                    ImGui::ColorEdit3(("Specular Color##"   + std::to_string(i)).c_str(), glm::value_ptr(m->specular));
+
+                    ImGui::DragFloat (("Shininess##"        + std::to_string(i)).c_str(), &m->shininess, 0.5f, 0.0f, 10000.0f);
+
+                    break;
+                }
+            }
+
+            ImGui::TreePop();
+        }
     }
 
-    void DisplayTransform(Transform* transform) {
-        
+    void DisplayTransform(size_t i, Transform* transform) {
+        if (ImGui::TreeNode(("Transform##" + std::to_string(i)).c_str())) {
+
+            if (ImGui::DragFloat3(("Translation##"  + std::to_string(i)).c_str(), glm::value_ptr(transform->position),  0.01f)) { App::renderer->UpdatePacketTransform(i); }
+            if (ImGui::DragFloat3(("Scale##"        + std::to_string(i)).c_str(), glm::value_ptr(transform->scale),     0.01f)) { App::renderer->UpdatePacketTransform(i); }
+            if (ImGui::DragFloat3(("Rotation##"     + std::to_string(i)).c_str(), glm::value_ptr(transform->rotation),  0.01f)) { App::renderer->UpdatePacketTransform(i); }
+
+            ImGui::TreePop();
+        }
     }
 
     void DisplayLight(size_t i, LightType type, Light* light) {
@@ -88,7 +137,7 @@ namespace Rutile {
             }
         }
 
-        if (ImGui::TreeNode(lightName.c_str())) {
+        if (ImGui::TreeNode((lightName + "##" + std::to_string(i)).c_str())) {
             switch (type) {
                 case LightType::POINT: {
                     PointLight* l = dynamic_cast<PointLight*>(light);
@@ -97,7 +146,7 @@ namespace Rutile {
 
                     ImGui::DragFloat (("Constant Attenuation Component##"   + std::to_string(i)).c_str(), &l->constant,                 0.005f, 0.0f, 1.0f);
                     ImGui::DragFloat (("Linear Attenuation Component##"     + std::to_string(i)).c_str(), &l->linear,                   0.005f, 0.0f, 1.0f);
-                    ImGui::DragFloat (("Quadratic Attenuation Component##"  + std::to_string(i)).c_str(), &l->quadratic,                0.005f, 1.0f);
+                    ImGui::DragFloat (("Quadratic Attenuation Component##"  + std::to_string(i)).c_str(), &l->quadratic,                0.005f, 0.0f, 1.0f);
 
                     ImGui::ColorEdit3(("Ambient Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->ambient));
                     ImGui::ColorEdit3(("Diffuse Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->diffuse));
@@ -132,7 +181,7 @@ namespace Rutile {
 
                     ImGui::DragFloat (("Constant Attenuation Component##"   + std::to_string(i)).c_str(), &l->constant,                 0.005f, 0.0f, 1.0f);
                     ImGui::DragFloat (("Linear Attenuation Component##"     + std::to_string(i)).c_str(), &l->linear,                   0.005f, 0.0f, 1.0f);
-                    ImGui::DragFloat (("Quadratic Attenuation Component##"  + std::to_string(i)).c_str(), &l->quadratic,                0.005f, 1.0f);
+                    ImGui::DragFloat (("Quadratic Attenuation Component##"  + std::to_string(i)).c_str(), &l->quadratic,                0.005f, 0.0f, 1.0f);
 
                     ImGui::ColorEdit3(("Ambient Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->ambient));
                     ImGui::ColorEdit3(("Diffuse Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->diffuse));

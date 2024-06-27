@@ -8,7 +8,7 @@ namespace Rutile {
 
     void SceneObjects();
 
-    void DisplayMaterial(MaterialType type, Material* material);
-    void DisplayTransform(Transform* transform);
+    void DisplayMaterial(size_t i, MaterialType type, Material* material);
+    void DisplayTransform(size_t i, Transform* transform);
     void DisplayLight(size_t i, LightType type, Light* light);
 }
