@@ -14,6 +14,8 @@ namespace Rutile {
         const char* items[] = { original, triangle };
         static int currentIndex = 0;
 
+        ImGui::Text(("Current Scene: " + std::string{ items[currentIndex] }).c_str());
+
         if (ImGui::BeginCombo("Select a Scene", items[currentIndex])) {
             for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
                 const bool isSelected = (currentIndex == n);
@@ -35,12 +37,11 @@ namespace Rutile {
             ImGui::EndCombo();
         }
 
+        ImGui::Separator();
         ImGui::Text("Scene Objects");
         ImGui::Separator();
 
         SceneObjects();
-
-        ImGui::Separator();
     }
 
     void SceneObjects() {
@@ -62,8 +63,11 @@ namespace Rutile {
         }
 
         if (ImGui::TreeNode("Lights")) {
+            ImGui::Separator();
             for (size_t i = 0; i < App::scene.lights.size(); ++i) {
                 DisplayLight(i, App::scene.lightTypes[i], App::scene.lights[i]);
+
+                ImGui::Separator();
             }
 
             ImGui::TreePop();
