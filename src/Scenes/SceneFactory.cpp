@@ -2,11 +2,7 @@
 
 namespace Rutile {
     Scene SceneFactory::GetScene() {
-        Scene scene = m_CurrentScene;
-
-        Clear(m_CurrentScene);
-
-        return scene;
+        return m_CurrentScene;
     }
 
     void SceneFactory::Add(Primitive primitive, Transform* transform, MaterialType materialType, Material* material) {

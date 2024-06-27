@@ -247,23 +247,6 @@ namespace Rutile {
             const LightType type = scene.lightTypes[i];
 
             AddLight(type, scene.lights[i]);
-
-
-
-            /*switch (type) {
-                case LightType::POINT: {
-                    m_PointLights.push_back(dynamic_cast<PointLight*>(scene.lights[i]));
-                    break;
-                }
-                case LightType::DIRECTION: {
-                    m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(scene.lights[i]));
-                    break;
-                }
-                case LightType::SPOTLIGHT: {
-                    m_SpotLights.push_back(dynamic_cast<SpotLight*>(scene.lights[i]));
-                    break;
-                }
-            }*/
         }
 
         // Geometry

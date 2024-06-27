@@ -12,6 +12,4 @@ namespace Rutile {
         std::vector<LightType> lightTypes;
         std::vector<Light*> lights;
     };
-
-    void Clear(Scene& scene);
 }
