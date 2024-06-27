@@ -38,5 +38,12 @@ namespace Rutile {
         virtual void UpdatePacketMaterial(size_t index);
         virtual void UpdatePacketTransform(size_t index);
         virtual void UpdateSceneLight(size_t index);
-    };
+
+        // These functions are called when the value of a setting is modified
+        virtual void UpdateFieldOfView();
+        virtual void UpdateNearPlane();
+        virtual void UpdateFarPlane();
+
+        virtual void UpdateCamera();
+	};
 }

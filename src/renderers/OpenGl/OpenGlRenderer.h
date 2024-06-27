@@ -32,7 +32,13 @@ namespace Rutile {
 
         void UpdatePacketTransform(size_t index) override;
 
+        void UpdateFieldOfView() override;
+        void UpdateNearPlane() override;
+        void UpdateFarPlane() override;
+
     private:
+        void UpdateProjectionMatrix();
+
         glm::mat4 m_Projection { 1.0f };
 
         unsigned int m_SolidShader;

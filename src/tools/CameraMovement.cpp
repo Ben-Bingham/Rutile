@@ -51,7 +51,9 @@ namespace Rutile {
             else if (App::camera.pitch < -89.9f) {
                 App::camera.pitch = -89.9f;
             }
+        }
 
+        if (App::mouseDown || App::updateCameraVectors) {
             App::camera.frontVector.x = cos(glm::radians(App::camera.yaw)) * cos(glm::radians(App::camera.pitch));
             App::camera.frontVector.y = sin(glm::radians(App::camera.pitch));
             App::camera.frontVector.z = sin(glm::radians(App::camera.yaw)) * cos(glm::radians(App::camera.pitch));
@@ -61,6 +63,8 @@ namespace Rutile {
 
             App::lastMousePosition.x = App::mousePosition.x;
             App::lastMousePosition.y = App::mousePosition.y;
+
+            App::updateCameraVectors = false;
         }
     }
 }

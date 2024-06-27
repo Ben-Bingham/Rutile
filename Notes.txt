@@ -7,11 +7,8 @@ TODO Vsync
 Renderer switching
 	TODO More renderers
 
-
-TODO When values are changed in imGui the renderers should almost always be told, or at least have the option
-	SPECIFIC EXAMPLE THAT NEEDS TO HAPPEN, lights could be uploaded to uniforms as a UBO (Also TODO), in which case
-	the UBO would need to be modified and reuploaded whenever a light changes.
-
 TODO UBOS in opengl
 
 TODO Rename Packet to Object
+
+TODO Restarting the renderer should not modify all the changes weve made to the bundle

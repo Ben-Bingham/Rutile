@@ -85,10 +85,10 @@ namespace Rutile {
     }
 
     GLFWwindow* OpenGlRenderer::Init() {
-        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+        UpdateProjectionMatrix();
 
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::settings.name.c_str(), nullptr, nullptr);
+        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
         glfwShowWindow(window);
 
         if (!window) {
@@ -329,8 +329,7 @@ namespace Rutile {
     void OpenGlRenderer::WindowResize() {
         glViewport(0, 0, App::screenWidth, App::screenHeight);
 
-        m_Projection = glm::mat4{ 1.0f };
-        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+        UpdateProjectionMatrix();
     }
 
     void OpenGlRenderer::SetPacket(size_t index, Packet packet) {
@@ -473,5 +472,22 @@ namespace Rutile {
 
     void OpenGlRenderer::UpdatePacketTransform(size_t index) {
         m_Transforms[index]->CalculateMatrix();
+    }
+
+    void OpenGlRenderer::UpdateFieldOfView() {
+        UpdateProjectionMatrix();
+    }
+
+    void OpenGlRenderer::UpdateNearPlane() {
+        UpdateProjectionMatrix();
+    }
+
+    void OpenGlRenderer::UpdateFarPlane() {
+        UpdateProjectionMatrix();
+    }
+
+    void OpenGlRenderer::UpdateProjectionMatrix() {
+        m_Projection = glm::mat4{ 1.0f };
+        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
     }
 }

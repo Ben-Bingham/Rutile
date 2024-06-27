@@ -18,6 +18,8 @@
 
 namespace Rutile {
     struct App {
+        inline static std::string name = "Rutile";
+
         inline static Settings settings = DefaultSettings();
 
         inline static int screenWidth = 1200;
@@ -38,6 +40,7 @@ namespace Rutile {
         inline static bool restartRenderer = false;
 
         inline static Camera camera;
+        inline static bool updateCameraVectors = false;
 
         inline static bool mouseDown = false;
         inline static glm::ivec2 mousePosition = { 0, 0 };

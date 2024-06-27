@@ -1,4 +1,5 @@
 #include "MainGuiWindow.h"
+#include "GlobalRendererOptionsGui.h"
 #include "imgui.h"
 #include <iostream>
 
@@ -17,21 +18,7 @@ namespace Rutile {
         ImGui::Begin("Rutile");
         {
             if (ImGui::CollapsingHeader("Global Renderer Options")) {
-                std::string rendererTypeName{ };
-                switch (App::currentRendererType) {
-                    case RendererType::OPENGL: {
-                        rendererTypeName = "OpenGl Renderer";
-                        break;
-                    }
-                }
-
-                ImGui::Text(("Current Renderer: " + rendererTypeName).c_str());
-
-                ImGui::Separator();
-
-                if (ImGui::Button("Restart Renderer")) {
-                    App::restartRenderer = true;
-                }
+                GlobalRendererOptionsGui();
             }
 
             if (ImGui::CollapsingHeader("Local Renderer Options")) {}
