@@ -1,7 +1,3 @@
-#include "Scenes/SceneFactory.h"
-#include "renderers/renderer.h"
-#include "renderers/OpenGl/OpenGlRenderer.h"
-
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -9,15 +5,11 @@
 #include <stb_image.h>
 
 #include "Settings/App.h"
-#include "imgui.h"
 
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.inl>
+#include "renderers/renderer.h"
+#include "renderers/OpenGl/OpenGlRenderer.h"
 
 #include "GUI/MainGUIWindow.h"
-
-#include "rendering/Material.h"
 
 #include "Scenes/SceneManager.h"
 

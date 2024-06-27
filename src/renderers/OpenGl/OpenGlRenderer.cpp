@@ -11,7 +11,7 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtc/type_ptr.inl>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Rutile {
     std::string readShader(const std::string& path) {

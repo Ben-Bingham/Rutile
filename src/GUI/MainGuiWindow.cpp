@@ -1,14 +1,11 @@
 #include "MainGuiWindow.h"
-#include "GlobalRendererOptionsGui.h"
-#include "imgui.h"
-#include <iostream>
 
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.inl>
+#include "GlobalRendererOptionsGui.h"
+
+#include "imgui.h"
 
 #include "Scenes/SceneGui.h"
 
-#include "Settings/App.h"
 
 namespace Rutile {
     void MainGuiWindow() {
