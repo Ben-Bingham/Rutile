@@ -37,5 +37,6 @@ namespace Rutile {
         // These functions are called when a value within either the material or transform of a packet are modified
         virtual void UpdatePacketMaterial(size_t index);
         virtual void UpdatePacketTransform(size_t index);
+        virtual void UpdateSceneLight(size_t index);
     };
 }

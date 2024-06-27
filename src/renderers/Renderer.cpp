@@ -11,4 +11,5 @@ namespace Rutile {
 
     void Renderer::UpdatePacketMaterial(size_t index) { }
     void Renderer::UpdatePacketTransform(size_t index) { }
+    void Renderer::UpdateSceneLight(size_t index) { }
 }
