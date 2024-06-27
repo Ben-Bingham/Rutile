@@ -1,56 +1,13 @@
-/*
-* TODO The current SetBundle (with opengl) will not work once I implement modifying materials and or transforms with ImGui, but
-* TODO if instead of storing copies of both materials and transforms, the renderers can either store pointers, or simply indices
-* TODO into a global list of materials/transforms, than if they are modified there is no need to recreate the whole bundle, instead
-* TODO the bundle only needs to be "re Set" when a new packet is added, or when the geometry of a packet is modified.
-*
-* TODO Instanced Rendering
-*
-* TODO Frame Time Stats
+TODO Instanced Rendering
 
-// TODO Vsync
+TODO Frame Time Stats
+
+TODO Vsync
 
 Renderer switching
-
-Update cpotlight position to act as flashlight
-*/
-
-// Materials need to be reuploaded every frame
-// Transforms need to be reuploaded every frame
-    // They only need to be recalculated when they change tho
-// Lights DO NOT need to be reuploaded every frame
-    // But when something changes they do need to be
+	TODO More renderers
 
 
-// Renderer changes:
-// Add on a SetLight(size_t lightIndex, Light* newLight); function that sets the light at the specified index to the new light
-    // This hopes that the renderer will be able to modify only one light at a time, if not a renderer could reset them all, and have
-    // initialy saved a copy of the full bundle
-// Add on SetPacket(size_t packetIndex, const Packet& newPacket);  same as setlight but for packets
-
-// IF A LIGHT IS SET TO nullptr, IT IS CONSIDERD DELETED
-// IF A PACKET IS SET WITH NO VERTICES, IT IS CONSIDERD DELETED
-
-// More renderer changes:
-// Add a AddLight(Light* light); function that adds on a new light onto the end of the current list of lights;
-// Add a AddPacket(Packet) function that adds on a new packet to the end of the current list;
-
-/*    
-struct Packet {
-    std::vector<vertices>
-    std::vector<indices>
-
-    Transform* transform
-
-    Material* material
-};
-
-    
-struct Bundle {
-    std::vector<lights> lights;
-    std::vector<bools> doesThisLightNeedToBeReuploaded; //DEFAULT TRUE, but set to false every time we do an upload
-
-    std::vector<Renderable> renderables;
-    std::vector<bool> doesThisRenderableNowHaveNewGeometry;
-};
-    */
+TODO When values are changed in imGui the renderers should almost always be told, or at least have the option
+	SPECIFIC EXAMPLE THAT NEEDS TO HAPPEN, lights could be uploaded to uniforms as a UBO (Also TODO), in which case
+	the UBO would need to be modified and reuploaded whenever a light changes.
