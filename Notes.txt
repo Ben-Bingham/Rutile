@@ -16,3 +16,5 @@ TODO Restarting the renderer should not modify all the changes weve made to the 
 TODO Ability to modify current geometry of a Packet
 
 TODO Textures
+
+TODO after adding more renderers consider storing lights within bundle in 3 differnt lists, one list for point, one for directional, and one for spot light

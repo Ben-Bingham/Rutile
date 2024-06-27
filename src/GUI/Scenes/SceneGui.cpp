@@ -194,6 +194,8 @@ namespace Rutile {
                     break;
                 }
             }
+
+            App::renderer->ProvideLightVisualization(i);
             ImGui::TreePop();
         }
     }

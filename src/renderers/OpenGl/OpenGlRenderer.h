@@ -28,11 +28,11 @@ namespace Rutile {
 
         void WindowResize() override;
 
-        void SetPacket(size_t index, Packet packet) override;
-        void SetLight(size_t index, LightType type, Light* light) override;
+        //void SetPacket(size_t index, Packet packet) override;
+        //void SetLight(size_t index, LightType type, Light* light) override;
 
-        void AddPacket(Packet packet) override;
-        void AddLight(LightType type, Light* light) override;
+        //void AddPacket(Packet packet) override;
+        //void AddLight(LightType type, Light* light) override;
 
         void UpdatePacketTransform(size_t index) override;
 
@@ -40,19 +40,30 @@ namespace Rutile {
         void UpdateNearPlane() override;
         void UpdateFarPlane() override;
 
+        void ProvideLightVisualization(size_t i) override;
+
     private:
         void UpdateProjectionMatrix();
 
         glm::mat4 m_Projection { 1.0f };
 
+        // Shaders
         std::unique_ptr<Shader> m_SolidShader;
         std::unique_ptr<Shader> m_PhongShader;
         std::unique_ptr<Shader> m_ShadowMappingShader;
 
+        // Lights
         std::vector<PointLight*> m_PointLights;
         std::vector<DirectionalLight*> m_DirectionalLights;
         std::vector<SpotLight*> m_SpotLights;
 
+        // These vectors are the same size as there counterparts above that actually store the lights, however these
+        // vectors store the global index (as per the Scene) for each light
+        std::vector<size_t> m_PointLightIndices;
+        std::vector<size_t> m_DirectionalLightIndices;
+        std::vector<size_t> m_SpotLightIndices;
+
+        // Packets
         size_t m_PacketCount;
 
         std::vector<bool> m_ValidPackets;

@@ -27,12 +27,12 @@ namespace Rutile {
         // These functions replace either a light or packet at a specified index within the current scene
             // A packet is considered invalid if it has no vertices
             // A light is considered invalid if it is a nullptr
-        virtual void SetPacket(size_t index, Packet packet);
-        virtual void SetLight(size_t index, LightType type, Light* light);
+        //virtual void SetPacket(size_t index, Packet packet);
+        //virtual void SetLight(size_t index, LightType type, Light* light);
 
         // These functions add on a NEW packet/light onto the current scene
-        virtual void AddPacket(Packet packet);
-        virtual void AddLight(LightType type, Light* light);
+        //virtual void AddPacket(Packet packet);
+        //virtual void AddLight(LightType type, Light* light);
 
         // These functions are called when a value within either the material or transform of a packet are modified
         virtual void UpdatePacketMaterial(size_t index);
@@ -45,5 +45,10 @@ namespace Rutile {
         virtual void UpdateFarPlane();
 
         virtual void UpdateCamera();
+
+        // These functions allow the renderer to supply an optional visualization of a Scene Object
+        //virtual void ProvidePacketVisualization(size_t i);
+        //virtual void ProvidePacketMaterialVisualization(size_t i);
+        virtual void ProvideLightVisualization(size_t i);
 	};
 }
