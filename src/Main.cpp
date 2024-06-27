@@ -83,7 +83,8 @@ int main() {
             App::lastRendererType = App::currentRendererType;
 
             if (App::currentSceneType != App::lastSceneType) {
-                App::renderer->SetScene(SceneManager::GetScene(App::currentSceneType));
+                App::scene = SceneManager::GetScene(App::currentSceneType);
+                App::renderer->SetScene(App::scene);
             }
 
             App::lastSceneType = App::currentSceneType;
