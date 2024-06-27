@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 namespace Rutile {
-    enum class Scenes {
+    enum class SceneType {
         TRIANGLE_SCENE,
         ORIGINAL_SCENE
     };
@@ -10,7 +10,7 @@ namespace Rutile {
     // The scene manager simply gives you a scene, and gives a home to all of the objects inside that scene.
     class SceneManager {
     public:
-        static Scene GetScene(Scenes scene);
+        static Scene GetScene(SceneType scene);
 
     private:
         static Material* GetMaterial(MaterialType type);

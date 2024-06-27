@@ -2,7 +2,7 @@
 #include "SceneFactory.h"
 
 namespace Rutile {
-    Scene SceneManager::GetScene(Scenes scene) {
+    Scene SceneManager::GetScene(SceneType scene) {
         for (const Material* material : m_Materials) {
             delete material;
         }
@@ -24,10 +24,10 @@ namespace Rutile {
         m_Transforms.clear();
 
         switch (scene) {
-            case Scenes::TRIANGLE_SCENE: {
+            case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
             }
-            case Scenes::ORIGINAL_SCENE: {
+            case SceneType::ORIGINAL_SCENE: {
                 return GetOriginalScene();
             }
         }

@@ -55,8 +55,6 @@ void ShutDownCurrentRenderer() {
 int main() {
     App::glfw.Init();
 
-    App::scene = SceneManager::GetScene(Scenes::ORIGINAL_SCENE);
-
     CreateCurrentRenderer(App::currentRendererType);
 
     // Main loop
@@ -76,13 +74,19 @@ int main() {
                 App::restartRenderer = false;
             }
 
-            if (App::lastRendererType != App::currentRendererType) {
+            if (App::currentRendererType != App::lastRendererType) {
                 ShutDownCurrentRenderer();
 
                 CreateCurrentRenderer(App::currentRendererType);
             }
 
             App::lastRendererType = App::currentRendererType;
+
+            if (App::currentSceneType != App::lastSceneType) {
+                App::renderer->SetScene(SceneManager::GetScene(App::currentSceneType));
+            }
+
+            App::lastSceneType = App::currentSceneType;
         }
 
         { // Rendering

@@ -5,6 +5,8 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.inl>
 
+#include "Scenes/MainSceneGui.h"
+
 #include "Settings/App.h"
 
 namespace Rutile {
@@ -14,11 +16,19 @@ namespace Rutile {
 
         ImGui::Begin("Rutile");
         {
-            ImGui::Text("Renderer");
-
-            if (ImGui::Button("Restart Renderer")) {
-                App::restartRenderer = true;
+            if (ImGui::CollapsingHeader("Global Renderer Options")) {
+                if (ImGui::Button("Restart Renderer")) {
+                    App::restartRenderer = true;
+                }
             }
+
+            if (ImGui::CollapsingHeader("Local Renderer Options")) {}
+
+            if (ImGui::CollapsingHeader("Scene Options")) {
+                MainSceneGui();
+            }
+
+            ImGui::Text("Renderer");
 
             if (ImGui::CollapsingHeader("Lights")) {
                 int pointLightCount = 1;

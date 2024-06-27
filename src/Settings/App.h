@@ -14,6 +14,8 @@
 
 #include "rendering/Camera.h"
 
+#include "Scenes/SceneManager.h"
+
 namespace Rutile {
     struct App {
         inline static Settings settings = DefaultSettings();
@@ -24,7 +26,10 @@ namespace Rutile {
         inline static GLFW glfw{ };
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
-        inline static Scene scene;
+
+        inline static Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
+        inline static SceneType currentSceneType = SceneType::ORIGINAL_SCENE;
+        inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 
