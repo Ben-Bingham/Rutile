@@ -4,8 +4,6 @@
 #include "imgui.h"
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
@@ -14,76 +12,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Rutile {
-    std::string readShader(const std::string& path) {
-        std::string shader;
-        std::ifstream file;
-
-        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        try {
-            file.open(path);
-
-            std::stringstream shaderStream;
-            shaderStream << file.rdbuf();
-
-            file.close();
-            shader = shaderStream.str();
-        }
-        catch (std::ifstream::failure& e) {
-            std::cout << "ERROR: Could not successfully read shader with path: " << path << "And error: " << e.what() << std::endl;
-        }
-
-        return shader;
-    }
-
-    unsigned int createShader(const std::string& vertexPath, const std::string& fragmentPath) {
-        std::string vertexShaderSource = readShader(vertexPath);
-        const char* vertexSource = vertexShaderSource.c_str();
-
-        unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexSource, nullptr);
-        glCompileShader(vertexShader);
-
-        int success;
-        char infoLog[512];
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-            std::cout << "ERROR: Vertex shader failed to compile:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        std::string fragmentShaderSource = readShader(fragmentPath);
-        const char* fragmentSource = fragmentShaderSource.c_str();
-
-        unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
-        glCompileShader(fragmentShader);
-
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-            std::cout << "ERROR: Fragment shader failed to compile:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        unsigned int shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-            std::cout << "ERROR: Shader program failed to link:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        return shaderProgram;
-    }
-
     GLFWwindow* OpenGlRenderer::Init() {
         UpdateProjectionMatrix();
 
@@ -110,8 +38,8 @@ namespace Rutile {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
 
-        m_SolidShader = createShader("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
-        m_PhongShader = createShader("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
+        m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
+        m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
 
         glEnable(GL_DEPTH_TEST);
 
@@ -121,8 +49,8 @@ namespace Rutile {
     void OpenGlRenderer::Cleanup(GLFWwindow* window) {
         glDisable(GL_DEPTH_TEST);
 
-        glDeleteProgram(m_PhongShader);
-        glDeleteProgram(m_SolidShader);
+        m_SolidShader.reset();
+        m_PhongShader.reset();
 
         glfwDestroyWindow(window);
     }
@@ -133,7 +61,7 @@ namespace Rutile {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (size_t i = 0; i < m_PacketCount; ++i) {
-            unsigned int* shaderProgram = nullptr;
+            Shader* shaderProgram = nullptr;
 
             if (!m_ValidPackets[i]) {
                 continue;
@@ -143,29 +71,30 @@ namespace Rutile {
                 case MaterialType::SOLID: {
                     Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
 
-                    shaderProgram = &m_SolidShader;
-                    glUseProgram(m_SolidShader);
+                    shaderProgram = m_SolidShader.get();
+                    shaderProgram->Bind();
 
-                    glUniform3fv(glGetUniformLocation(m_SolidShader, "color"), 1, glm::value_ptr(solid->color));
+                    m_SolidShader->SetVec3("color", solid->color);
                     break;
                 }
                 case MaterialType::PHONG: {
                     Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
 
-                    shaderProgram = &m_PhongShader;
-                    glUseProgram(m_PhongShader);
+                    shaderProgram = m_PhongShader.get();
+                    shaderProgram->Bind();
 
-                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.ambient"), 1, glm::value_ptr(phong->ambient));
-                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.diffuse"), 1, glm::value_ptr(phong->diffuse));
-                    glUniform3fv(glGetUniformLocation(m_PhongShader, "phong.specular"), 1, glm::value_ptr(phong->ambient));
-                    glUniform1f(glGetUniformLocation(m_PhongShader, "phong.shininess"), phong->shininess);
+                    m_PhongShader->SetVec3("phong.ambient", phong->ambient);
+                    m_PhongShader->SetVec3("phong.diffuse", phong->diffuse);
+                    m_PhongShader->SetVec3("phong.specular", phong->specular);
 
-                    glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(m_Transforms[i]->matrix));
+                    m_PhongShader->SetFloat("phong.shininess", phong->shininess);
 
-                    glUniform3fv(glGetUniformLocation(m_PhongShader, "cameraPosition"), 1, glm::value_ptr(App::camera.position));
+                    shaderProgram->SetMat4("model", m_Transforms[i]->matrix);
+
+                    m_PhongShader->SetVec3("cameraPosition", App::camera.position);
 
                     // Lighting
-                    glUniform1i(glGetUniformLocation(m_PhongShader, "pointLightCount"), static_cast<int>(m_PointLights.size()));
+                    m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
                     for (size_t j = 0; j < m_PointLights.size(); ++j) {
                         if (m_PointLights[j] == nullptr) {
                             continue;
@@ -173,18 +102,20 @@ namespace Rutile {
 
                         std::string prefix = "pointLights[" + std::to_string(j) + "].";
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_PointLights[j]->position));
+                        m_PhongShader->SetVec3(prefix + "position", m_PointLights[j]->position);
 
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "constant").c_str()), m_PointLights[j]->constant);
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "linear").c_str()), m_PointLights[j]->linear);
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "quadratic").c_str()), m_PointLights[j]->quadratic);
+                        m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j]->constant);
+                        m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j]->linear);
+                        m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j]->quadratic);
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_PointLights[j]->ambient));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_PointLights[j]->diffuse));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_PointLights[j]->specular));
+
+                        m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
+                        m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
+                        m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
                     }
 
-                    glUniform1i(glGetUniformLocation(m_PhongShader, "directionalLightCount"), static_cast<int>(m_DirectionalLights.size()));
+                    m_PhongShader->SetInt("directionalLightCount", static_cast<int>(m_DirectionalLights.size()));
+
                     for (size_t j = 0; j < m_DirectionalLights.size(); ++j) {
                         if (m_DirectionalLights[j] == nullptr) {
                             continue;
@@ -192,14 +123,15 @@ namespace Rutile {
 
                         std::string prefix = "directionalLights[" + std::to_string(j) + "].";
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "direction").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->direction));
+                        m_PhongShader->SetVec3(prefix + "direction", m_DirectionalLights[j]->direction);
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->ambient));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->diffuse));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_DirectionalLights[j]->specular));
+                        m_PhongShader->SetVec3(prefix + "ambient", m_DirectionalLights[j]->ambient);
+                        m_PhongShader->SetVec3(prefix + "diffuse", m_DirectionalLights[j]->diffuse);
+                        m_PhongShader->SetVec3(prefix + "specular", m_DirectionalLights[j]->specular);
                     }
 
-                    glUniform1i(glGetUniformLocation(m_PhongShader, "spotLightCount"), static_cast<int>(m_SpotLights.size()));
+                    m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
+
                     for (size_t j = 0; j < m_SpotLights.size(); ++j) {
                         if (m_SpotLights[j] == nullptr) {
                             continue;
@@ -207,19 +139,19 @@ namespace Rutile {
 
                         std::string prefix = "spotLights[" + std::to_string(j) + "].";
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "position").c_str()), 1, glm::value_ptr(m_SpotLights[j]->position));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "direction").c_str()), 1, glm::value_ptr(m_SpotLights[j]->direction));
+                        m_PhongShader->SetVec3(prefix + "position", m_SpotLights[j]->position);
+                        m_PhongShader->SetVec3(prefix + "direction", m_SpotLights[j]->direction);
 
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "cutOff").c_str()), m_SpotLights[j]->cutOff);
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "outerCutOff").c_str()), m_SpotLights[j]->outerCutOff);
+                        m_PhongShader->SetFloat(prefix + "cutOff", m_SpotLights[j]->cutOff);
+                        m_PhongShader->SetFloat(prefix + "outerCutOff", m_SpotLights[j]->outerCutOff);
 
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "constant").c_str()), m_SpotLights[j]->constant);
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "linear").c_str()), m_SpotLights[j]->linear);
-                        glUniform1f(glGetUniformLocation(m_PhongShader, (prefix + "quadratic").c_str()), m_SpotLights[j]->quadratic);
+                        m_PhongShader->SetFloat(prefix + "constant", m_SpotLights[j]->constant);
+                        m_PhongShader->SetFloat(prefix + "linear", m_SpotLights[j]->linear);
+                        m_PhongShader->SetFloat(prefix + "quadratic", m_SpotLights[j]->quadratic);
 
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "ambient").c_str()), 1, glm::value_ptr(m_SpotLights[j]->ambient));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "diffuse").c_str()), 1, glm::value_ptr(m_SpotLights[j]->diffuse));
-                        glUniform3fv(glGetUniformLocation(m_PhongShader, (prefix + "specular").c_str()), 1, glm::value_ptr(m_SpotLights[j]->specular));
+                        m_PhongShader->SetVec3(prefix + "ambient", m_SpotLights[j]->ambient);
+                        m_PhongShader->SetVec3(prefix + "diffuse", m_SpotLights[j]->diffuse);
+                        m_PhongShader->SetVec3(prefix + "specular", m_SpotLights[j]->specular);
                     }
                     break;
                 }
@@ -227,7 +159,7 @@ namespace Rutile {
 
             glm::mat4 mvp = m_Projection * App::camera.View() * m_Transforms[i]->matrix;
 
-            glUniformMatrix4fv(glGetUniformLocation(*shaderProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+            shaderProgram->SetMat4("mvp", mvp);
 
             glBindVertexArray(m_VAOs[i]);
             glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);

@@ -1,9 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include "../Renderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "utility/Shader.h"
 
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
@@ -41,8 +45,8 @@ namespace Rutile {
 
         glm::mat4 m_Projection { 1.0f };
 
-        unsigned int m_SolidShader;
-        unsigned int m_PhongShader;
+        std::unique_ptr<Shader> m_SolidShader;
+        std::unique_ptr<Shader> m_PhongShader;
 
         std::vector<PointLight*> m_PointLights;
         std::vector<DirectionalLight*> m_DirectionalLights;
