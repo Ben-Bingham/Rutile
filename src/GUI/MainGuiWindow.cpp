@@ -5,7 +5,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.inl>
 
-#include "Scenes/MainSceneGui.h"
+#include "Scenes/SceneGui.h"
 
 #include "Settings/App.h"
 
@@ -28,8 +28,7 @@ namespace Rutile {
                 MainSceneGui();
             }
 
-            ImGui::Text("Renderer");
-
+            /*
             if (ImGui::CollapsingHeader("Lights")) {
                 int pointLightCount = 1;
                 int directionalLightCount = 1;
@@ -158,7 +157,7 @@ namespace Rutile {
                     ++i;
                 }
             }
-
+            */
             /*
             if (ImGui::CollapsingHeader("Transforms")) {
                 int transformCount = 1;
