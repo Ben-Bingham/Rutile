@@ -83,6 +83,7 @@ namespace Rutile {
 
         Transform* transform = GetTransform();
         Solid* solid = dynamic_cast<Solid*>(GetMaterial(MaterialType::SOLID));
+        solid->color = { 1.0f, 0.0f, 0.0f };
         sceneFactory.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, solid);
 
         return sceneFactory.GetScene();
