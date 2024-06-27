@@ -118,7 +118,7 @@ namespace Rutile {
 
             if (ImGui::DragFloat3(("Translation##"  + std::to_string(i)).c_str(), glm::value_ptr(transform->position),  0.01f)) { App::renderer->UpdatePacketTransform(i); }
             if (ImGui::DragFloat3(("Scale##"        + std::to_string(i)).c_str(), glm::value_ptr(transform->scale),     0.01f)) { App::renderer->UpdatePacketTransform(i); }
-            if (ImGui::DragFloat3(("Rotation##"     + std::to_string(i)).c_str(), glm::value_ptr(transform->rotation),  0.01f)) { App::renderer->UpdatePacketTransform(i); }
+            if (ImGui::DragFloat4(("Rotation##"     + std::to_string(i)).c_str(), glm::value_ptr(transform->rotation),  0.01f)) { App::renderer->UpdatePacketTransform(i); }
 
             ImGui::TreePop();
         }
