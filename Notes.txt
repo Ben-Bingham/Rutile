@@ -12,3 +12,7 @@ TODO UBOS in opengl
 TODO Rename Packet to Object
 
 TODO Restarting the renderer should not modify all the changes weve made to the bundle
+
+TODO Ability to modify current geometry of a Packet
+
+TODO Textures
