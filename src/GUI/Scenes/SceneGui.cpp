@@ -10,8 +10,9 @@ namespace Rutile {
     void MainSceneGui() {
         const char* original = "Original";
         const char* triangle = "Triangle";
+        const char* shadowMapScene = "Shadow Map Testing";
 
-        const char* items[] = { original, triangle };
+        const char* items[] = { original, triangle, shadowMapScene };
         static int currentIndex = 0;
 
         ImGui::Text(("Current Scene: " + std::string{ items[currentIndex] }).c_str());
@@ -27,6 +28,8 @@ namespace Rutile {
                         App::currentSceneType = SceneType::ORIGINAL_SCENE;
                     } else if (std::string{ items[currentIndex] } == std::string{ triangle }) {
                         App::currentSceneType = SceneType::TRIANGLE_SCENE;
+                    } else if (std::string{ items[currentIndex] } == std::string{ shadowMapScene }) {
+                        App::currentSceneType = SceneType::SHADOW_MAP_TESTING_SCENE;
                     }
                 }
 

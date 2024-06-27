@@ -4,7 +4,8 @@
 namespace Rutile {
     enum class SceneType {
         TRIANGLE_SCENE,
-        ORIGINAL_SCENE
+        ORIGINAL_SCENE,
+        SHADOW_MAP_TESTING_SCENE
     };
 
     // The scene manager simply gives you a scene, and gives a home to all of the objects inside that scene.
@@ -19,6 +20,7 @@ namespace Rutile {
 
         static Scene GetTriangleScene();
         static Scene GetOriginalScene();
+        static Scene GetShadowMapTestingScene();
 
         static inline std::vector<Light*> m_Lights;
         static inline std::vector<LightType> m_LightTypes;

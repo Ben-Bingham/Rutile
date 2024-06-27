@@ -29,8 +29,8 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
-        inline static SceneType currentSceneType = SceneType::ORIGINAL_SCENE;
+        inline static Scene scene = SceneManager::GetScene(SceneType::SHADOW_MAP_TESTING_SCENE);
+        inline static SceneType currentSceneType = SceneType::SHADOW_MAP_TESTING_SCENE;
         inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;

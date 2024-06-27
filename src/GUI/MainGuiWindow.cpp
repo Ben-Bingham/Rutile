@@ -9,7 +9,7 @@
 
 namespace Rutile {
     void MainGuiWindow() {
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
         //ImPlot::ShowDemoWindow();
 
         ImGui::Begin("Rutile");
