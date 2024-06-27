@@ -83,7 +83,17 @@ namespace Rutile {
 
         unsigned int m_ShadowMapTexture;
 
-        const int m_ShadowMapWidth{ 1024 };
-        const int m_ShadowMapHeight{ 1024 };
+        int m_ShadowMapWidth{ 1024 };
+        int m_ShadowMapHeight{ 1024 };
+
+        glm::vec3 m_DirectionalLightPosition{ 3.0f, 3.0f, 3.0f};
+
+        float m_DirectionalLightLeft{ -1.0f };
+        float m_DirectionalLightRight{ 5.0f };
+        float m_DirectionalLightBottom{ -4.0f };
+        float m_DirectionalLightTop{ 3.0f };
+
+        float m_DirectionalLightNear{ 0.001 };
+        float m_DirectionalLightFar{ 11.0f };
 	};
 }

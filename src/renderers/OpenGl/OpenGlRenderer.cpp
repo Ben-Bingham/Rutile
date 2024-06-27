@@ -86,12 +86,11 @@ namespace Rutile {
         glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
         glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        float nearPlane = 1.0f;
-        float farPlane = 7.5f;
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+
+        glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
 
         // TODO light position
-        glm::mat4 lightView = glm::lookAt(glm::vec3{ -2.0f, 4.0f, -1.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f });
+        glm::mat4 lightView = glm::lookAt(m_DirectionalLightPosition, m_DirectionalLightPosition + m_DirectionalLights[0]->direction, glm::vec3{0.0f, 1.0f, 0.0f});
 
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -529,7 +528,22 @@ namespace Rutile {
         for (const auto index : m_DirectionalLightIndices) {
             if (index == i) {
                 if (ImGui::TreeNode("Shadow Map")) {
-                    ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight });
+                    ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
+
+                    ImGui::Text("Texture");
+                    ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
+                    ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
+
+                    ImGui::Text("Frustum");
+                    ImGui::DragFloat("Left", &m_DirectionalLightLeft);
+                    ImGui::DragFloat("Right", &m_DirectionalLightRight);
+                    ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
+                    ImGui::DragFloat("Top", &m_DirectionalLightTop);
+
+                    ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
+                    ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
+
+                    ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 
                     ImGui::TreePop();
                 }
