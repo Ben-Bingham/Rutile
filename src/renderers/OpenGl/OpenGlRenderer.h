@@ -47,6 +47,7 @@ namespace Rutile {
 
         std::unique_ptr<Shader> m_SolidShader;
         std::unique_ptr<Shader> m_PhongShader;
+        std::unique_ptr<Shader> m_ShadowMappingShader;
 
         std::vector<PointLight*> m_PointLights;
         std::vector<DirectionalLight*> m_DirectionalLights;
@@ -65,5 +66,13 @@ namespace Rutile {
 
         std::vector<MaterialType> m_MaterialTypes;
         std::vector<Material*> m_Materials;
+
+        // Shadow Maps
+        unsigned int m_ShadowMapFBO;
+
+        unsigned int m_ShadowMapTexture;
+
+        const int m_ShadowMapWidth{ 1024 };
+        const int m_ShadowMapHeight{ 1024 };
 	};
 }

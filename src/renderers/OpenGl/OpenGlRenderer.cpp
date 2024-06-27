@@ -40,6 +40,28 @@ namespace Rutile {
 
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
+        m_ShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\shadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\shadowMapping.frag");
+
+        glGenFramebuffers(1, &m_ShadowMapFBO);
+
+        glGenTextures(1, &m_ShadowMapTexture);
+        glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_ShadowMapWidth, m_ShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapTexture, 0);
+
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Shadow map frame buffer is not complete" << std::endl;
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glEnable(GL_DEPTH_TEST);
 
@@ -49,13 +71,47 @@ namespace Rutile {
     void OpenGlRenderer::Cleanup(GLFWwindow* window) {
         glDisable(GL_DEPTH_TEST);
 
+        glDeleteTextures(1, &m_ShadowMapTexture);
+        glDeleteFramebuffers(1, &m_ShadowMapFBO);
+
         m_SolidShader.reset();
         m_PhongShader.reset();
+        m_ShadowMappingShader.reset();
 
         glfwDestroyWindow(window);
     }
 
     void OpenGlRenderer::Render() {
+
+        glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        float nearPlane = 1.0f;
+        float farPlane = 7.5f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+
+        // TODO light position
+        glm::mat4 lightView = glm::lookAt(glm::vec3{ -2.0f, 4.0f, -1.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f });
+
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+        m_ShadowMappingShader->Bind();
+        m_ShadowMappingShader->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+        for (size_t i = 0; i < m_PacketCount; ++i) {
+            if (!m_ValidPackets[i]) {
+                continue;
+            }
+
+            m_ShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
+
+            glBindVertexArray(m_VAOs[i]);
+            glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+        }
+
+        // Render Normal Scene
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, App::screenWidth, App::screenHeight);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
