@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "App.h"
+#include "Settings/App.h"
 #include "imgui.h"
 
 #include <glm/ext/matrix_clip_space.hpp>
@@ -25,9 +25,9 @@
 
 using namespace Rutile;
 
-void CreateCurrentRenderer(App::RendererType type) {
+void CreateCurrentRenderer(RendererType type) {
     switch (App::currentRendererType) {
-    case App::RendererType::OPENGL:
+    case RendererType::OPENGL:
         App::renderer = std::make_unique<OpenGlRenderer>();
         break;
     }

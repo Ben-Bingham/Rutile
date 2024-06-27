@@ -1,5 +1,5 @@
 #include "CameraMovement.h"
-#include "App.h"
+#include "Settings/App.h"
 
 namespace Rutile {
     void MoveCamera() {

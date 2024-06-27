@@ -1,4 +1,6 @@
 #pragma once
+#include "RendererType.h"
+#include "Settings.h"
 #include <chrono>
 #include <memory>
 
@@ -14,14 +16,10 @@
 
 namespace Rutile {
     struct App {
-        static inline std::string name = "Rutile";
+        inline static Settings settings = DefaultSettings();
 
         inline static int screenWidth = 1200;
         inline static int screenHeight = 800;
-
-        inline static float fieldOfView = 60.0f;
-        inline static float nearPlane = 0.1f;
-        inline static float farPlane = 1000.0f;
 
         inline static GLFW glfw{ };
         inline static ImGuiInstance imGui{ };
@@ -29,10 +27,6 @@ namespace Rutile {
         inline static Scene scene;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
-
-        enum class RendererType {
-            OPENGL
-        };
 
         inline static RendererType currentRendererType = RendererType::OPENGL;
         inline static RendererType lastRendererType = currentRendererType;
@@ -44,7 +38,6 @@ namespace Rutile {
         inline static glm::ivec2 mousePosition = { 0, 0 };
         inline static glm::ivec2 lastMousePosition = mousePosition;
 
-        inline static std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
-        inline static std::chrono::duration<double> frameTime = idealFrameTime;
+        inline static std::chrono::duration<double> frameTime = std::chrono::duration<double>(0.0);
     };
 }

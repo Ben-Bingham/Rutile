@@ -1,5 +1,5 @@
 #include "OpenGlRenderer.h"
-#include "App.h"
+#include "Settings/App.h"
 #include "GLDebug.h"
 #include "imgui.h"
 
@@ -85,10 +85,10 @@ namespace Rutile {
     }
 
     GLFWwindow* OpenGlRenderer::Init() {
-        m_Projection = glm::perspective(glm::radians(App::fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::nearPlane, App::farPlane);
+        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
 
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
+        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::settings.name.c_str(), nullptr, nullptr);
         glfwShowWindow(window);
 
         if (!window) {
@@ -330,7 +330,7 @@ namespace Rutile {
         glViewport(0, 0, App::screenWidth, App::screenHeight);
 
         m_Projection = glm::mat4{ 1.0f };
-        m_Projection = glm::perspective(glm::radians(App::fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::nearPlane, App::farPlane);
+        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
     }
 
     void OpenGlRenderer::SetPacket(size_t index, Packet packet) {
