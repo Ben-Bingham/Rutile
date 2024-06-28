@@ -20,7 +20,7 @@ namespace Rutile {
     struct App {
         inline static std::string name = "Rutile";
 
-        inline static Settings settings = DefaultSettings();
+        inline static Settings settings = ShadowMapTestingSceneSettings();
 
         inline static int screenWidth = 1200;
         inline static int screenHeight = 800;
@@ -29,8 +29,8 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static Scene scene = SceneManager::GetScene(SceneType::SHADOW_MAP_TESTING_SCENE);
-        inline static SceneType currentSceneType = SceneType::SHADOW_MAP_TESTING_SCENE;
+        inline static Scene scene = SceneManager::GetScene(SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE);
+        inline static SceneType currentSceneType = SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE;
         inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;

@@ -8,11 +8,12 @@
 
 namespace Rutile {
     void MainSceneGui() {
-        const char* original = "Original";
-        const char* triangle = "Triangle";
-        const char* shadowMapScene = "Shadow Map Testing";
+        const char* original =                 "Original";
+        const char* triangle =                 "Triangle";
+        const char* shadowMapScene =           "Shadow Map Testing";
+        const char* multiLightShadowMapScene = "Multi light shadow Map Testing";
 
-        const char* items[] = { original, triangle, shadowMapScene };
+        const char* items[] = { original, triangle, shadowMapScene, multiLightShadowMapScene };
         static int currentIndex = 0;
 
         ImGui::Text(("Current Scene: " + std::string{ items[currentIndex] }).c_str());
@@ -30,6 +31,8 @@ namespace Rutile {
                         App::currentSceneType = SceneType::TRIANGLE_SCENE;
                     } else if (std::string{ items[currentIndex] } == std::string{ shadowMapScene }) {
                         App::currentSceneType = SceneType::SHADOW_MAP_TESTING_SCENE;
+                    } else if (std::string{ items[currentIndex] } == std::string{ multiLightShadowMapScene }) {
+                        App::currentSceneType = SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE;
                     }
                 }
 
@@ -149,7 +152,7 @@ namespace Rutile {
                 case LightType::POINT: {
                     PointLight* l = dynamic_cast<PointLight*>(light);
 
-                    if (ImGui::DragFloat3(("Position##"                         + std::to_string(i)).c_str(), glm::value_ptr(l->position),  0.05f)) { App::renderer->UpdateSceneLight(i); }
+                    if (ImGui::DragFloat3(("Position##Point"                    + std::to_string(i)).c_str(), glm::value_ptr(l->position),  0.05f)) { App::renderer->UpdateSceneLight(i); }
 
                     if (ImGui::DragFloat (("Constant Attenuation Component##"   + std::to_string(i)).c_str(), &l->constant,                 0.005f, 0.0f, 1.0f)) { App::renderer->UpdateSceneLight(i); }
                     if (ImGui::DragFloat (("Linear Attenuation Component##"     + std::to_string(i)).c_str(), &l->linear,                   0.005f, 0.0f, 1.0f)) { App::renderer->UpdateSceneLight(i); }
@@ -163,7 +166,7 @@ namespace Rutile {
                 case LightType::DIRECTION: {
                     DirectionalLight* l = dynamic_cast<DirectionalLight*>(light);
 
-                    if (ImGui::DragFloat3(("Direction##"        + std::to_string(i)).c_str(), glm::value_ptr(l->direction), 0.05f)) { App::renderer->UpdateSceneLight(i); }
+                    if (ImGui::DragFloat3(("Direction##Dir"     + std::to_string(i)).c_str(), glm::value_ptr(l->direction), 0.05f)) { App::renderer->UpdateSceneLight(i); }
 
                     if (ImGui::ColorEdit3(("Ambient Color##"    + std::to_string(i)).c_str(), glm::value_ptr(l->ambient))) { App::renderer->UpdateSceneLight(i); }
                     if (ImGui::ColorEdit3(("Diffuse Color##"    + std::to_string(i)).c_str(), glm::value_ptr(l->diffuse))) { App::renderer->UpdateSceneLight(i); }
@@ -174,8 +177,8 @@ namespace Rutile {
                 case LightType::SPOTLIGHT: {
                     SpotLight* l = dynamic_cast<SpotLight*>(light);
 
-                    if (ImGui::DragFloat3(("Position##"                         + std::to_string(i)).c_str(), glm::value_ptr(l->position),  0.05f)) { App::renderer->UpdateSceneLight(i); }
-                    if (ImGui::DragFloat3(("Direction##"                        + std::to_string(i)).c_str(), glm::value_ptr(l->direction), 0.05f)) { App::renderer->UpdateSceneLight(i); }
+                    if (ImGui::DragFloat3(("Position##Spot"                         + std::to_string(i)).c_str(), glm::value_ptr(l->position),  0.05f)) { App::renderer->UpdateSceneLight(i); }
+                    if (ImGui::DragFloat3(("Direction##Spot"                        + std::to_string(i)).c_str(), glm::value_ptr(l->direction), 0.05f)) { App::renderer->UpdateSceneLight(i); }
 
                     float cutOff = glm::degrees(glm::acos(l->cutOff));
                     float outerCutOff = glm::degrees(glm::acos(l->outerCutOff));

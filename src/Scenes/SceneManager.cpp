@@ -1,5 +1,6 @@
 #include "SceneManager.h"
 #include "SceneFactory.h"
+#include <iostream>
 
 #include <glm/ext/quaternion_trigonometric.hpp>
 
@@ -26,6 +27,9 @@ namespace Rutile {
         m_Transforms.clear();
 
         switch (scene) {
+            default: {
+                std::cout << "ERROR: Unknown SceneType" << std::endl;
+            }
             case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
             }
@@ -34,6 +38,9 @@ namespace Rutile {
             }
             case SceneType::SHADOW_MAP_TESTING_SCENE: {
                 return GetShadowMapTestingScene();
+            }
+            case SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE: {
+                return GetMultiLightShadowMapTestingScene();
             }
         }
     }
@@ -237,6 +244,108 @@ namespace Rutile {
         box4->position.y = 2.0f;
 
         sceneFactory.Add(Primitive::CUBE, box4, MaterialType::PHONG, phong3);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetMultiLightShadowMapTestingScene() {
+        SceneFactory sceneFactory{ };
+
+        Phong* phong1 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        phong1->diffuse = { 0.324f, 0.474f, 0.974f };
+        phong1->ambient = { 0.275f, 0.64f, 0.234f };
+        phong1->specular = { 0.432f, 0.8367f, 0.123f };
+        phong1->shininess = 15.0f;
+
+        Phong* phong2 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        phong2->diffuse = { 0.84f, 0.753f, 0.859f };
+        phong2->ambient = { 0.569f, 0.5638f, 0.194f };
+        phong2->specular = { 0.113f, 0.754f, 0.943f };
+        phong2->shininess = 64.0f;
+
+        Phong* phong3 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        phong3->diffuse = { 0.129f, 0.00f, 0.333f };
+        phong3->ambient = { 0.783f, 0.356f, 0.324566f };
+        phong3->specular = { 0.012f, 0.268f, 0.73f };
+        phong3->shininess = 128.0f;
+
+        Phong* phong4 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        phong4->diffuse = { 0.129f, 0.00f, 0.333f };
+        phong4->ambient = { 0.569f, 0.5638f, 0.194f };
+        phong4->specular = { 0.432f, 0.8367f, 0.123f };
+        phong4->shininess = 16.0f;
+
+        DirectionalLight* dirLight1 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        dirLight1->direction = { -1.0f, -1.0f, -1.0f };
+        dirLight1->diffuse =  { 0.2f, 0.2f, 0.2f };
+        dirLight1->ambient =  { 0.2f, 0.2f, 0.2f };
+        dirLight1->specular = { 0.2f, 0.2f, 0.2f };
+
+        sceneFactory.Add(LightType::DIRECTION, dirLight1);
+
+        Transform* floorTransform = GetTransform();
+        floorTransform->position.y = -1.0f;
+        floorTransform->scale = { 30.0f, 1.0f, 90.0f };
+
+        sceneFactory.Add(Primitive::CUBE, floorTransform, MaterialType::PHONG, phong1);
+
+        Transform* box1 = GetTransform();
+        box1->position = { 3.0f, 0.0f, 3.0f };
+        box1->scale = { 0.5f, 1.0f, 0.5f };
+        box1->rotation = glm::angleAxis(glm::radians(45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+        sceneFactory.Add(Primitive::CUBE, box1, MaterialType::PHONG, phong2);
+
+        Transform* box2 = GetTransform();
+        box2->position = { 3.0f, 0.0f, -3.0f };
+        box2->rotation = glm::angleAxis(glm::radians(30.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+        sceneFactory.Add(Primitive::CUBE, box2, MaterialType::PHONG, phong3);
+
+        Transform* box3 = GetTransform();
+        box3->position = { 3.0f, 1.0f, -3.0f };
+        box3->rotation = glm::angleAxis(glm::radians(60.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+        sceneFactory.Add(Primitive::CUBE, box3, MaterialType::PHONG, phong2);
+
+        Transform* box4 = GetTransform();
+        box4->position.y = 2.0f;
+
+        sceneFactory.Add(Primitive::CUBE, box4, MaterialType::PHONG, phong3);
+
+        Transform* box5 = GetTransform();
+        box5->position = { 0.0f, 0.0f, 15.0f };
+
+        sceneFactory.Add(Primitive::CUBE, box5, MaterialType::PHONG, phong2);
+
+        Transform* box6 = GetTransform();
+        box6->position = { 0.0f, 0.0f, -15.0f };
+
+        sceneFactory.Add(Primitive::CUBE, box6, MaterialType::PHONG, phong3);
+
+        DirectionalLight* dirLight2 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        dirLight2->direction = { 1.0f, -1.0f, 0.0f };
+        dirLight2->diffuse =  { 0.2f, 0.2f, 0.2f };
+        dirLight2->ambient =  { 0.2f, 0.2f, 0.2f };
+        dirLight2->specular = { 0.2f, 0.2f, 0.2f };
+
+        sceneFactory.Add(LightType::DIRECTION, dirLight2);
+
+        DirectionalLight* dirLight3 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        dirLight3->direction = { -1.0f, -1.0f, 0.0f };
+        dirLight3->diffuse =  { 0.2f, 0.2f, 0.2f };
+        dirLight3->ambient =  { 0.2f, 0.2f, 0.2f };
+        dirLight3->specular = { 0.2f, 0.2f, 0.2f };
+
+        sceneFactory.Add(LightType::DIRECTION, dirLight3);
+
+        DirectionalLight* dirLight4 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        dirLight4->direction = { -1.0f, -1.0f, 0.0f };
+        dirLight4->diffuse = { 0.2f, 0.2f, 0.2f };
+        dirLight4->ambient = { 0.2f, 0.2f, 0.2f };
+        dirLight4->specular = { 0.2f, 0.2f, 0.2f };
+
+        sceneFactory.Add(LightType::DIRECTION, dirLight4);
 
         return sceneFactory.GetScene();
     }
