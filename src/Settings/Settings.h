@@ -1,5 +1,6 @@
 #pragma once
 #include "RendererType.h"
+#include "SettingsEnums.h"
 #include <chrono>
 
 namespace Rutile {
@@ -12,14 +13,19 @@ namespace Rutile {
 
         RendererType defaultRenderer = RendererType::OPENGL;
 
-        // 0 - No bias
-        // 1 - Static Bias
-        // 2 - Dynamic Bias
-        int shadowMapBiasMode = 2;
+        // Shadow Maps
+        ShadowMapBiasMode shadowMapBiasMode = SHADOW_MAP_BIAS_MODE_DYNAMIC;
         float shadowMapBias = 0.005f;
 
         float dynamicShadowMapBiasMin = 0.005f;
         float dynamicShadowMapBiasMax = 0.05f;
+
+        GeometricFace culledFaceDuringShadowMapping = GeometricFace::FRONT;
+
+        // Rendering
+        GeometricFace culledFaceDuringRendering = GeometricFace::BACK;
+
+        WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
     };
 
     Settings DefaultSettings();

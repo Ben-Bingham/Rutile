@@ -64,6 +64,7 @@ namespace Rutile {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         UpdateShadowMapBias();
 
@@ -71,6 +72,7 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::Cleanup(GLFWwindow* window) {
+        glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
         glDeleteTextures(1, &m_ShadowMapTexture);
@@ -84,6 +86,19 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::Render() {
+        if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
+            glFrontFace(GL_CCW);
+        } else {
+            glFrontFace(GL_CW);
+        }
+
+        // Shadow Map Rendering
+        if (App::settings.culledFaceDuringShadowMapping == GeometricFace::FRONT) {
+            glCullFace(GL_FRONT);
+        }
+        else {
+            glCullFace(GL_BACK);
+        }
 
         glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
         glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
@@ -115,6 +130,13 @@ namespace Rutile {
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (App::settings.culledFaceDuringRendering == GeometricFace::FRONT) {
+            glCullFace(GL_FRONT);
+        }
+        else {
+            glCullFace(GL_BACK);
+        }
 
         for (size_t i = 0; i < m_PacketCount; ++i) {
             Shader* shaderProgram = nullptr;

@@ -26,6 +26,18 @@ namespace Rutile {
 
         ImGui::Separator();
 
+        if (ImGui::TreeNode("Generic Settings")) {
+            ImGui::Text("Culled face during rendering");
+            ImGui::RadioButton("Front", (int*)&App::settings.culledFaceDuringRendering, 0); ImGui::SameLine();
+            ImGui::RadioButton("Back", (int*)&App::settings.culledFaceDuringRendering, 1);
+
+            ImGui::Text("Front face winding order");
+            ImGui::RadioButton("Clock-wise",         (int*)&App::settings.frontFace, 0); ImGui::SameLine();
+            ImGui::RadioButton("Counter-clock-wise", (int*)&App::settings.frontFace, 1);
+
+            ImGui::TreePop();
+        }
+
         if (ImGui::TreeNode("Frustum Settings")) {
             if (ImGui::DragFloat("Field of View",       &App::settings.fieldOfView, 0.1f, 0.0f, 180.0f))      { App::renderer->UpdateFieldOfView(); }
             if (ImGui::DragFloat("Near Clipping Plane", &App::settings.nearPlane,   0.1f, 0.0f, 10000000.0f)) { App::renderer->UpdateNearPlane();   }
@@ -53,17 +65,21 @@ namespace Rutile {
         if (ImGui::TreeNode("Shadow Map Settings")) {
             ImGui::Separator();
             ImGui::Text("Bias mode");
-            if (ImGui::RadioButton("None",    &App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Static",  &App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Dynamic", &App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMapBias(); }
+            if (ImGui::RadioButton("None",    (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Static",  (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Dynamic", (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMapBias(); }
 
-            if (App::settings.shadowMapBiasMode == 1) {
+            if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_STATIC) {
                 if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
-            } else if (App::settings.shadowMapBiasMode == 2) {
+            } else if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_DYNAMIC) {
                 if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
                 if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
             }
             ImGui::Separator();
+
+            ImGui::Text("Culled face during shadow map rendering");
+            ImGui::RadioButton("Front", (int*)&App::settings.culledFaceDuringShadowMapping, 0); ImGui::SameLine();
+            ImGui::RadioButton("Back", (int*)&App::settings.culledFaceDuringShadowMapping, 1);
 
             ImGui::TreePop();
         }
