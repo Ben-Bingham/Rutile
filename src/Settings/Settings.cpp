@@ -9,8 +9,9 @@ namespace Rutile {
         Settings settings{ };
 
         settings.shadowMapBiasMode = SHADOW_MAP_BIAS_MODE_STATIC;
-        settings.shadowMapBias = 0.001f;
+        settings.shadowMapBias = 0.0015f;
         settings.culledFaceDuringShadowMapping = GeometricFace::BACK;
+        settings.shadowMapPcfMode = ShadowMapPCFMode::BASIC;
 
         return settings;
     }

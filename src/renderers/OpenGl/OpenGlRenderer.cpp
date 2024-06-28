@@ -68,7 +68,7 @@ namespace Rutile {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        UpdateShadowMapBias();
+        UpdateShadowMap();
 
         return window;
     }
@@ -556,7 +556,7 @@ namespace Rutile {
         m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
     }
 
-    void OpenGlRenderer::UpdateShadowMapBias() {
+    void OpenGlRenderer::UpdateShadowMap() {
         m_PhongShader->Bind();
         m_PhongShader->SetInt("shadowMapBiasMode", App::settings.shadowMapBiasMode);
 
@@ -564,6 +564,8 @@ namespace Rutile {
 
         m_PhongShader->SetFloat("dynamicShadowMapBiasMin", App::settings.dynamicShadowMapBiasMin);
         m_PhongShader->SetFloat("dynamicShadowMapBiasMax", App::settings.dynamicShadowMapBiasMax);
+
+        m_PhongShader->SetInt("shadowMapPcfMode", (int)App::settings.shadowMapPcfMode);
     }
 
     void OpenGlRenderer::ProvideLightVisualization(size_t i) {

@@ -40,7 +40,7 @@ namespace Rutile {
         void UpdateNearPlane() override;
         void UpdateFarPlane() override;
 
-        void UpdateShadowMapBias() override;
+        void UpdateShadowMap() override;
 
         void ProvideLightVisualization(size_t i) override;
 

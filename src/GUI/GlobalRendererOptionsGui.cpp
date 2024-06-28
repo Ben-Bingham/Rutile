@@ -16,48 +16,46 @@ namespace Rutile {
             }
         }
 
-        if (ImGui::TreeNode("Setting presets")) {
-            const char* defaultPreset = "Default";
-            const char* shadowMapTesting = "Shadow Map Testing Scene";
+        const char* defaultPreset = "Default";
+        const char* shadowMapTesting = "Shadow Map Testing Scene";
 
-            const char* items[] = { defaultPreset, shadowMapTesting };
-            static int currentIndex = 0;
+        const char* items[] = { defaultPreset, shadowMapTesting };
+        static int currentIndex = 0;
 
-            if (ImGui::BeginCombo("Select a preset", items[currentIndex])) {
-                bool optionChanged = false;
-                for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-                    const bool isSelected = (currentIndex == n);
+        if (ImGui::BeginCombo("Setting presets", items[currentIndex])) {
+            bool optionChanged = false;
+            for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+                const bool isSelected = (currentIndex == n);
 
-                    if (ImGui::Selectable(items[n], isSelected)) {
-                        currentIndex = n;
+                if (ImGui::Selectable(items[n], isSelected)) {
+                    currentIndex = n;
 
-                        if (std::string{ items[currentIndex] } == std::string{ defaultPreset }) {
-                            App::settings = DefaultSettings();
-                            optionChanged = true;
-                        }
-                        else if (std::string{ items[currentIndex] } == std::string{ shadowMapTesting }) {
-                            App::settings = ShadowMapTestingSceneSettings();
-                            optionChanged = true;
-                        }
+                    if (std::string{ items[currentIndex] } == std::string{ defaultPreset }) {
+                        App::settings = DefaultSettings();
+                        optionChanged = true;
                     }
-
-                    if (isSelected) {
-                        ImGui::SetItemDefaultFocus();
+                    else if (std::string{ items[currentIndex] } == std::string{ shadowMapTesting }) {
+                        App::settings = ShadowMapTestingSceneSettings();
+                        optionChanged = true;
                     }
                 }
 
-                if (optionChanged) {
-                    App::renderer->UpdateFieldOfView();
-                    App::renderer->UpdateNearPlane();
-                    App::renderer->UpdateFarPlane();
-
-                    App::renderer->UpdateShadowMapBias();
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
                 }
-
-                ImGui::EndCombo();
             }
-            ImGui::TreePop();
+
+            if (optionChanged) {
+                App::renderer->UpdateFieldOfView();
+                App::renderer->UpdateNearPlane();
+                App::renderer->UpdateFarPlane();
+
+                App::renderer->UpdateShadowMap();
+            }
+
+            ImGui::EndCombo();
         }
+
 
         ImGui::Text(("Current Renderer: " + rendererTypeName).c_str());
 
@@ -71,8 +69,8 @@ namespace Rutile {
 
         if (ImGui::TreeNode("Generic Settings")) {
             ImGui::Text("Culled face during rendering");
-            ImGui::RadioButton("Front", (int*)&App::settings.culledFaceDuringRendering, 0); ImGui::SameLine();
-            ImGui::RadioButton("Back", (int*)&App::settings.culledFaceDuringRendering, 1);
+            ImGui::RadioButton("Front##renderMode", (int*)&App::settings.culledFaceDuringRendering, 0); ImGui::SameLine();
+            ImGui::RadioButton("Back##renderMode",  (int*)&App::settings.culledFaceDuringRendering, 1);
 
             ImGui::Text("Front face winding order");
             ImGui::RadioButton("Clock-wise",         (int*)&App::settings.frontFace, 0); ImGui::SameLine();
@@ -108,21 +106,27 @@ namespace Rutile {
         if (ImGui::TreeNode("Shadow Map Settings")) {
             ImGui::Separator();
             ImGui::Text("Bias mode");
-            if (ImGui::RadioButton("None",    (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Static",  (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Dynamic", (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMapBias(); }
+            if (ImGui::RadioButton("None##biasMode",    (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Static",  (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Dynamic", (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMap(); }
 
             if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_STATIC) {
-                if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+                if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMap(); }
             } else if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_DYNAMIC) {
-                if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
-                if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+                if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMap(); }
+                if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMap(); }
             }
             ImGui::Separator();
 
             ImGui::Text("Culled face during shadow map rendering");
-            ImGui::RadioButton("Front", (int*)&App::settings.culledFaceDuringShadowMapping, 0); ImGui::SameLine();
-            ImGui::RadioButton("Back", (int*)&App::settings.culledFaceDuringShadowMapping, 1);
+            ImGui::RadioButton("Front##shadowMapMode", (int*)&App::settings.culledFaceDuringShadowMapping, 0); ImGui::SameLine();
+            ImGui::RadioButton("Back##shadowMapMode",  (int*)&App::settings.culledFaceDuringShadowMapping, 1);
+
+            ImGui::Separator();
+
+            ImGui::Text("PCF mode");
+            if (ImGui::RadioButton("None##pcfMode",                          (int*)&App::settings.shadowMapPcfMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Sampling from adjacent texels", (int*)&App::settings.shadowMapPcfMode, 1)) { App::renderer->UpdateShadowMap(); }
 
             ImGui::TreePop();
         }

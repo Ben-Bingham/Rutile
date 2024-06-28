@@ -7,6 +7,11 @@ namespace Rutile {
         SHADOW_MAP_BIAS_MODE_DYNAMIC = 2
     };
 
+    enum class ShadowMapPCFMode {
+        NONE,
+        BASIC
+    };
+
     enum class GeometricFace {
         FRONT,
         BACK

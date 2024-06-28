@@ -20,6 +20,8 @@ namespace Rutile {
         float dynamicShadowMapBiasMin = 0.005f;
         float dynamicShadowMapBiasMax = 0.05f;
 
+        ShadowMapPCFMode shadowMapPcfMode = ShadowMapPCFMode::NONE;
+
         GeometricFace culledFaceDuringShadowMapping = GeometricFace::FRONT;
 
         // Rendering

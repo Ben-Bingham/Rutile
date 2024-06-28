@@ -78,6 +78,8 @@ uniform float shadowMapBias;
 uniform float dynamicShadowMapBiasMin;
 uniform float dynamicShadowMapBiasMax;
 
+uniform int shadowMapPcfMode;
+
 // Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
 float shadowCalculation(vec4 fragPositionInLightSpace);
 
@@ -188,10 +190,8 @@ vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow)
 float shadowCalculation(vec4 fragPositionInLightSpace) {
     vec3 projectionCoords = fragPositionInLightSpace.xyz / fragPositionInLightSpace.w;
 
-    float shadow;
-    if(projectionCoords.z > 1.0) {
-        shadow = 0.0;
-
+    float shadow = 0.0;
+    if (projectionCoords.z > 1.0) {
         return shadow;
     }    
 
@@ -209,7 +209,21 @@ float shadowCalculation(vec4 fragPositionInLightSpace) {
     } else if (shadowMapBiasMode == 2) {
         bias = max(dynamicShadowMapBiasMax * (1.0 - dot(normal, lightDirection)), dynamicShadowMapBiasMin);
     }
-    shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-    
+
+    if (shadowMapPcfMode == 0) {
+        shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    } else if (shadowMapPcfMode == 1) {
+        shadow = 0.0;
+        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+
+        for(int x = -1; x <= 1; ++x) {
+            for(int y = -1; y <= 1; ++y) {
+                float pcfDepth = texture(shadowMap, projectionCoords.xy + vec2(x, y) * texelSize).r; 
+                shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+            }    
+        }
+        shadow /= 9.0;
+    }
+
     return shadow;
 }

@@ -51,8 +51,9 @@ namespace Rutile {
             // shadowMapBias
             // dynamicShadowMapBiasMin
             // dynamicShadowMapBiasMax
+            // shadowMapPcfMode
         // One or all could have been changed
-        virtual void UpdateShadowMapBias();
+        virtual void UpdateShadowMap();
 
         // These functions allow the renderer to supply an optional visualization of a Scene Object
         //virtual void ProvidePacketVisualization(size_t i);
