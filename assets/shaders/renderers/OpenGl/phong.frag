@@ -188,6 +188,13 @@ vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow)
 float shadowCalculation(vec4 fragPositionInLightSpace) {
     vec3 projectionCoords = fragPositionInLightSpace.xyz / fragPositionInLightSpace.w;
 
+    float shadow;
+    if(projectionCoords.z > 1.0) {
+        shadow = 0.0;
+
+        return shadow;
+    }    
+
     projectionCoords = projectionCoords * 0.5 + 0.5;
 
     float closestDepth = texture(shadowMap, projectionCoords.xy).r;
@@ -202,7 +209,7 @@ float shadowCalculation(vec4 fragPositionInLightSpace) {
     } else if (shadowMapBiasMode == 2) {
         bias = max(dynamicShadowMapBiasMax * (1.0 - dot(normal, lightDirection)), dynamicShadowMapBiasMin);
     }
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     
     return shadow;
 }
