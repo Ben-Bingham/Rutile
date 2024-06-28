@@ -19,6 +19,8 @@ namespace Rutile {
 
     void Renderer::UpdateCamera() { }
 
+    void Renderer::UpdateShadowMapBias() { }
+
     //void Renderer::ProvidePacketVisualization(size_t i) { }
     //void Renderer::ProvidePacketMaterialVisualization(size_t i) { }
     void Renderer::ProvideLightVisualization(size_t i) { }

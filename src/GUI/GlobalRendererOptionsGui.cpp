@@ -48,5 +48,10 @@ namespace Rutile {
 
             ImGui::TreePop();
         }
+
+        if (ImGui::TreeNode("Shadow Map Settings")) {
+            if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+            ImGui::TreePop();
+        }
     }
 }

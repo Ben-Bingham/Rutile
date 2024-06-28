@@ -11,6 +11,8 @@ namespace Rutile {
         std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
 
         RendererType defaultRenderer = RendererType::OPENGL;
+
+        float shadowMapBias = 0.005f;
     };
 
     Settings DefaultSettings();

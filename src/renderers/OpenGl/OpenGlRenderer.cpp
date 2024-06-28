@@ -65,6 +65,8 @@ namespace Rutile {
 
         glEnable(GL_DEPTH_TEST);
 
+        UpdateShadowMapBias();
+
         return window;
     }
 
@@ -89,7 +91,6 @@ namespace Rutile {
 
         glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
 
-        // TODO light position
         glm::mat4 lightView = glm::lookAt(m_DirectionalLightPosition, m_DirectionalLightPosition + m_DirectionalLights[0]->direction, glm::vec3{0.0f, 1.0f, 0.0f});
 
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -529,6 +530,11 @@ namespace Rutile {
     void OpenGlRenderer::UpdateProjectionMatrix() {
         m_Projection = glm::mat4{ 1.0f };
         m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+    }
+
+    void OpenGlRenderer::UpdateShadowMapBias() {
+        m_PhongShader->Bind();
+        m_PhongShader->SetFloat("shadowMapBias", App::settings.shadowMapBias);
     }
 
     void OpenGlRenderer::ProvideLightVisualization(size_t i) {

@@ -46,6 +46,8 @@ namespace Rutile {
 
         virtual void UpdateCamera();
 
+        virtual void UpdateShadowMapBias();
+
         // These functions allow the renderer to supply an optional visualization of a Scene Object
         //virtual void ProvidePacketVisualization(size_t i);
         //virtual void ProvidePacketMaterialVisualization(size_t i);
