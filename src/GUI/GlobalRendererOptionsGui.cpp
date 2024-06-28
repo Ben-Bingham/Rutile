@@ -104,7 +104,15 @@ namespace Rutile {
         }
 
         if (ImGui::TreeNode("Shadow Map Settings")) {
+
+            ImGui::Text("Shadow map mode");
+            if (ImGui::RadioButton("None##ShadowMapMode",                  (int*)&App::settings.shadowMapMode, 0)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
+            if (ImGui::RadioButton("One shadow emitter##ShadowMapMode",    (int*)&App::settings.shadowMapMode, 1)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Auto shadow emitter##ShadowMapMode",   (int*)&App::settings.shadowMapMode, 2)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Cascading shadow maps##ShadowMapMode", (int*)&App::settings.shadowMapMode, 3)) { App::renderer->UpdateShadowMapMode(); }
+
             ImGui::Separator();
+
             ImGui::Text("Bias mode");
             if (ImGui::RadioButton("None##biasMode", (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
             if (ImGui::RadioButton("Static",         (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
@@ -116,6 +124,7 @@ namespace Rutile {
                 if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMap(); }
                 if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMap(); }
             }
+
             ImGui::Separator();
 
             ImGui::Text("Culled face during shadow map rendering");

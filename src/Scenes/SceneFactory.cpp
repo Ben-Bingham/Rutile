@@ -18,7 +18,7 @@ namespace Rutile {
             };
 
             packet.indexData = {
-                0, 1, 2
+                2, 1, 0
             };
 
             packet.materialType = materialType;
@@ -102,8 +102,8 @@ namespace Rutile {
             };
 
             packet.indexData = {
-                0, 1, 2,
-                0, 2, 3
+                2, 1, 0,
+                3, 2, 0
             };
 
             packet.materialType = materialType;

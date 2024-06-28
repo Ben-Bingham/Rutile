@@ -66,6 +66,8 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir,
 vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
 
 // Shadow Maps
+uniform int shadowMapMode;
+
 uniform sampler2D shadowMap;
 
 in vec4 fragPositionInLightSpace;
@@ -80,7 +82,7 @@ uniform float dynamicShadowMapBiasMax;
 uniform int shadowMapPcfMode;
 
 // Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
-float shadowCalculation(vec4 fragPositionInLightSpace);
+float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace);
 
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
@@ -88,7 +90,16 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
 
-    float shadow = shadowCalculation(fragPositionInLightSpace);
+    float shadow = 0.0;
+    if (shadowMapMode == 0) {
+        shadow = 0.0;
+    } else if (shadowMapMode == 1) {
+        shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
+    } else if (shadowMapMode == 2) {
+        // TODO
+    } else if (shadowMapMode == 3) {
+        // TODO
+    }
 
     for (int i = 0; i < pointLightCount; ++i) {
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
@@ -184,7 +195,7 @@ vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow)
     return (ambient + diffuse + specular);
 }
 
-float shadowCalculation(vec4 fragPositionInLightSpace) {
+float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace) {
     vec3 projectionCoords = fragPositionInLightSpace.xyz / fragPositionInLightSpace.w;
 
     float shadow = 0.0;

@@ -41,6 +41,7 @@ namespace Rutile {
         void UpdateFarPlane() override;
 
         void UpdateShadowMap() override;
+        void UpdateShadowMapMode() override;
 
         //void ProvideLightVisualization(size_t i) override;
         void ProvideDirectionalLightVisualization() override;

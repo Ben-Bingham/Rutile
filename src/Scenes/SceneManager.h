@@ -33,6 +33,7 @@ namespace Rutile {
         static inline std::vector<Material*> m_Materials;
         static inline std::vector<MaterialType> m_MaterialTypes;
 
-        static inline DirectionalLight* m_DirectionalLight;
+        static inline DirectionalLight* m_DirectionalLight{ nullptr };
+        static inline bool m_HaveCreatedDirectionalLight = false;
     };
 }

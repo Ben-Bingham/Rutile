@@ -56,6 +56,9 @@ namespace Rutile {
         // One or all could have been changed
         virtual void UpdateShadowMap();
 
+        // When called renderer should adapt to the new shadow map mode
+        virtual void UpdateShadowMapMode();
+
         // These functions allow the renderer to supply an optional visualization of a Scene Object
         //virtual void ProvidePacketVisualization(size_t i);
         //virtual void ProvidePacketMaterialVisualization(size_t i);

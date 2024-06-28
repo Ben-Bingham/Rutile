@@ -26,7 +26,10 @@ namespace Rutile {
 
         m_Transforms.clear();
 
-        delete m_DirectionalLight;
+        if (m_HaveCreatedDirectionalLight) {
+            delete m_DirectionalLight;
+            m_HaveCreatedDirectionalLight = false;
+        }
 
         switch (scene) {
             default: {
@@ -84,6 +87,7 @@ namespace Rutile {
 
     DirectionalLight* SceneManager::GetDirectionalLight() {
         m_DirectionalLight = new DirectionalLight;
+        m_HaveCreatedDirectionalLight = true;
         return m_DirectionalLight;
     }
 

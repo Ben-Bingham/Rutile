@@ -69,6 +69,7 @@ namespace Rutile {
         glEnable(GL_CULL_FACE);
 
         UpdateShadowMap();
+        UpdateShadowMapMode();
 
         return window;
     }
@@ -94,8 +95,8 @@ namespace Rutile {
             glFrontFace(GL_CW);
         }
 
-        if (m_DirectionalLight) {
-            // Shadow Map Rendering
+        // Shadow Map Rendering
+        if (m_DirectionalLight && App::settings.shadowMapMode == ShadowMapMode::ONE_SHADOW_EMITTER) {
             if (App::settings.culledFaceDuringShadowMapping == GeometricFace::FRONT) {
                 glCullFace(GL_FRONT);
             }
@@ -554,6 +555,11 @@ namespace Rutile {
         m_PhongShader->SetFloat("dynamicShadowMapBiasMax", App::settings.dynamicShadowMapBiasMax);
 
         m_PhongShader->SetInt("shadowMapPcfMode", (int)App::settings.shadowMapPcfMode);
+    }
+
+    void OpenGlRenderer::UpdateShadowMapMode() {
+        m_PhongShader->Bind();
+        m_PhongShader->SetInt("shadowMapMode", (int)App::settings.shadowMapMode);
     }
 
     void OpenGlRenderer::ProvideDirectionalLightVisualization() {

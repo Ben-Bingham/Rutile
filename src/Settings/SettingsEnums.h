@@ -1,6 +1,13 @@
 #pragma once
 
 namespace Rutile {
+    enum class ShadowMapMode {
+        NONE,
+        ONE_SHADOW_EMITTER,
+        AUTO_SHADOW_EMITTER,
+        CASCADING_SHADOW_MAPS
+    };
+
     enum class ShadowMapBiasMode {
         NONE,
         STATIC,
