@@ -71,7 +71,12 @@ uniform sampler2D shadowMap;
 
 in vec4 fragPositionInLightSpace;
 
+uniform int shadowMapBiasMode;
+
 uniform float shadowMapBias;
+
+uniform float dynamicShadowMapBiasMin;
+uniform float dynamicShadowMapBiasMax;
 
 // Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
 float shadowCalculation(vec4 fragPositionInLightSpace);
@@ -189,7 +194,15 @@ float shadowCalculation(vec4 fragPositionInLightSpace) {
 
     float currentDepth = projectionCoords.z;
 
-    float shadow = currentDepth - shadowMapBias > closestDepth ? 1.0 : 0.0;  
+    vec3 lightDirection = normalize(-directionalLights[0].direction);
+
+    float bias = 0.0;
+    if (shadowMapBiasMode == 1) {
+        bias = shadowMapBias;
+    } else if (shadowMapBiasMode == 2) {
+        bias = max(dynamicShadowMapBiasMax * (1.0 - dot(normal, lightDirection)), dynamicShadowMapBiasMin);
+    }
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     
     return shadow;
 }

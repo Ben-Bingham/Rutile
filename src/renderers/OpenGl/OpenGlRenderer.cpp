@@ -534,7 +534,12 @@ namespace Rutile {
 
     void OpenGlRenderer::UpdateShadowMapBias() {
         m_PhongShader->Bind();
+        m_PhongShader->SetInt("shadowMapBiasMode", App::settings.shadowMapBiasMode);
+
         m_PhongShader->SetFloat("shadowMapBias", App::settings.shadowMapBias);
+
+        m_PhongShader->SetFloat("dynamicShadowMapBiasMin", App::settings.dynamicShadowMapBiasMin);
+        m_PhongShader->SetFloat("dynamicShadowMapBiasMax", App::settings.dynamicShadowMapBiasMax);
     }
 
     void OpenGlRenderer::ProvideLightVisualization(size_t i) {

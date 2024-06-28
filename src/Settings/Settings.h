@@ -12,7 +12,14 @@ namespace Rutile {
 
         RendererType defaultRenderer = RendererType::OPENGL;
 
+        // 0 - No bias
+        // 1 - Static Bias
+        // 2 - Dynamic Bias
+        int shadowMapBiasMode = 2;
         float shadowMapBias = 0.005f;
+
+        float dynamicShadowMapBiasMin = 0.005f;
+        float dynamicShadowMapBiasMax = 0.05f;
     };
 
     Settings DefaultSettings();

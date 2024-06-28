@@ -1,5 +1,6 @@
 #include "GlobalRendererOptionsGui.h"
 #include "imgui.h"
+#include <iostream>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -50,7 +51,20 @@ namespace Rutile {
         }
 
         if (ImGui::TreeNode("Shadow Map Settings")) {
-            if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+            ImGui::Separator();
+            ImGui::Text("Bias mode");
+            if (ImGui::RadioButton("None",    &App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Static",  &App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMapBias(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Dynamic", &App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMapBias(); }
+
+            if (App::settings.shadowMapBiasMode == 1) {
+                if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+            } else if (App::settings.shadowMapBiasMode == 2) {
+                if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+                if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMapBias(); }
+            }
+            ImGui::Separator();
+
             ImGui::TreePop();
         }
     }

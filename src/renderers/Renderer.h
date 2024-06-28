@@ -46,6 +46,12 @@ namespace Rutile {
 
         virtual void UpdateCamera();
 
+        // When called renderer should update:
+            // shadowMapBiasMode
+            // shadowMapBias
+            // dynamicShadowMapBiasMin
+            // dynamicShadowMapBiasMax
+        // One or all could have been changed
         virtual void UpdateShadowMapBias();
 
         // These functions allow the renderer to supply an optional visualization of a Scene Object
