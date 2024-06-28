@@ -148,6 +148,13 @@ namespace Rutile {
 
                     m_PhongShader->SetVec3("cameraPosition", App::camera.position);
 
+                    m_PhongShader->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+
+                    m_PhongShader->SetInt("shadowMap", 0);
+
                     // Lighting
                     m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
                     for (size_t j = 0; j < m_PointLights.size(); ++j) {

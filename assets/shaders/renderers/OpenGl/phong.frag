@@ -62,9 +62,17 @@ uniform int spotLightCount;
 in vec3 normal;
 in vec3 fragPosition;
 
-vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir);
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir);
-vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir);
+vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir, float shadow);
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow);
+vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
+
+// Shadow Maps
+uniform sampler2D shadowMap;
+
+in vec4 fragPositionInLightSpace;
+
+// Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
+float shadowCalculation(vec4 fragPositionInLightSpace);
 
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
@@ -72,22 +80,24 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
 
+    float shadow = shadowCalculation(fragPositionInLightSpace);
+
     for (int i = 0; i < pointLightCount; ++i) {
-        result += pointLightAddition(pointLights[i], norm, viewDir);
+        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
     }
 
     for (int i = 0; i < directionalLightCount; ++i) {
-        result += directionalLightAddition(directionalLights[i], norm, viewDir);
+        result += directionalLightAddition(directionalLights[i], norm, viewDir, shadow);
     }
 
     for (int i = 0; i < spotLightCount; ++i) {
-        result += spotLightAddition(spotLights[i], norm, viewDir);
+        result += spotLightAddition(spotLights[i], norm, viewDir, shadow);
     }
 
     outFragColor = vec4(result, 1.0);
 }
 
-vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir) {
+vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -109,10 +119,13 @@ vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir) {
     diffuse *= attenuation;
     specular *= attenuation;
 
+    diffuse *= (1.0 - shadow);
+    specular *= (1.0 - shadow);
+
     return (ambient + diffuse + specular);
 }
 
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir) {
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDirection = normalize(-light.direction);
 
     // Diffuse
@@ -126,10 +139,13 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir)
     vec3 diffuse = light.diffuse * diff * phong.diffuse;
     vec3 specular = light.specular * spec * phong.specular;
 
+    diffuse *= (1.0 - shadow);
+    specular *= (1.0 - shadow);
+
     return (ambient + diffuse + specular);
 }
 
-vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir) {
+vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -156,5 +172,22 @@ vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir) {
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
 
+    diffuse *= (1.0 - shadow);
+    specular *= (1.0 - shadow);
+
     return (ambient + diffuse + specular);
+}
+
+float shadowCalculation(vec4 fragPositionInLightSpace) {
+    vec3 projectionCoords = fragPositionInLightSpace.xyz / fragPositionInLightSpace.w;
+
+    projectionCoords = projectionCoords * 0.5 + 0.5;
+
+    float closestDepth = texture(shadowMap, projectionCoords.xy).r;
+
+    float currentDepth = projectionCoords.z;
+
+    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;  
+    
+    return shadow;
 }

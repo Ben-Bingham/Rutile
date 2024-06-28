@@ -93,7 +93,7 @@ namespace Rutile {
         float m_DirectionalLightBottom{ -4.0f };
         float m_DirectionalLightTop{ 3.0f };
 
-        float m_DirectionalLightNear{ 0.001 };
+        float m_DirectionalLightNear{ 0.001f };
         float m_DirectionalLightFar{ 11.0f };
 	};
 }
