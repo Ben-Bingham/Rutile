@@ -16,6 +16,49 @@ namespace Rutile {
             }
         }
 
+        if (ImGui::TreeNode("Setting presets")) {
+            const char* defaultPreset = "Default";
+            const char* shadowMapTesting = "Shadow Map Testing Scene";
+
+            const char* items[] = { defaultPreset, shadowMapTesting };
+            static int currentIndex = 0;
+
+            if (ImGui::BeginCombo("Select a preset", items[currentIndex])) {
+                bool optionChanged = false;
+                for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+                    const bool isSelected = (currentIndex == n);
+
+                    if (ImGui::Selectable(items[n], isSelected)) {
+                        currentIndex = n;
+
+                        if (std::string{ items[currentIndex] } == std::string{ defaultPreset }) {
+                            App::settings = DefaultSettings();
+                            optionChanged = true;
+                        }
+                        else if (std::string{ items[currentIndex] } == std::string{ shadowMapTesting }) {
+                            App::settings = ShadowMapTestingSceneSettings();
+                            optionChanged = true;
+                        }
+                    }
+
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+
+                if (optionChanged) {
+                    App::renderer->UpdateFieldOfView();
+                    App::renderer->UpdateNearPlane();
+                    App::renderer->UpdateFarPlane();
+
+                    App::renderer->UpdateShadowMapBias();
+                }
+
+                ImGui::EndCombo();
+            }
+            ImGui::TreePop();
+        }
+
         ImGui::Text(("Current Renderer: " + rendererTypeName).c_str());
 
         ImGui::Separator();

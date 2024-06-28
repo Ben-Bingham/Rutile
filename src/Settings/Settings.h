@@ -29,4 +29,6 @@ namespace Rutile {
     };
 
     Settings DefaultSettings();
+
+    Settings ShadowMapTestingSceneSettings();
 }
