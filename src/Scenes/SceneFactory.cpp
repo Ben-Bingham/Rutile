@@ -121,4 +121,8 @@ namespace Rutile {
         m_CurrentScene.lightTypes.push_back(type);
         m_CurrentScene.lights.push_back(light);
     }
+
+    void SceneFactory::Add(DirectionalLight* light) {
+        m_CurrentScene.directionalLight = light;
+    }
 }

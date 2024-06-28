@@ -10,5 +10,7 @@ namespace Rutile {
 
     void DisplayMaterial(size_t i, MaterialType type, Material* material);
     void DisplayTransform(size_t i, Transform* transform);
+
+    void DisplayDirectionalLight(DirectionalLight* light);
     void DisplayLight(size_t i, LightType type, Light* light);
 }

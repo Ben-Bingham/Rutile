@@ -12,6 +12,7 @@ namespace Rutile {
     void Renderer::UpdatePacketMaterial(size_t index) { }
     void Renderer::UpdatePacketTransform(size_t index) { }
     void Renderer::UpdateSceneLight(size_t index) { }
+    void Renderer::UpdateSceneDirectionalLight() { }
 
     void Renderer::UpdateFieldOfView() { }
     void Renderer::UpdateNearPlane() { }
@@ -23,5 +24,6 @@ namespace Rutile {
 
     //void Renderer::ProvidePacketVisualization(size_t i) { }
     //void Renderer::ProvidePacketMaterialVisualization(size_t i) { }
-    void Renderer::ProvideLightVisualization(size_t i) { }
+    //void Renderer::ProvideLightVisualization(size_t i) { }
+    void Renderer::ProvideDirectionalLightVisualization() { }
 }

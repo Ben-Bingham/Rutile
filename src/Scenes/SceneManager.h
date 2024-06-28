@@ -6,7 +6,7 @@ namespace Rutile {
         TRIANGLE_SCENE,
         ORIGINAL_SCENE,
         SHADOW_MAP_TESTING_SCENE,
-        MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE
+        MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE
     };
 
     // The scene manager simply gives you a scene, and gives a home to all of the objects inside that scene.
@@ -17,6 +17,7 @@ namespace Rutile {
     private:
         static Material* GetMaterial(MaterialType type);
         static Light* GetLight(LightType type);
+        static DirectionalLight* GetDirectionalLight();
         static Transform* GetTransform();
 
         static Scene GetTriangleScene();
@@ -31,5 +32,7 @@ namespace Rutile {
 
         static inline std::vector<Material*> m_Materials;
         static inline std::vector<MaterialType> m_MaterialTypes;
+
+        static inline DirectionalLight* m_DirectionalLight;
     };
 }

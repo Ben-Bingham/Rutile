@@ -11,5 +11,7 @@ namespace Rutile {
 
         std::vector<LightType> lightTypes;
         std::vector<Light*> lights;
+
+        DirectionalLight* directionalLight;
     };
 }

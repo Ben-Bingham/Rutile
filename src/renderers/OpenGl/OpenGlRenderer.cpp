@@ -94,36 +94,38 @@ namespace Rutile {
             glFrontFace(GL_CW);
         }
 
-        // Shadow Map Rendering
-        if (App::settings.culledFaceDuringShadowMapping == GeometricFace::FRONT) {
-            glCullFace(GL_FRONT);
-        }
-        else {
-            glCullFace(GL_BACK);
-        }
-
-        glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
-
-        glm::mat4 lightView = glm::lookAt(m_DirectionalLightPosition, m_DirectionalLightPosition + m_DirectionalLights[0]->direction, glm::vec3{0.0f, 1.0f, 0.0f});
-
-        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-        m_ShadowMappingShader->Bind();
-        m_ShadowMappingShader->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
-
-        for (size_t i = 0; i < m_PacketCount; ++i) {
-            if (!m_ValidPackets[i]) {
-                continue;
+        if (m_DirectionalLight) {
+            // Shadow Map Rendering
+            if (App::settings.culledFaceDuringShadowMapping == GeometricFace::FRONT) {
+                glCullFace(GL_FRONT);
+            }
+            else {
+                glCullFace(GL_BACK);
             }
 
-            m_ShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
+            glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
+            glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
 
-            glBindVertexArray(m_VAOs[i]);
-            glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+            glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
+
+            glm::mat4 lightView = glm::lookAt(m_DirectionalLightPosition, m_DirectionalLightPosition + m_DirectionalLight->direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+            m_LightSpaceMatrix = lightProjection * lightView;
+
+            m_ShadowMappingShader->Bind();
+            m_ShadowMappingShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
+
+            for (size_t i = 0; i < m_PacketCount; ++i) {
+                if (!m_ValidPackets[i]) {
+                    continue;
+                }
+
+                m_ShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
+
+                glBindVertexArray(m_VAOs[i]);
+                glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+            }
         }
 
         // Render Normal Scene
@@ -173,7 +175,7 @@ namespace Rutile {
 
                     m_PhongShader->SetVec3("cameraPosition", App::camera.position);
 
-                    m_PhongShader->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
+                    m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
 
                     glActiveTexture(GL_TEXTURE0);
                     glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
@@ -201,20 +203,12 @@ namespace Rutile {
                         m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
                     }
 
-                    m_PhongShader->SetInt("directionalLightCount", static_cast<int>(m_DirectionalLights.size()));
+                    if (m_DirectionalLight) {
+                        m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
 
-                    for (size_t j = 0; j < m_DirectionalLights.size(); ++j) {
-                        if (m_DirectionalLights[j] == nullptr) {
-                            continue;
-                        }
-
-                        std::string prefix = "directionalLights[" + std::to_string(j) + "].";
-
-                        m_PhongShader->SetVec3(prefix + "direction", m_DirectionalLights[j]->direction);
-
-                        m_PhongShader->SetVec3(prefix + "ambient", m_DirectionalLights[j]->ambient);
-                        m_PhongShader->SetVec3(prefix + "diffuse", m_DirectionalLights[j]->diffuse);
-                        m_PhongShader->SetVec3(prefix + "specular", m_DirectionalLights[j]->specular);
+                        m_PhongShader->SetVec3("directionalLight.ambient", m_DirectionalLight->ambient);
+                        m_PhongShader->SetVec3("directionalLight.diffuse", m_DirectionalLight->diffuse);
+                        m_PhongShader->SetVec3("directionalLight.specular", m_DirectionalLight->specular);
                     }
 
                     m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
@@ -259,8 +253,9 @@ namespace Rutile {
     void OpenGlRenderer::SetScene(const Scene& scene) {
         // Lights
         m_PointLights.clear();
-        m_DirectionalLights.clear();
         m_SpotLights.clear();
+
+        m_DirectionalLight = scene.directionalLight;
 
         for (size_t i = 0; i < scene.lights.size(); ++i) {
             const LightType type = scene.lightTypes[i];
@@ -268,17 +263,10 @@ namespace Rutile {
             switch (type) {
                 case LightType::POINT: {
                     m_PointLights.push_back(dynamic_cast<PointLight*>(scene.lights[i]));
-                    m_PointLightIndices.push_back(i);
-                    break;
-                }
-                case LightType::DIRECTION: {
-                    m_DirectionalLights.push_back(dynamic_cast<DirectionalLight*>(scene.lights[i]));
-                    m_DirectionalLightIndices.push_back(i);
                     break;
                 }
                 case LightType::SPOTLIGHT: {
                     m_SpotLights.push_back(dynamic_cast<SpotLight*>(scene.lights[i]));
-                    m_SpotLightIndices.push_back(i);
                     break;
                 }
             }
@@ -568,31 +556,53 @@ namespace Rutile {
         m_PhongShader->SetInt("shadowMapPcfMode", (int)App::settings.shadowMapPcfMode);
     }
 
-    void OpenGlRenderer::ProvideLightVisualization(size_t i) {
-        for (const auto index : m_DirectionalLightIndices) {
-            if (index == i) {
-                if (ImGui::TreeNode("Shadow Map")) {
-                    ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
-
-                    ImGui::Text("Texture");
-                    ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
-                    ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
-
-                    ImGui::Text("Frustum");
-                    ImGui::DragFloat("Left", &m_DirectionalLightLeft);
-                    ImGui::DragFloat("Right", &m_DirectionalLightRight);
-                    ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
-                    ImGui::DragFloat("Top", &m_DirectionalLightTop);
-
-                    ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
-                    ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
-
-                    ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
-
-                    ImGui::TreePop();
-                }
-                break;
-            }
+    void OpenGlRenderer::ProvideDirectionalLightVisualization() {
+        if (ImGui::TreeNode("Shadow Map")) {
+            ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
+        
+            ImGui::Text("Texture");
+            ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
+            ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
+        
+            ImGui::Text("Frustum");
+            ImGui::DragFloat("Left", &m_DirectionalLightLeft);
+            ImGui::DragFloat("Right", &m_DirectionalLightRight);
+            ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
+            ImGui::DragFloat("Top", &m_DirectionalLightTop);
+        
+            ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
+            ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
+        
+            ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+        
+            ImGui::TreePop();
         }
     }
+
+    //void OpenGlRenderer::ProvideLightVisualization(size_t i) {
+    //        if (index == i) {
+    //            if (ImGui::TreeNode("Shadow Map")) {
+    //                ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
+
+    //                ImGui::Text("Texture");
+    //                ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
+    //                ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
+
+    //                ImGui::Text("Frustum");
+    //                ImGui::DragFloat("Left", &m_DirectionalLightLeft);
+    //                ImGui::DragFloat("Right", &m_DirectionalLightRight);
+    //                ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
+    //                ImGui::DragFloat("Top", &m_DirectionalLightTop);
+
+    //                ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
+    //                ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
+
+    //                ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+
+    //                ImGui::TreePop();
+    //            }
+    //            break;
+    //        }
+    //    
+    //}
 }

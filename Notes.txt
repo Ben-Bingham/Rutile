@@ -21,6 +21,4 @@ TODO after adding more renderers consider storing lights within bundle in 3 diff
 
 TODO setting as to wether or not we should depth test
 
-TODO Option to enable/disable face culling
-
-TODO Crash when switcing from ShadowMap to trinagle scene
+TODO consider to remove DirectionalLight from inheriting light, and just make it a stand alone class

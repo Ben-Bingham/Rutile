@@ -38,6 +38,7 @@ namespace Rutile {
         virtual void UpdatePacketMaterial(size_t index);
         virtual void UpdatePacketTransform(size_t index);
         virtual void UpdateSceneLight(size_t index);
+        virtual void UpdateSceneDirectionalLight();
 
         // These functions are called when the value of a setting is modified
         virtual void UpdateFieldOfView();
@@ -58,6 +59,7 @@ namespace Rutile {
         // These functions allow the renderer to supply an optional visualization of a Scene Object
         //virtual void ProvidePacketVisualization(size_t i);
         //virtual void ProvidePacketMaterialVisualization(size_t i);
-        virtual void ProvideLightVisualization(size_t i);
+        //virtual void ProvideLightVisualization(size_t i);
+        virtual void ProvideDirectionalLightVisualization();
 	};
 }

@@ -15,6 +15,7 @@ namespace Rutile {
 		void Add(Primitive primitive, Transform* transform, MaterialType materialType, Material* material);
 
 		void Add(LightType type, Light* light);
+		void Add(DirectionalLight* light);
 
 	private:
 		Scene m_CurrentScene;

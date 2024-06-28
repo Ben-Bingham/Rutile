@@ -26,9 +26,12 @@ namespace Rutile {
 
         m_Transforms.clear();
 
+        delete m_DirectionalLight;
+
         switch (scene) {
             default: {
                 std::cout << "ERROR: Unknown SceneType" << std::endl;
+                break;
             }
             case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
@@ -39,7 +42,7 @@ namespace Rutile {
             case SceneType::SHADOW_MAP_TESTING_SCENE: {
                 return GetShadowMapTestingScene();
             }
-            case SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE: {
+            case SceneType::MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE: {
                 return GetMultiLightShadowMapTestingScene();
             }
         }
@@ -69,11 +72,6 @@ namespace Rutile {
                 m_LightTypes.push_back(LightType::POINT);
                 break;
             }
-            case LightType::DIRECTION: {
-                m_Lights.push_back(new DirectionalLight{ });
-                m_LightTypes.push_back(LightType::DIRECTION);
-                break;
-            }
             case LightType::SPOTLIGHT: {
                 m_Lights.push_back(new SpotLight{ });
                 m_LightTypes.push_back(LightType::SPOTLIGHT);
@@ -82,6 +80,11 @@ namespace Rutile {
         }
 
         return m_Lights.back();
+    }
+
+    DirectionalLight* SceneManager::GetDirectionalLight() {
+        m_DirectionalLight = new DirectionalLight;
+        return m_DirectionalLight;
     }
 
     Transform* SceneManager::GetTransform() {
@@ -150,14 +153,14 @@ namespace Rutile {
 
         sceneFactory.Add(LightType::POINT, pointLight);
 
-        DirectionalLight* directionalLight = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        DirectionalLight* directionalLight = GetDirectionalLight();
         directionalLight->direction = { 0.0f, -1.0f, 0.0f };
 
         directionalLight->ambient = { 0.05f, 0.05f, 0.05f };
         directionalLight->diffuse = { 0.4f, 0.4f, 0.4f };
         directionalLight->specular = { 0.5f, 0.5f, 0.5f };
 
-        sceneFactory.Add(LightType::DIRECTION, directionalLight);
+        sceneFactory.Add(directionalLight);
 
         SpotLight* spotLight = dynamic_cast<SpotLight*>(GetLight(LightType::SPOTLIGHT));
 
@@ -207,13 +210,13 @@ namespace Rutile {
         phong4->specular = { 0.432f, 0.8367f, 0.123f };
         phong4->shininess = 16.0f;
 
-        DirectionalLight* dirLight1 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        DirectionalLight* dirLight1 = GetDirectionalLight();
         dirLight1->direction = { -1.0f, -1.0f, -1.0f };
         dirLight1->diffuse = { 1.0f, 1.0f, 1.0f };
         dirLight1->ambient = { 1.0f, 1.0f, 1.0f };
         dirLight1->specular = { 1.0f, 1.0f, 1.0f };
 
-        sceneFactory.Add(LightType::DIRECTION, dirLight1);
+        sceneFactory.Add(dirLight1);
 
         Transform* floorTransform = GetTransform();
         floorTransform->position.y = -1.0f;
@@ -275,13 +278,13 @@ namespace Rutile {
         phong4->specular = { 0.432f, 0.8367f, 0.123f };
         phong4->shininess = 16.0f;
 
-        DirectionalLight* dirLight1 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        DirectionalLight* dirLight1 = GetDirectionalLight();
         dirLight1->direction = { -1.0f, -1.0f, -1.0f };
         dirLight1->diffuse =  { 0.2f, 0.2f, 0.2f };
         dirLight1->ambient =  { 0.2f, 0.2f, 0.2f };
         dirLight1->specular = { 0.2f, 0.2f, 0.2f };
 
-        sceneFactory.Add(LightType::DIRECTION, dirLight1);
+        sceneFactory.Add(dirLight1);
 
         Transform* floorTransform = GetTransform();
         floorTransform->position.y = -1.0f;
@@ -323,29 +326,11 @@ namespace Rutile {
 
         sceneFactory.Add(Primitive::CUBE, box6, MaterialType::PHONG, phong3);
 
-        DirectionalLight* dirLight2 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
+        DirectionalLight* dirLight2 = GetDirectionalLight();
         dirLight2->direction = { 1.0f, -1.0f, 0.0f };
         dirLight2->diffuse =  { 0.2f, 0.2f, 0.2f };
         dirLight2->ambient =  { 0.2f, 0.2f, 0.2f };
         dirLight2->specular = { 0.2f, 0.2f, 0.2f };
-
-        sceneFactory.Add(LightType::DIRECTION, dirLight2);
-
-        DirectionalLight* dirLight3 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
-        dirLight3->direction = { -1.0f, -1.0f, 0.0f };
-        dirLight3->diffuse =  { 0.2f, 0.2f, 0.2f };
-        dirLight3->ambient =  { 0.2f, 0.2f, 0.2f };
-        dirLight3->specular = { 0.2f, 0.2f, 0.2f };
-
-        sceneFactory.Add(LightType::DIRECTION, dirLight3);
-
-        DirectionalLight* dirLight4 = dynamic_cast<DirectionalLight*>(GetLight(LightType::DIRECTION));
-        dirLight4->direction = { -1.0f, -1.0f, 0.0f };
-        dirLight4->diffuse = { 0.2f, 0.2f, 0.2f };
-        dirLight4->ambient = { 0.2f, 0.2f, 0.2f };
-        dirLight4->specular = { 0.2f, 0.2f, 0.2f };
-
-        sceneFactory.Add(LightType::DIRECTION, dirLight4);
 
         return sceneFactory.GetScene();
     }

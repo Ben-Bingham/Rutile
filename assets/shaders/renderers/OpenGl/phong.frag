@@ -53,8 +53,7 @@ uniform vec3 cameraPosition;
 uniform PointLight pointLights[MAX_LIGHTS];
 uniform int pointLightCount;
 
-uniform DirectionalLight directionalLights[MAX_LIGHTS];
-uniform int directionalLightCount;
+uniform DirectionalLight directionalLight;
 
 uniform SpotLight spotLights[MAX_LIGHTS];
 uniform int spotLightCount;
@@ -95,9 +94,7 @@ void main() {
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
     }
 
-    for (int i = 0; i < directionalLightCount; ++i) {
-        result += directionalLightAddition(directionalLights[i], norm, viewDir, shadow);
-    }
+    result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
 
     for (int i = 0; i < spotLightCount; ++i) {
         result += spotLightAddition(spotLights[i], norm, viewDir, shadow);
@@ -201,7 +198,7 @@ float shadowCalculation(vec4 fragPositionInLightSpace) {
 
     float currentDepth = projectionCoords.z;
 
-    vec3 lightDirection = normalize(-directionalLights[0].direction);
+    vec3 lightDirection = normalize(-directionalLight.direction);
 
     float bias = 0.0;
     if (shadowMapBiasMode == 1) {

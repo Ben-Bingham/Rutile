@@ -32,7 +32,7 @@ namespace Rutile {
                     } else if (std::string{ items[currentIndex] } == std::string{ shadowMapScene }) {
                         App::currentSceneType = SceneType::SHADOW_MAP_TESTING_SCENE;
                     } else if (std::string{ items[currentIndex] } == std::string{ multiLightShadowMapScene }) {
-                        App::currentSceneType = SceneType::MULTI_LIGHT_SHADOW_MAP_TESTING_SCENE;
+                        App::currentSceneType = SceneType::MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE;
                     }
                 }
 
@@ -70,6 +70,9 @@ namespace Rutile {
 
         if (ImGui::TreeNode("Lights")) {
             ImGui::Separator();
+
+            DisplayDirectionalLight(App::scene.directionalLight);
+
             for (size_t i = 0; i < App::scene.lights.size(); ++i) {
                 DisplayLight(i, App::scene.lightTypes[i], App::scene.lights[i]);
 
@@ -130,15 +133,25 @@ namespace Rutile {
         }
     }
 
+    void DisplayDirectionalLight(DirectionalLight* light) {
+        if (ImGui::TreeNode("Directional Light")) {
+            if (ImGui::DragFloat3("Direction##Dir", glm::value_ptr(light->direction), 0.05f)) { App::renderer->UpdateSceneDirectionalLight(); }
+
+            if (ImGui::ColorEdit3("Ambient Color##Dir", glm::value_ptr(light->ambient))) { App::renderer->UpdateSceneDirectionalLight(); }
+            if (ImGui::ColorEdit3("Diffuse Color##Dir", glm::value_ptr(light->diffuse))) { App::renderer->UpdateSceneDirectionalLight(); }
+            if (ImGui::ColorEdit3("Specular Color##Dir", glm::value_ptr(light->specular))) { App::renderer->UpdateSceneDirectionalLight(); }
+
+            App::renderer->ProvideDirectionalLightVisualization();
+
+            ImGui::TreePop();
+        }
+    }
+
     void DisplayLight(size_t i, LightType type, Light* light) {
         std::string lightName{ };
         switch (type) {
             case LightType::POINT: {
                 lightName = "Point Light";
-                break;
-            }
-            case LightType::DIRECTION: {
-                lightName = "Directional Light";
                 break;
             }
             case LightType::SPOTLIGHT: {
@@ -161,17 +174,6 @@ namespace Rutile {
                     if (ImGui::ColorEdit3(("Ambient Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->ambient))) { App::renderer->UpdateSceneLight(i); }
                     if (ImGui::ColorEdit3(("Diffuse Color##"                    + std::to_string(i)).c_str(), glm::value_ptr(l->diffuse))) { App::renderer->UpdateSceneLight(i); }
                     if (ImGui::ColorEdit3(("Specular Color##"                   + std::to_string(i)).c_str(), glm::value_ptr(l->specular))) { App::renderer->UpdateSceneLight(i); }
-                    break;
-                }
-                case LightType::DIRECTION: {
-                    DirectionalLight* l = dynamic_cast<DirectionalLight*>(light);
-
-                    if (ImGui::DragFloat3(("Direction##Dir"     + std::to_string(i)).c_str(), glm::value_ptr(l->direction), 0.05f)) { App::renderer->UpdateSceneLight(i); }
-
-                    if (ImGui::ColorEdit3(("Ambient Color##"    + std::to_string(i)).c_str(), glm::value_ptr(l->ambient))) { App::renderer->UpdateSceneLight(i); }
-                    if (ImGui::ColorEdit3(("Diffuse Color##"    + std::to_string(i)).c_str(), glm::value_ptr(l->diffuse))) { App::renderer->UpdateSceneLight(i); }
-                    if (ImGui::ColorEdit3(("Specular Color##"   + std::to_string(i)).c_str(), glm::value_ptr(l->specular))) { App::renderer->UpdateSceneLight(i); }
-
                     break;
                 }
                 case LightType::SPOTLIGHT: {
@@ -201,7 +203,6 @@ namespace Rutile {
                 }
             }
 
-            App::renderer->ProvideLightVisualization(i);
             ImGui::TreePop();
         }
     }

@@ -42,7 +42,8 @@ namespace Rutile {
 
         void UpdateShadowMap() override;
 
-        void ProvideLightVisualization(size_t i) override;
+        //void ProvideLightVisualization(size_t i) override;
+        void ProvideDirectionalLightVisualization() override;
 
     private:
         void UpdateProjectionMatrix();
@@ -56,14 +57,8 @@ namespace Rutile {
 
         // Lights
         std::vector<PointLight*> m_PointLights;
-        std::vector<DirectionalLight*> m_DirectionalLights;
+        DirectionalLight* m_DirectionalLight;
         std::vector<SpotLight*> m_SpotLights;
-
-        // These vectors are the same size as there counterparts above that actually store the lights, however these
-        // vectors store the global index (as per the Scene) for each light
-        std::vector<size_t> m_PointLightIndices;
-        std::vector<size_t> m_DirectionalLightIndices;
-        std::vector<size_t> m_SpotLightIndices;
 
         // Packets
         size_t m_PacketCount;
@@ -80,7 +75,7 @@ namespace Rutile {
         std::vector<MaterialType> m_MaterialTypes;
         std::vector<Material*> m_Materials;
 
-        // Shadow Maps
+        // Shadow Map
         unsigned int m_ShadowMapFBO;
 
         unsigned int m_ShadowMapTexture;
@@ -89,6 +84,8 @@ namespace Rutile {
         int m_ShadowMapHeight{ 1024 };
 
         glm::vec3 m_DirectionalLightPosition{ 3.0f, 3.0f, 3.0f};
+
+        glm::mat4 m_LightSpaceMatrix{ 1.0f };
 
         float m_DirectionalLightLeft{ -1.0f };
         float m_DirectionalLightRight{ 5.0f };

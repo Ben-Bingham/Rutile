@@ -4,8 +4,16 @@
 namespace Rutile {
     enum class LightType {
         POINT,
-        DIRECTION,
         SPOTLIGHT
+    };
+
+    class DirectionalLight {
+    public:
+        glm::vec3 direction;
+
+        glm::vec3 ambient;
+        glm::vec3 diffuse;
+        glm::vec3 specular;
     };
 
     class Light {
@@ -32,22 +40,6 @@ namespace Rutile {
         float constant;
         float linear;
         float quadratic;
-
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        glm::vec3 specular;
-    };
-
-    class DirectionalLight : public Light {
-    public:
-        DirectionalLight() = default;
-        DirectionalLight(const DirectionalLight& other) = default;
-        DirectionalLight(DirectionalLight&& other) noexcept = default;
-        DirectionalLight& operator=(const DirectionalLight& other) = default;
-        DirectionalLight& operator=(DirectionalLight&& other) noexcept = default;
-        ~DirectionalLight() override = default;
-
-        glm::vec3 direction;
 
         glm::vec3 ambient;
         glm::vec3 diffuse;
