@@ -8,7 +8,7 @@ namespace Rutile {
     Settings ShadowMapTestingSceneSettings() {
         Settings settings{ };
 
-        settings.shadowMapBiasMode = SHADOW_MAP_BIAS_MODE_STATIC;
+        settings.shadowMapBiasMode = ShadowMapBiasMode::STATIC;
         settings.shadowMapBias = 0.0015f;
         settings.culledFaceDuringShadowMapping = GeometricFace::BACK;
         settings.shadowMapPcfMode = ShadowMapPCFMode::BASIC;

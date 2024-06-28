@@ -1,10 +1,10 @@
 #pragma once
 
 namespace Rutile {
-    enum ShadowMapBiasMode {
-        SHADOW_MAP_BIAS_MODE_NONE = 0,
-        SHADOW_MAP_BIAS_MODE_STATIC = 1,
-        SHADOW_MAP_BIAS_MODE_DYNAMIC = 2
+    enum class ShadowMapBiasMode {
+        NONE,
+        STATIC,
+        DYNAMIC
     };
 
     enum class ShadowMapPCFMode {

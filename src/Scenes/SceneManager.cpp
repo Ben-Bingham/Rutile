@@ -280,9 +280,9 @@ namespace Rutile {
 
         DirectionalLight* dirLight1 = GetDirectionalLight();
         dirLight1->direction = { -1.0f, -1.0f, -1.0f };
-        dirLight1->diffuse =  { 0.2f, 0.2f, 0.2f };
-        dirLight1->ambient =  { 0.2f, 0.2f, 0.2f };
-        dirLight1->specular = { 0.2f, 0.2f, 0.2f };
+        dirLight1->diffuse = { 1.0f, 1.0f, 1.0f };
+        dirLight1->ambient = { 1.0f, 1.0f, 1.0f };
+        dirLight1->specular = { 1.0f, 1.0f, 1.0f };
 
         sceneFactory.Add(dirLight1);
 
@@ -325,12 +325,6 @@ namespace Rutile {
         box6->position = { 0.0f, 0.0f, -15.0f };
 
         sceneFactory.Add(Primitive::CUBE, box6, MaterialType::PHONG, phong3);
-
-        DirectionalLight* dirLight2 = GetDirectionalLight();
-        dirLight2->direction = { 1.0f, -1.0f, 0.0f };
-        dirLight2->diffuse =  { 0.2f, 0.2f, 0.2f };
-        dirLight2->ambient =  { 0.2f, 0.2f, 0.2f };
-        dirLight2->specular = { 0.2f, 0.2f, 0.2f };
 
         return sceneFactory.GetScene();
     }

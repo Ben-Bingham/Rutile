@@ -106,13 +106,13 @@ namespace Rutile {
         if (ImGui::TreeNode("Shadow Map Settings")) {
             ImGui::Separator();
             ImGui::Text("Bias mode");
-            if (ImGui::RadioButton("None##biasMode",    (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Static",  (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Dynamic", (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMap(); }
+            if (ImGui::RadioButton("None##biasMode", (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Static",         (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
+            if (ImGui::RadioButton("Dynamic",        (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMap(); }
 
-            if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_STATIC) {
+            if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::STATIC) {
                 if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMap(); }
-            } else if (App::settings.shadowMapBiasMode == SHADOW_MAP_BIAS_MODE_DYNAMIC) {
+            } else if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::DYNAMIC) {
                 if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMap(); }
                 if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMap(); }
             }

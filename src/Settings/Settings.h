@@ -13,8 +13,13 @@ namespace Rutile {
 
         RendererType defaultRenderer = RendererType::OPENGL;
 
+        // Rendering
+        GeometricFace culledFaceDuringRendering = GeometricFace::BACK;
+
+        WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
+
         // Shadow Maps
-        ShadowMapBiasMode shadowMapBiasMode = SHADOW_MAP_BIAS_MODE_DYNAMIC;
+        ShadowMapBiasMode shadowMapBiasMode = ShadowMapBiasMode::DYNAMIC;
         float shadowMapBias = 0.005f;
 
         float dynamicShadowMapBiasMin = 0.005f;
@@ -23,11 +28,6 @@ namespace Rutile {
         ShadowMapPCFMode shadowMapPcfMode = ShadowMapPCFMode::NONE;
 
         GeometricFace culledFaceDuringShadowMapping = GeometricFace::FRONT;
-
-        // Rendering
-        GeometricFace culledFaceDuringRendering = GeometricFace::BACK;
-
-        WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
     };
 
     Settings DefaultSettings();
