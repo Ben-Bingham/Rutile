@@ -108,8 +108,7 @@ namespace Rutile {
             ImGui::Text("Shadow map mode");
             if (ImGui::RadioButton("None##ShadowMapMode",                  (int*)&App::settings.shadowMapMode, 0)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
             if (ImGui::RadioButton("One shadow emitter##ShadowMapMode",    (int*)&App::settings.shadowMapMode, 1)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Auto shadow emitter##ShadowMapMode",   (int*)&App::settings.shadowMapMode, 2)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Cascading shadow maps##ShadowMapMode", (int*)&App::settings.shadowMapMode, 3)) { App::renderer->UpdateShadowMapMode(); }
+            if (ImGui::RadioButton("Cascading shadow maps##ShadowMapMode", (int*)&App::settings.shadowMapMode, 2)) { App::renderer->UpdateShadowMapMode(); }
 
             ImGui::Separator();
 

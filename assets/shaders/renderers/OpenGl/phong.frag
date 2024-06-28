@@ -97,8 +97,6 @@ void main() {
         shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
     } else if (shadowMapMode == 2) {
         // TODO
-    } else if (shadowMapMode == 3) {
-        // TODO
     }
 
     for (int i = 0; i < pointLightCount; ++i) {
