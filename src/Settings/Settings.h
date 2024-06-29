@@ -19,7 +19,7 @@ namespace Rutile {
         WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
 
         // Shadow Maps
-        ShadowMapMode shadowMapMode = ShadowMapMode::ONE_SHADOW_EMITTER;
+        ShadowMapMode shadowMapMode = ShadowMapMode::NONE;
 
         ShadowMapBiasMode shadowMapBiasMode = ShadowMapBiasMode::DYNAMIC;
         float shadowMapBias = 0.005f;

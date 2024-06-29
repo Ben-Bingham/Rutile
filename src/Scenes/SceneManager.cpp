@@ -34,7 +34,7 @@ namespace Rutile {
         switch (scene) {
             default: {
                 std::cout << "ERROR: Unknown SceneType" << std::endl;
-                break;
+                return GetTriangleScene();
             }
             case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
@@ -47,6 +47,9 @@ namespace Rutile {
             }
             case SceneType::MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE: {
                 return GetMultiLightShadowMapTestingScene();
+            }
+            case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
+                return GetOmnidirectionalShadowMapTestingScene();
             }
         }
     }
@@ -329,6 +332,130 @@ namespace Rutile {
         box6->position = { 0.0f, 0.0f, -15.0f };
 
         sceneFactory.Add(Primitive::CUBE, box6, MaterialType::PHONG, phong3);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetOmnidirectionalShadowMapTestingScene() {
+        SceneFactory sceneFactory{ };
+
+        Solid* solid = dynamic_cast<Solid*>(GetMaterial(MaterialType::SOLID));
+        solid->color = { 1.0f, 1.0f, 1.0f };
+
+        Transform* lightTransform = GetTransform();
+        lightTransform->position = { 0.0f, 3.0f, -10.0f };
+        lightTransform->scale = { 0.4f, 0.4f, 0.4f };
+
+        sceneFactory.Add(Primitive::CUBE, lightTransform, MaterialType::SOLID, solid);
+
+        PointLight* pointLight = dynamic_cast<PointLight*>(GetLight(LightType::POINT));
+        pointLight->diffuse = { 1.0f, 1.0f, 1.0f };
+        pointLight->ambient = { 0.5f, 0.5f, 0.5f };
+        pointLight->specular = { 0.2f, 0.2f, 0.2f };
+
+        pointLight->constant = 0.62f;
+        pointLight->linear = 0.175f;
+        pointLight->quadratic = 0.035f;
+
+        pointLight->position = lightTransform->position;
+
+        sceneFactory.Add(LightType::POINT, pointLight);
+
+        Phong* phong = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        phong->ambient = { 1.0f, 0.5f, 0.31f };
+        phong->diffuse = { 1.0f, 0.5f, 0.31f };
+        phong->specular = { 0.5f, 0.5f, 0.5f };
+        phong->shininess = 32.0f;
+
+        Transform* floor = GetTransform();
+        floor->position = { 0.0f, -1.0f, -10.0f };
+        floor->scale = { 30.0f, 1.0f, 60.0f };
+
+        sceneFactory.Add(Primitive::CUBE, floor, MaterialType::PHONG, phong);
+
+        Transform* roof = GetTransform();
+        roof->position = { 0.0f, 10.0f, -10.0f };
+        roof->scale = { 30.0f, 1.f, 60.0f };
+
+        sceneFactory.Add(Primitive::CUBE, roof, MaterialType::PHONG, phong);
+
+        Transform* posXWall = GetTransform();
+        posXWall->position = { 10.0f, 0.0f, -10.0f };
+        posXWall->scale = { 1.0f, 30.0f, 60.0f };
+
+        sceneFactory.Add(Primitive::CUBE, posXWall, MaterialType::PHONG, phong);
+
+        Transform* negXWall = GetTransform();
+        negXWall->position = { -10.0f, 0.0f, -10.0f };
+        negXWall->scale = { 1.0f, 30.0f, 60.0f };
+
+        sceneFactory.Add(Primitive::CUBE, negXWall, MaterialType::PHONG, phong);
+
+        Transform* negZWall = GetTransform();
+        negZWall->position = { 0.0f, 0.0f, -20.0f };
+        negZWall->scale = { 30.0f, 30.0f, 1.0f };
+
+        sceneFactory.Add(Primitive::CUBE, negZWall, MaterialType::PHONG, phong);
+
+        Transform* posZWall = GetTransform();
+        posZWall->position = { 0.0f, 0.0f, 25.0f };
+        posZWall->scale = { 30.0f, 30.0f, 1.0f };
+
+        sceneFactory.Add(Primitive::CUBE, posZWall, MaterialType::PHONG, phong);
+
+        Transform* cube1 = GetTransform();
+        cube1->position = { -5.0f, 2.0f, -12.0f };
+        cube1->scale = glm::vec3{ 1.2f };
+        cube1->rotation = glm::angleAxis(glm::radians(25.0f), normalize(glm::vec3{ 1.0f, 1.0f, 1.0f }));
+
+        sceneFactory.Add(Primitive::CUBE, cube1, MaterialType::PHONG, phong);
+
+        Transform* cube2 = GetTransform();
+        cube2->position = { 6.0f, 7.0f, -8.0f };
+        cube2->rotation = glm::angleAxis(glm::radians(71.0f), normalize(glm::vec3{ 1.0f, -1.0f, 1.0f }));
+
+        sceneFactory.Add(Primitive::CUBE, cube2, MaterialType::PHONG, phong);
+
+        Transform* cube3 = GetTransform();
+        cube3->position = { 0.0f, 5.0f, -14.0f };
+        cube3->rotation = glm::angleAxis(glm::radians(45.0f), normalize(glm::vec3{ -1.0f, 1.0f, -1.0f }));
+
+        sceneFactory.Add(Primitive::CUBE, cube3, MaterialType::PHONG, phong);
+
+        Transform* cube4 = GetTransform();
+        cube4->position = { 4.0f, 5.0f, -14.0f };
+        cube4->scale = glm::vec3{ 3.0f };
+        cube4->rotation = glm::angleAxis(glm::radians(63.5f), normalize(glm::vec3{ 1.0f, 3.0f, -5.0f }));
+
+        sceneFactory.Add(Primitive::CUBE, cube4, MaterialType::PHONG, phong);
+
+        Transform* cube5 = GetTransform();
+        cube5->position = { 6.0f, 7.0f, -16.0f };
+        cube5->scale = glm::vec3{ 0.5f };
+        cube5->rotation = glm::angleAxis(glm::radians(15.5f), normalize(glm::vec3{ -3.0f, 1.0f, 2.5f }));
+
+        sceneFactory.Add(Primitive::CUBE, cube5, MaterialType::PHONG, phong);
+
+        float bonus = 0.0f;
+        for (int i = 0; i < 10; ++i) {
+            Transform* slit = GetTransform();
+
+            float x = -4.0f + (float)i * (6.0f / 10.0f) + bonus;
+            bonus += (float)i * (6.0f / 10.0f) / 9.0f;
+            slit->position = { x, 7.5f, -10.0f };
+
+            float scaleZ = 0.5f + (float)i * (1.5f / 10.0f) + bonus;
+            slit->scale = { 0.3f, 0.05f, scaleZ };
+
+            sceneFactory.Add(Primitive::CUBE, slit, MaterialType::PHONG, phong);
+        }
+
+        Transform* slit = GetTransform();
+        slit->position = { -2.0f, 8.5f, -10.0f };
+        slit->scale = { 3.0f, 0.05f, 0.5f };
+        slit->rotation = glm::angleAxis(glm::radians(15.0f), normalize(glm::vec3{ 0.0f, 1.0f, 0.0f }));
+
+        sceneFactory.Add(Primitive::CUBE, slit, MaterialType::PHONG, phong);
 
         return sceneFactory.GetScene();
     }
