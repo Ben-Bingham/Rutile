@@ -31,7 +31,7 @@ namespace Rutile {
         return out;
     }
 
-    Shader::Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
+    Shader::Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geometryShaderPath) {
         std::string vertexShaderSource = ReadFile(vertexShaderPath);
         const char* vertexSource = vertexShaderSource.c_str();
 
@@ -62,9 +62,31 @@ namespace Rutile {
             std::cout << infoLog << std::endl;
         }
 
+        unsigned int geometryShader = 0;
+        if (!geometryShaderPath.empty()) {
+            std::string geometryShaderSource = ReadFile(geometryShaderPath);
+            const char* geometrySource = geometryShaderSource.c_str();
+
+            geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+            glShaderSource(geometryShader, 1, &geometrySource, nullptr);
+            glCompileShader(geometryShader);
+
+            glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+            if (!success) {
+                glGetShaderInfoLog(geometryShader, 512, nullptr, infoLog);
+                std::cout << "ERROR: Geometry shader failed to compile:" << std::endl;
+                std::cout << infoLog << std::endl;
+            }
+        }
+
         m_ShaderHandle = glCreateProgram();
         glAttachShader(m_ShaderHandle, vertexShader);
         glAttachShader(m_ShaderHandle, fragmentShader);
+
+        if (!geometryShaderPath.empty()) {
+            glAttachShader(m_ShaderHandle, geometryShader);
+        }
+
         glLinkProgram(m_ShaderHandle);
 
         glGetProgramiv(m_ShaderHandle, GL_LINK_STATUS, &success);
@@ -76,6 +98,10 @@ namespace Rutile {
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        if (!geometryShaderPath.empty()) {
+            glDeleteShader(geometryShader);
+        }
     }
 
     Shader::~Shader() {

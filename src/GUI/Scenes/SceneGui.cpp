@@ -208,6 +208,8 @@ namespace Rutile {
                 }
             }
 
+            App::renderer->ProvideLightVisualization(i);
+
             ImGui::TreePop();
         }
     }

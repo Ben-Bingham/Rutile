@@ -26,6 +26,6 @@ namespace Rutile {
 
     //void Renderer::ProvidePacketVisualization(size_t i) { }
     //void Renderer::ProvidePacketMaterialVisualization(size_t i) { }
-    //void Renderer::ProvideLightVisualization(size_t i) { }
+    void Renderer::ProvideLightVisualization(size_t i) { }
     void Renderer::ProvideDirectionalLightVisualization() { }
 }

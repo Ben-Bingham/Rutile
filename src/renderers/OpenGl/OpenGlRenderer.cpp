@@ -40,13 +40,14 @@ namespace Rutile {
 
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
-        m_ShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\shadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\shadowMapping.frag");
+        m_DirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\shadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\shadowMapping.frag");
+        m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
 
-        glGenFramebuffers(1, &m_ShadowMapFBO);
+        glGenFramebuffers(1, &m_DepthMapFBO);
 
         glGenTextures(1, &m_ShadowMapTexture);
         glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_ShadowMapWidth, m_ShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -54,7 +55,7 @@ namespace Rutile {
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapTexture, 0);
 
         glDrawBuffer(GL_NONE);
@@ -79,11 +80,12 @@ namespace Rutile {
         glDisable(GL_DEPTH_TEST);
 
         glDeleteTextures(1, &m_ShadowMapTexture);
-        glDeleteFramebuffers(1, &m_ShadowMapFBO);
+        glDeleteFramebuffers(1, &m_DepthMapFBO);
 
         m_SolidShader.reset();
         m_PhongShader.reset();
-        m_ShadowMappingShader.reset();
+        m_DirectionalShadowMappingShader.reset();
+        m_OmnidirectionalShadowMappingShader.reset();
 
         glfwDestroyWindow(window);
     }
@@ -95,7 +97,7 @@ namespace Rutile {
             glFrontFace(GL_CW);
         }
 
-        // Shadow Map Rendering
+        // Directional Shadow Map Rendering
         if (m_DirectionalLight && App::settings.shadowMapMode == ShadowMapMode::ONE_SHADOW_EMITTER) {
             if (App::settings.culledFaceDuringShadowMapping == GeometricFace::FRONT) {
                 glCullFace(GL_FRONT);
@@ -104,8 +106,8 @@ namespace Rutile {
                 glCullFace(GL_BACK);
             }
 
-            glViewport(0, 0, m_ShadowMapWidth, m_ShadowMapHeight);
-            glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowMapFBO);
+            glViewport(0, 0, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight);
+            glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
 
             glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
@@ -114,19 +116,75 @@ namespace Rutile {
 
             m_LightSpaceMatrix = lightProjection * lightView;
 
-            m_ShadowMappingShader->Bind();
-            m_ShadowMappingShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
+            m_DirectionalShadowMappingShader->Bind();
+            m_DirectionalShadowMappingShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
 
             for (size_t i = 0; i < m_PacketCount; ++i) {
                 if (!m_ValidPackets[i]) {
                     continue;
                 }
 
-                m_ShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
+                m_DirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
 
                 glBindVertexArray(m_VAOs[i]);
                 glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
             }
+        }
+
+        // Omnidirectional Shadow Map Rendering
+        m_OmnidirectionalShadowMappingShader->Bind();
+        for (int i = 0; i < m_PointLights.size(); ++i) {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[i]);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_PointLightCubeMaps[i], 0);
+
+            glViewport(0, 0, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight);
+
+            glClear(GL_DEPTH_BUFFER_BIT);
+
+            // Matrix Setup
+            float aspect = (float)m_DirectionalShadowMapWidth / (float)m_DirectionalShadowMapHeight;
+            float near = 1.0f;
+            float far = 25.0f;
+            glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, near, far);
+
+            glm::vec3 lightPosition = m_PointLights[i]->position;
+
+            std::vector<glm::mat4> shadowTransforms;
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{  1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{ -1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{  0.0,  1.0,  0.0 }, glm::vec3{ 0.0,  0.0,  1.0 }));
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{  0.0, -1.0,  0.0 }, glm::vec3{ 0.0,  0.0, -1.0 }));
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{  0.0,  0.0,  1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+            shadowTransforms.push_back(shadowMapProjection *
+                glm::lookAt(lightPosition, lightPosition + glm::vec3{  0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+
+            // Render
+            for (size_t i = 0; i < m_PacketCount; ++i) {
+                if (!m_ValidPackets[i]) {
+                    continue;
+                }
+
+                m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
+
+                for (int i = 0; i < 6; ++i) {
+                    m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+                }
+                
+                m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", lightPosition);
+                m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", far);
+
+                glBindVertexArray(m_VAOs[i]);
+                glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+            }
+
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
         }
 
         // Render Normal Scene
@@ -254,7 +312,11 @@ namespace Rutile {
     void OpenGlRenderer::SetScene(const Scene& scene) {
         // Lights
         m_PointLights.clear();
+        m_PointLightCubeMaps.clear();
+        m_PointLightIndices.clear();
+
         m_SpotLights.clear();
+        m_SpotLightIndices.clear();
 
         m_DirectionalLight = scene.directionalLight;
 
@@ -264,10 +326,29 @@ namespace Rutile {
             switch (type) {
                 case LightType::POINT: {
                     m_PointLights.push_back(dynamic_cast<PointLight*>(scene.lights[i]));
+                    m_PointLightIndices.push_back(i);
+
+                    m_PointLightCubeMaps.push_back(0);
+                    glGenTextures(1, &m_PointLightCubeMaps[i]);
+
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[i]);
+                    for (int i = 0; i < 6; ++i) {
+                        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth, 
+                            m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+                        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+                    }
+
                     break;
                 }
                 case LightType::SPOTLIGHT: {
                     m_SpotLights.push_back(dynamic_cast<SpotLight*>(scene.lights[i]));
+                    m_SpotLightIndices.push_back(i);
                     break;
                 }
             }
@@ -567,8 +648,8 @@ namespace Rutile {
             ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
         
             ImGui::Text("Texture");
-            ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
-            ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
+            ImGui::DragInt("Shadow Map Width", &m_DirectionalShadowMapWidth);
+            ImGui::DragInt("Shadow Map Height", &m_DirectionalShadowMapHeight);
         
             ImGui::Text("Frustum");
             ImGui::DragFloat("Left", &m_DirectionalLightLeft);
@@ -579,36 +660,31 @@ namespace Rutile {
             ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
             ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
         
-            ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+            ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_DirectionalShadowMapWidth, (float)m_DirectionalShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
         
             ImGui::TreePop();
         }
     }
 
-    //void OpenGlRenderer::ProvideLightVisualization(size_t i) {
-    //        if (index == i) {
-    //            if (ImGui::TreeNode("Shadow Map")) {
-    //                ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
+    void OpenGlRenderer::ProvideLightVisualization(size_t i) {
+        int j = 0;
+        for (const auto index : m_PointLightIndices) {
+            if (index == i) {
+                PointLight* light = m_PointLights[j];
+                if (ImGui::TreeNode("Shadow Map")) {
+                    //ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
 
-    //                ImGui::Text("Texture");
-    //                ImGui::DragInt("Shadow Map Width", &m_ShadowMapWidth);
-    //                ImGui::DragInt("Shadow Map Height", &m_ShadowMapHeight);
+                    ImGui::Text("Texture");
+                    ImGui::DragInt("Shadow Map Width", &m_OmnidirectionalShadowMapWidth);
+                    ImGui::DragInt("Shadow Map Height", &m_OmnidirectionalShadowMapHeight);
 
-    //                ImGui::Text("Frustum");
-    //                ImGui::DragFloat("Left", &m_DirectionalLightLeft);
-    //                ImGui::DragFloat("Right", &m_DirectionalLightRight);
-    //                ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
-    //                ImGui::DragFloat("Top", &m_DirectionalLightTop);
+                    //ImGui::Text("Positive X face");
+                    //ImGui::Image((ImTextureID)m_PointLightCubeMaps[j], ImVec2{(float)m_OmnidirectionalShadowMapWidth, (float)m_OmnidirectionalShadowMapHeight }, ImVec2{0.0f, 1.0f}, ImVec2{1.0f, 0.0f});
 
-    //                ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
-    //                ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
-
-    //                ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_ShadowMapWidth, (float)m_ShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
-
-    //                ImGui::TreePop();
-    //            }
-    //            break;
-    //        }
-    //    
-    //}
+                    ImGui::TreePop();
+                }
+            }
+            ++j;
+        }
+    }
 }

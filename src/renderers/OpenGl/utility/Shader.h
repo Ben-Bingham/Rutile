@@ -7,7 +7,7 @@
 namespace Rutile {
     class Shader {
     public:
-        Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+        Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, const std::string& geometryShaderPath = "");
         Shader(const Shader& other) = delete;
         Shader(Shader&& other) noexcept = default;
         Shader& operator=(const Shader& other) = delete;
