@@ -12,6 +12,9 @@ namespace Rutile {
         settings.shadowMapBias = 0.0015f;
         settings.culledFaceDuringShadowMapping = GeometricFace::BACK;
         settings.shadowMapPcfMode = ShadowMapPCFMode::BASIC;
+        settings.shadowMapMode = ShadowMapMode::ONE_SHADOW_EMITTER;
+
+        settings.omnidirectionalShadowMapPcfMode = OmnidirectionalShadowMapPCFMode::STANDARD;
 
         return settings;
     }

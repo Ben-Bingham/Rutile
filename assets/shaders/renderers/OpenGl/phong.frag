@@ -43,7 +43,7 @@ struct SpotLight {
     vec3 specular;
 };
 
-const int MAX_LIGHTS = 24;
+const int MAX_LIGHTS = 4;
 
 out vec4 outFragColor;
 
@@ -61,9 +61,9 @@ uniform int spotLightCount;
 in vec3 normal;
 in vec3 fragPosition;
 
-vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir);
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir);
-vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir);
+vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir, float shadow);
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow);
+vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
 
 // Omnidirectional Shadow Maps
 uniform samplerCube omnidirectionalShadowMaps[MAX_LIGHTS];
@@ -102,7 +102,7 @@ float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace);
 
 float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition);
 
-//float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition);
+float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition);
 
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
@@ -110,24 +110,26 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
 
-    //float shadow = calculateShadows(fragPositionInLightSpace, fragPosition);
+    float shadow = calculateShadows(fragPositionInLightSpace, fragPosition);
+
+    //outFragColor = vec4(vec3(shadow), 1.0);
+    //return;
 
     for (int i = 0; i < pointLightCount; ++i) {
-        result += pointLightAddition(pointLights[i], norm, viewDir);
+        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
     }
-
-    result += directionalLightAddition(directionalLight, norm, viewDir);
-
+    
+    result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
+    
     for (int i = 0; i < spotLightCount; ++i) {
-        result += spotLightAddition(spotLights[i], norm, viewDir);
+        result += spotLightAddition(spotLights[i], norm, viewDir, shadow);
     }
 
     outFragColor = vec4(result, 1.0);
 }
 
-vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir) {
-    float shadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
-
+vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
+    //float shadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -155,8 +157,8 @@ vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir) {
     return (ambient + diffuse + specular);
 }
 
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir) {
-    float shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
+    //float shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
 
     vec3 lightDirection = normalize(-light.direction);
 
@@ -177,7 +179,7 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir)
     return (ambient + diffuse + specular);
 }
 
-vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir) {
+vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -289,6 +291,8 @@ float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition) {
                vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
             );
 
+            localShadow = 1.0;
+
             int samples = 20;
             float viewDistance = length(cameraPosition - fragPosition);
             float diskRadius = omnidirectionalShadowMapDiskRadius;
@@ -296,10 +300,10 @@ float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition) {
                 diskRadius = (1.0 + (viewDistance / farPlane)) / 25.0;  
             }
             
-            for(int i = 0; i < samples; ++i) {
-                float closestDepth = texture(omnidirectionalShadowMaps[i], fragmentToLight + sampleOffsetDirections[i] * diskRadius).r;
+            for(int j = 0; j < samples; ++j) {
+                float closestDepth = texture(omnidirectionalShadowMaps[i], fragmentToLight + sampleOffsetDirections[j] * diskRadius).r;
                 closestDepth *= farPlane;   // undo mapping [0;1]
-                if(currentDepth - bias > closestDepth) {
+                if(currentDepth - bias > closestDepth) { 
                     localShadow += 1.0;
                 }
             }
@@ -311,7 +315,6 @@ float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition) {
     return min(shadow, 1.0);
 }
 
-/*
 float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition) {
     float shadow = 0.0;
 
@@ -325,7 +328,32 @@ float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition) {
 
     float omnidirectionalShadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
     
-    return shadow + omnidirectionalShadow;
-    //return omnidirectionalShadow;
+
+
+
+
+    // Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
+    /*
+    1.0 and 1.0 = 1.0
+    1.0 and 0.0 = 0.0
+    0.0 and 1.0 = 0.0
+    0.0 and 0.0 = 0.0
+    */
+
+    return omnidirectionalShadow;
+
+
+
+
+    //return 1.0;
+    //return shadow + omnidirectionalShadow;
+    //return ((1.0 - shadow) * (1.0 - omnidirectionalShadow));
+    //return min(shadow, omnidirectionalShadow);
+
+    //if (shadow < omnidirectionalShadow) {
+    //    return shadow;
+    //} else {
+    //    return omnidirectionalShadow;
+    //}
+    //return min(shadow, omnidirectionalShadow);
 }
-*/

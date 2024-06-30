@@ -13,8 +13,9 @@ namespace Rutile {
         const char* shadowMapScene =           "Shadow Map Testing";
         const char* multiLightShadowMapScene = "Multi light shadow Map Testing";
         const char* omniDirectionalShadowMapScene = "Omnidirectional shadow map test scene";
+        const char* generalScene = "General Scene";
 
-        const char* items[] = { original, triangle, shadowMapScene, multiLightShadowMapScene, omniDirectionalShadowMapScene };
+        const char* items[] = { original, triangle, shadowMapScene, multiLightShadowMapScene, omniDirectionalShadowMapScene, generalScene };
         static int currentIndex = 0;
 
         ImGui::Text(("Current Scene: " + std::string{ items[currentIndex] }).c_str());
@@ -36,6 +37,8 @@ namespace Rutile {
                         App::currentSceneType = SceneType::MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE;
                     } else if (std::string{ items[currentIndex] } == std::string{ omniDirectionalShadowMapScene }) {
                         App::currentSceneType = SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE;
+                    } else if (std::string{ items[currentIndex] } == std::string{ omniDirectionalShadowMapScene }) {
+                        App::currentSceneType = SceneType::GENERAL_SCENE;
                     }
                 }
 

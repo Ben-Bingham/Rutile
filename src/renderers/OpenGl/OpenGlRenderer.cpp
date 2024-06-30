@@ -168,6 +168,10 @@ namespace Rutile {
                     continue;
                 }
 
+                if (m_MaterialTypes[i] != MaterialType::PHONG) {
+                    continue;
+                }
+
                 m_DirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
 
                 glBindVertexArray(m_VAOs[i]);
@@ -279,11 +283,6 @@ namespace Rutile {
         
                     m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
         
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
-        
-                    m_PhongShader->SetInt("shadowMap", 0);
-        
                     // Lighting
                     m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
                     for (size_t j = 0; j < m_PointLights.size(); ++j) {
@@ -307,13 +306,18 @@ namespace Rutile {
 
                         prefix = "omnidirectionalShadowMaps[" + std::to_string(j) + "]";
 
-                        glActiveTexture(GL_TEXTURE0 + j);
+                        glActiveTexture(GL_TEXTURE0 + (unsigned int)j);
                         glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[j]);
-                        m_PhongShader->SetInt(prefix, j);
+                        m_PhongShader->SetInt(prefix, (int)j);
 
                         m_PhongShader->SetFloat("farPlane", 25.0f); // TODO
                     }
-        
+
+                    glActiveTexture(GL_TEXTURE0 + 5);
+                    glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+
+                    m_PhongShader->SetInt("shadowMap", 0 + 5);
+
                     if (m_DirectionalLight) {
                         m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
         
