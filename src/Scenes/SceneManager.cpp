@@ -349,8 +349,8 @@ namespace Rutile {
         sceneFactory.Add(Primitive::CUBE, lightTransform, MaterialType::SOLID, solid);
 
         PointLight* pointLight = dynamic_cast<PointLight*>(GetLight(LightType::POINT));
-        pointLight->diffuse = { 1.0f, 1.0f, 1.0f };
-        pointLight->ambient = { 0.5f, 0.5f, 0.5f };
+        pointLight->diffuse = { 0.2f, 0.2f, 0.2f };
+        pointLight->ambient = { 0.2f, 0.2f, 0.2f };
         pointLight->specular = { 0.2f, 0.2f, 0.2f };
 
         pointLight->constant = 0.62f;
@@ -456,14 +456,6 @@ namespace Rutile {
         slit->rotation = glm::angleAxis(glm::radians(15.0f), normalize(glm::vec3{ 0.0f, 1.0f, 0.0f }));
 
         sceneFactory.Add(Primitive::CUBE, slit, MaterialType::PHONG, phong);
-
-        //DirectionalLight* dirLight1 = GetDirectionalLight();
-        //dirLight1->direction = { -1.0f, -1.0f, -1.0f };
-        //dirLight1->diffuse = { 1.0f, 1.0f, 1.0f };
-        //dirLight1->ambient = { 1.0f, 1.0f, 1.0f };
-        //dirLight1->specular = { 1.0f, 1.0f, 1.0f };
-
-        //sceneFactory.Add(dirLight1);
 
         return sceneFactory.GetScene();
     }

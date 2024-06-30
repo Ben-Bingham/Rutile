@@ -61,9 +61,9 @@ uniform int spotLightCount;
 in vec3 normal;
 in vec3 fragPosition;
 
-vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir, float shadow);
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow);
-vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
+vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir);
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir);
+vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir);
 
 // Omnidirectional Shadow Maps
 uniform samplerCube omnidirectionalShadowMaps[MAX_LIGHTS];
@@ -102,7 +102,7 @@ float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace);
 
 float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition);
 
-float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition);
+//float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition);
 
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
@@ -110,22 +110,24 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
 
-    float shadow = calculateShadows(fragPositionInLightSpace, fragPosition);
+    //float shadow = calculateShadows(fragPositionInLightSpace, fragPosition);
 
     for (int i = 0; i < pointLightCount; ++i) {
-        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
+        result += pointLightAddition(pointLights[i], norm, viewDir);
     }
 
-    result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
+    result += directionalLightAddition(directionalLight, norm, viewDir);
 
     for (int i = 0; i < spotLightCount; ++i) {
-        result += spotLightAddition(spotLights[i], norm, viewDir, shadow);
+        result += spotLightAddition(spotLights[i], norm, viewDir);
     }
 
     outFragColor = vec4(result, 1.0);
 }
 
-vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
+vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir) {
+    float shadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
+
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -153,7 +155,9 @@ vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shado
     return (ambient + diffuse + specular);
 }
 
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir) {
+    float shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
+
     vec3 lightDirection = normalize(-light.direction);
 
     // Diffuse
@@ -173,7 +177,7 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir,
     return (ambient + diffuse + specular);
 }
 
-vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow) {
+vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDirection = normalize(light.position - fragPosition);
 
     // Diffuse
@@ -199,9 +203,6 @@ vec3 spotLightAddition(SpotLight light, vec3 normal, vec3 viewDir, float shadow)
     ambient *= attenuation * intensity;
     diffuse *= attenuation * intensity;
     specular *= attenuation * intensity;
-
-    diffuse *= (1.0 - shadow);
-    specular *= (1.0 - shadow);
 
     return (ambient + diffuse + specular);
 }
@@ -310,6 +311,7 @@ float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition) {
     return min(shadow, 1.0);
 }
 
+/*
 float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition) {
     float shadow = 0.0;
 
@@ -323,6 +325,7 @@ float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition) {
 
     float omnidirectionalShadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
     
-    //return shadow + omnidirectionalShadow;
-    return omnidirectionalShadow;
+    return shadow + omnidirectionalShadow;
+    //return omnidirectionalShadow;
 }
+*/
