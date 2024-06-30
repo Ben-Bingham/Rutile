@@ -5,6 +5,7 @@ uniform vec3 lightPosition;
 uniform float farPlane;
 
 void main() {
+    //gl_FragDepth = 0.5;
     // get distance between fragment and light source
     float lightDistance = length(fragmentPosition.xyz - lightPosition);
     

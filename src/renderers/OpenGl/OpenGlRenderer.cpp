@@ -42,6 +42,7 @@ namespace Rutile {
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
         m_DirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\shadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\shadowMapping.frag");
         m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
+        m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
 
         glGenFramebuffers(1, &m_DepthMapFBO);
 
@@ -66,6 +67,36 @@ namespace Rutile {
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+        glGenFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+
+        glGenTextures(1, &m_CubeMapVisualizationTexture);
+        glBindTexture(GL_TEXTURE_2D, m_CubeMapVisualizationTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(1024), static_cast<GLsizei>(512), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTexture, 0);
+
+        glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(1024), static_cast<GLsizei>(512));
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
@@ -82,10 +113,17 @@ namespace Rutile {
         glDeleteTextures(1, &m_ShadowMapTexture);
         glDeleteFramebuffers(1, &m_DepthMapFBO);
 
+        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
+
+        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glDeleteTextures(1, &m_CubeMapVisualizationTexture);
+        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
+
         m_SolidShader.reset();
         m_PhongShader.reset();
         m_DirectionalShadowMappingShader.reset();
         m_OmnidirectionalShadowMappingShader.reset();
+        m_CubeMapVisualizationShader.reset();
 
         glfwDestroyWindow(window);
     }
@@ -106,8 +144,13 @@ namespace Rutile {
                 glCullFace(GL_BACK);
             }
 
-            glViewport(0, 0, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight);
             glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
+
+            glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapTexture, 0);
+
+            glViewport(0, 0, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight);
             glClear(GL_DEPTH_BUFFER_BIT);
 
             glm::mat4 lightProjection = glm::ortho(m_DirectionalLightLeft, m_DirectionalLightRight, m_DirectionalLightBottom, m_DirectionalLightTop, m_DirectionalLightNear, m_DirectionalLightFar);
@@ -132,18 +175,9 @@ namespace Rutile {
         }
 
         // Omnidirectional Shadow Map Rendering
-        m_OmnidirectionalShadowMappingShader->Bind();
         for (int i = 0; i < m_PointLights.size(); ++i) {
-            glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[i]);
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_PointLightCubeMaps[i], 0);
-
-            glViewport(0, 0, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight);
-
-            glClear(GL_DEPTH_BUFFER_BIT);
-
             // Matrix Setup
-            float aspect = (float)m_DirectionalShadowMapWidth / (float)m_DirectionalShadowMapHeight;
+            float aspect = (float)m_OmnidirectionalShadowMapWidth / (float)m_OmnidirectionalShadowMapHeight;
             float near = 1.0f;
             float far = 25.0f;
             glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, near, far);
@@ -164,18 +198,23 @@ namespace Rutile {
             shadowTransforms.push_back(shadowMapProjection *
                 glm::lookAt(lightPosition, lightPosition + glm::vec3{  0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
 
+            glViewport(0, 0, 1024, 1024);
+            glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[i]);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_PointLightCubeMaps[i], 0);
+
+            glClear(GL_DEPTH_BUFFER_BIT);
+            m_OmnidirectionalShadowMappingShader->Bind();
+
             // Render
             for (size_t i = 0; i < m_PacketCount; ++i) {
-                if (!m_ValidPackets[i]) {
-                    continue;
-                }
-
                 m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
 
                 for (int i = 0; i < 6; ++i) {
                     m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
                 }
-                
+
                 m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", lightPosition);
                 m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", far);
 
@@ -183,112 +222,111 @@ namespace Rutile {
                 glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
             }
 
-
-            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
         // Render Normal Scene
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, App::screenWidth, App::screenHeight);
-
+        
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
         if (App::settings.culledFaceDuringRendering == GeometricFace::FRONT) {
             glCullFace(GL_FRONT);
         }
         else {
             glCullFace(GL_BACK);
         }
-
+        
         for (size_t i = 0; i < m_PacketCount; ++i) {
             Shader* shaderProgram = nullptr;
-
+        
             if (!m_ValidPackets[i]) {
                 continue;
             }
-
+        
             switch (m_MaterialTypes[i]) {
                 case MaterialType::SOLID: {
                     Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
-
+        
                     shaderProgram = m_SolidShader.get();
                     shaderProgram->Bind();
-
+        
                     m_SolidShader->SetVec3("color", solid->color);
                     break;
                 }
                 case MaterialType::PHONG: {
                     Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
-
+        
                     shaderProgram = m_PhongShader.get();
                     shaderProgram->Bind();
-
+        
                     m_PhongShader->SetVec3("phong.ambient", phong->ambient);
                     m_PhongShader->SetVec3("phong.diffuse", phong->diffuse);
                     m_PhongShader->SetVec3("phong.specular", phong->specular);
-
+        
                     m_PhongShader->SetFloat("phong.shininess", phong->shininess);
-
+        
                     shaderProgram->SetMat4("model", m_Transforms[i]->matrix);
-
+        
                     m_PhongShader->SetVec3("cameraPosition", App::camera.position);
-
+        
                     m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
-
+        
                     glActiveTexture(GL_TEXTURE0);
                     glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
-
+        
                     m_PhongShader->SetInt("shadowMap", 0);
-
+        
                     // Lighting
                     m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
                     for (size_t j = 0; j < m_PointLights.size(); ++j) {
                         if (m_PointLights[j] == nullptr) {
                             continue;
                         }
-
+        
                         std::string prefix = "pointLights[" + std::to_string(j) + "].";
-
+        
                         m_PhongShader->SetVec3(prefix + "position", m_PointLights[j]->position);
-
+        
                         m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j]->constant);
                         m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j]->linear);
                         m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j]->quadratic);
-
-
+        
+        
                         m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
                         m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
                         m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
                     }
-
+        
                     if (m_DirectionalLight) {
                         m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
-
+        
                         m_PhongShader->SetVec3("directionalLight.ambient", m_DirectionalLight->ambient);
                         m_PhongShader->SetVec3("directionalLight.diffuse", m_DirectionalLight->diffuse);
                         m_PhongShader->SetVec3("directionalLight.specular", m_DirectionalLight->specular);
                     }
-
+        
                     m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
-
+        
                     for (size_t j = 0; j < m_SpotLights.size(); ++j) {
                         if (m_SpotLights[j] == nullptr) {
                             continue;
                         }
-
+        
                         std::string prefix = "spotLights[" + std::to_string(j) + "].";
-
+        
                         m_PhongShader->SetVec3(prefix + "position", m_SpotLights[j]->position);
                         m_PhongShader->SetVec3(prefix + "direction", m_SpotLights[j]->direction);
-
+        
                         m_PhongShader->SetFloat(prefix + "cutOff", m_SpotLights[j]->cutOff);
                         m_PhongShader->SetFloat(prefix + "outerCutOff", m_SpotLights[j]->outerCutOff);
-
+        
                         m_PhongShader->SetFloat(prefix + "constant", m_SpotLights[j]->constant);
                         m_PhongShader->SetFloat(prefix + "linear", m_SpotLights[j]->linear);
                         m_PhongShader->SetFloat(prefix + "quadratic", m_SpotLights[j]->quadratic);
-
+        
                         m_PhongShader->SetVec3(prefix + "ambient", m_SpotLights[j]->ambient);
                         m_PhongShader->SetVec3(prefix + "diffuse", m_SpotLights[j]->diffuse);
                         m_PhongShader->SetVec3(prefix + "specular", m_SpotLights[j]->specular);
@@ -296,15 +334,15 @@ namespace Rutile {
                     break;
                 }
             }
-
+        
             glm::mat4 mvp = m_Projection * App::camera.View() * m_Transforms[i]->matrix;
-
+        
             shaderProgram->SetMat4("mvp", mvp);
-
+        
             glBindVertexArray(m_VAOs[i]);
             glDrawElements(GL_TRIANGLES, (int)m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
-
+        
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -340,9 +378,9 @@ namespace Rutile {
                         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-                        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
                     }
+
+                    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
                     break;
                 }
@@ -661,7 +699,7 @@ namespace Rutile {
             ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
         
             ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_DirectionalShadowMapWidth, (float)m_DirectionalShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
-        
+
             ImGui::TreePop();
         }
     }
@@ -672,19 +710,86 @@ namespace Rutile {
             if (index == i) {
                 PointLight* light = m_PointLights[j];
                 if (ImGui::TreeNode("Shadow Map")) {
-                    //ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
-
                     ImGui::Text("Texture");
                     ImGui::DragInt("Shadow Map Width", &m_OmnidirectionalShadowMapWidth);
                     ImGui::DragInt("Shadow Map Height", &m_OmnidirectionalShadowMapHeight);
 
-                    //ImGui::Text("Positive X face");
-                    //ImGui::Image((ImTextureID)m_PointLightCubeMaps[j], ImVec2{(float)m_OmnidirectionalShadowMapWidth, (float)m_OmnidirectionalShadowMapHeight }, ImVec2{0.0f, 1.0f}, ImVec2{1.0f, 0.0f});
+                    ImGui::Text("Depth map");
+
+                    float vertical = glm::degrees(m_VerticalModifier);
+                    float horizontal = glm::degrees(m_HorizontalModifier);
+                    
+                    ImGui::DragFloat("Vertical shift",   &vertical,   1.0f, -360.0f, 360.0f);
+                    ImGui::DragFloat("Horizontal shift", &horizontal, 1.0f, -360.0f, 360.0f);
+
+                    m_VerticalModifier = glm::radians(vertical);
+                    m_HorizontalModifier = glm::radians(horizontal);
+
+                    VisualizeCubeMap(m_PointLightCubeMaps[j]);
+                    ImGui::Image((ImTextureID)m_CubeMapVisualizationTexture, ImVec2{ (float)1024, (float)512 });
 
                     ImGui::TreePop();
                 }
             }
             ++j;
         }
+    }
+
+    void OpenGlRenderer::VisualizeCubeMap(unsigned int cubemap) {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+
+        std::vector<Vertex> vertices = {
+            //      Position                         Normal                         Uv
+            Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+        };
+
+        std::vector<unsigned int> indices = {
+            2, 1, 0,
+            3, 2, 0
+        };
+
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
+
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(2);
+
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        m_CubeMapVisualizationShader->Bind();
+
+        m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_VerticalModifier);
+        m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_HorizontalModifier);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+
+        m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
     }
 }

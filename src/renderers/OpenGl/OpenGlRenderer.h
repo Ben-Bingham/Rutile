@@ -56,6 +56,7 @@ namespace Rutile {
         std::unique_ptr<Shader> m_PhongShader;
         std::unique_ptr<Shader> m_DirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
+        std::unique_ptr<Shader> m_CubeMapVisualizationShader;
 
         // Lights
         std::vector<PointLight*> m_PointLights;
@@ -68,10 +69,20 @@ namespace Rutile {
         std::vector<size_t> m_SpotLightIndices;
 
         // Omnidirectional Shadow Maps
+        float m_HorizontalModifier{ 0.0f };
+        float m_VerticalModifier{ 0.0f };
+
+        unsigned int m_OmnidirectionalShadowMapFBO;
+
         int m_OmnidirectionalShadowMapWidth{ 1024 };
         int m_OmnidirectionalShadowMapHeight{ 1024 };
 
         std::vector<unsigned int> m_PointLightCubeMaps;
+
+        unsigned int m_CubeMapVisualizationFBO{ 0 };
+        unsigned int m_CubeMapVisualizationTexture{ 0 };
+        unsigned int m_CubeMapVisualizationRBO{ 0 };
+        void VisualizeCubeMap(unsigned int cubemap);
 
         // Packets
         size_t m_PacketCount;

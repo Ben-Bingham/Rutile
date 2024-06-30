@@ -22,3 +22,5 @@ TODO after adding more renderers consider storing lights within bundle in 3 diff
 TODO setting as to wether or not we should depth test
 
 TODO Update shadow map mode might not need its own function in renderer
+
+TODO cubemap visualization only supports depth, and no color

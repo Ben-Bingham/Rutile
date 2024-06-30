@@ -457,6 +457,14 @@ namespace Rutile {
 
         sceneFactory.Add(Primitive::CUBE, slit, MaterialType::PHONG, phong);
 
+        //DirectionalLight* dirLight1 = GetDirectionalLight();
+        //dirLight1->direction = { -1.0f, -1.0f, -1.0f };
+        //dirLight1->diffuse = { 1.0f, 1.0f, 1.0f };
+        //dirLight1->ambient = { 1.0f, 1.0f, 1.0f };
+        //dirLight1->specular = { 1.0f, 1.0f, 1.0f };
+
+        //sceneFactory.Add(dirLight1);
+
         return sceneFactory.GetScene();
     }
 }
