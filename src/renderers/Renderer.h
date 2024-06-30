@@ -54,7 +54,9 @@ namespace Rutile {
             // dynamicShadowMapBiasMax
             // shadowMapPcfMode
         // One or all could have been changed
-        virtual void UpdateShadowMap();
+        virtual void UpdateDirectionalShadowMap();
+
+        virtual void UpdateOmnidirectionalShadowMap();
 
         // When called renderer should adapt to the new shadow map mode
         virtual void UpdateShadowMapMode();

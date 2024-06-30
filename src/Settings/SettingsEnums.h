@@ -18,6 +18,17 @@ namespace Rutile {
         BASIC
     };
 
+    enum class OmnidirectionalShadowMapPCFMode {
+        NONE,
+        STANDARD,
+        FIXED
+    };
+
+    enum class OmnidirectionalShadowMapDiskRadiusMode {
+        STATIC,
+        DYNAMIC
+    };
+
     enum class GeometricFace {
         FRONT,
         BACK

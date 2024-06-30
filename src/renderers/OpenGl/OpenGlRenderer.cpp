@@ -100,8 +100,9 @@ namespace Rutile {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        UpdateShadowMap();
+        UpdateDirectionalShadowMap();
         UpdateShadowMapMode();
+        UpdateOmnidirectionalShadowMap();
 
         return window;
     }
@@ -209,6 +210,10 @@ namespace Rutile {
 
             // Render
             for (size_t i = 0; i < m_PacketCount; ++i) {
+                if (m_MaterialTypes[i] != MaterialType::PHONG) {
+                    continue;
+                }
+
                 m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]->matrix);
 
                 for (int i = 0; i < 6; ++i) {
@@ -298,6 +303,15 @@ namespace Rutile {
                         m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
                         m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
                         m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
+
+
+                        prefix = "omnidirectionalShadowMaps[" + std::to_string(j) + "]";
+
+                        glActiveTexture(GL_TEXTURE0 + j);
+                        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[j]);
+                        m_PhongShader->SetInt(prefix, j);
+
+                        m_PhongShader->SetFloat("farPlane", 25.0f); // TODO
                     }
         
                     if (m_DirectionalLight) {
@@ -664,7 +678,7 @@ namespace Rutile {
         m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
     }
 
-    void OpenGlRenderer::UpdateShadowMap() {
+    void OpenGlRenderer::UpdateDirectionalShadowMap() {
         m_PhongShader->Bind();
         m_PhongShader->SetInt("shadowMapBiasMode", (int)App::settings.shadowMapBiasMode);
 
@@ -674,6 +688,19 @@ namespace Rutile {
         m_PhongShader->SetFloat("dynamicShadowMapBiasMax", App::settings.dynamicShadowMapBiasMax);
 
         m_PhongShader->SetInt("shadowMapPcfMode", (int)App::settings.shadowMapPcfMode);
+    }
+
+    void OpenGlRenderer::UpdateOmnidirectionalShadowMap() {
+        m_PhongShader->Bind();
+        m_PhongShader->SetFloat("omnidirectionalShadowMapBias", App::settings.omnidirectionalShadowMapBias);
+
+        m_PhongShader->SetInt("omnidirectionalShadowMapPCFMode", (int)App::settings.omnidirectionalShadowMapPcfMode);
+
+        m_PhongShader->SetFloat("omnidirectionalShadowMapPCFSamples", App::settings.omnidirectionalShadowMapSamples);
+
+        m_PhongShader->SetInt("omnidirectionalShadowMapPCFMode", (int)App::settings.omnidirectionalShadowMapPcfMode);
+
+        m_PhongShader->SetFloat("omnidirectionalShadowMapDiskRadius", App::settings.omnidirectionalShadowMapDiskRadius);
     }
 
     void OpenGlRenderer::UpdateShadowMapMode() {

@@ -30,6 +30,15 @@ namespace Rutile {
         ShadowMapPCFMode shadowMapPcfMode = ShadowMapPCFMode::NONE;
 
         GeometricFace culledFaceDuringShadowMapping = GeometricFace::FRONT;
+
+        // Omnidirectional Shadow Maps
+        float omnidirectionalShadowMapBias = 0.05f;
+        OmnidirectionalShadowMapPCFMode omnidirectionalShadowMapPcfMode = OmnidirectionalShadowMapPCFMode::FIXED;
+
+        float omnidirectionalShadowMapSamples = 4.0f;
+
+        OmnidirectionalShadowMapDiskRadiusMode omnidirectionalShadowMapDiskRadiusMode = OmnidirectionalShadowMapDiskRadiusMode::DYNAMIC;
+        float omnidirectionalShadowMapDiskRadius = 0.05f;
     };
 
     Settings DefaultSettings();

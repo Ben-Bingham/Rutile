@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 struct Phong {
 	vec3 ambient;
@@ -65,7 +65,23 @@ vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir,
 vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow);
 vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
 
-// Shadow Maps
+// Omnidirectional Shadow Maps
+uniform samplerCube omnidirectionalShadowMaps[MAX_LIGHTS];
+
+// TODO make this an array
+uniform float farPlane;
+
+uniform float omnidirectionalShadowMapBias;
+
+uniform int omnidirectionalShadowMapPCFMode;
+
+uniform float omnidirectionalShadowMapPCFSamples;
+
+uniform int omnidirectionalShadowMapDiskRadiusMode;
+
+uniform float omnidirectionalShadowMapDiskRadius;
+
+// Directional Shadow Maps
 uniform int shadowMapMode;
 
 uniform sampler2D shadowMap;
@@ -84,20 +100,17 @@ uniform int shadowMapPcfMode;
 // Returns 1.0 the fragment is in shadow, and 0.0 when its not in shadow
 float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace);
 
+float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition);
+
+float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition);
+
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
 
-    float shadow = 0.0;
-    if (shadowMapMode == 0) {
-        shadow = 0.0;
-    } else if (shadowMapMode == 1) {
-        shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
-    } else if (shadowMapMode == 2) {
-        // TODO Cascading Shadow Maps
-    }
+    float shadow = calculateShadows(fragPositionInLightSpace, fragPosition);
 
     for (int i = 0; i < pointLightCount; ++i) {
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
@@ -232,4 +245,84 @@ float shadowCalculationForOneShadowEmitter(vec4 fragPositionInLightSpace) {
     }
 
     return shadow;
+}
+
+float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition) {
+    float shadow = 0.0;
+    for (int i = 0; i < pointLightCount; ++i) {
+        vec3 fragmentToLight = fragPosition - pointLights[i].position;
+        float closestDepth = texture(omnidirectionalShadowMaps[i], fragmentToLight).r;
+
+        closestDepth *= farPlane;
+
+        float currentDepth = length(fragmentToLight);
+
+        float localShadow  = 0.0;
+        float bias    = omnidirectionalShadowMapBias; 
+
+        if (omnidirectionalShadowMapPCFMode == 0) {
+            localShadow += currentDepth - bias > closestDepth ? 1.0 : 0.0;
+        } else if (omnidirectionalShadowMapPCFMode == 1) {
+            float samples = omnidirectionalShadowMapPCFSamples;
+            float offset  = 0.1;
+            for(float x = -offset; x < offset; x += offset / (samples * 0.5)) {
+                for(float y = -offset; y < offset; y += offset / (samples * 0.5)) {
+                    for(float z = -offset; z < offset; z += offset / (samples * 0.5)) {
+                        float closestDepth = texture(omnidirectionalShadowMaps[i], fragmentToLight + vec3(x, y, z)).r; 
+                        closestDepth *= farPlane;   // undo mapping [0;1]
+                        if(currentDepth - bias > closestDepth) {
+                            localShadow += 1.0;
+                        }
+                    }
+                }
+            }
+
+            localShadow /= (samples * samples * samples);
+
+        } else if (omnidirectionalShadowMapPCFMode == 2) {
+            vec3 sampleOffsetDirections[20] = vec3[](
+               vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+               vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+               vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+               vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+               vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+            );
+
+            int samples = 20;
+            float viewDistance = length(cameraPosition - fragPosition);
+            float diskRadius = omnidirectionalShadowMapDiskRadius;
+            if (omnidirectionalShadowMapDiskRadiusMode == 1) {
+                diskRadius = (1.0 + (viewDistance / farPlane)) / 25.0;  
+            }
+            
+            for(int i = 0; i < samples; ++i) {
+                float closestDepth = texture(omnidirectionalShadowMaps[i], fragmentToLight + sampleOffsetDirections[i] * diskRadius).r;
+                closestDepth *= farPlane;   // undo mapping [0;1]
+                if(currentDepth - bias > closestDepth) {
+                    localShadow += 1.0;
+                }
+            }
+            localShadow /= float(samples); 
+        }
+        
+        shadow += localShadow;
+    }
+    return min(shadow, 1.0);
+}
+
+float calculateShadows(vec4 fragPositionInLightSpace, vec3 fragPosition) {
+    float shadow = 0.0;
+
+    if (shadowMapMode == 0) {
+        shadow = 0.0;
+    } else if (shadowMapMode == 1) {
+        shadow = shadowCalculationForOneShadowEmitter(fragPositionInLightSpace);
+    } else if (shadowMapMode == 2) {
+        // TODO Cascading Shadow Maps
+    }
+
+    float omnidirectionalShadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
+    
+    //return shadow + omnidirectionalShadow;
+    return omnidirectionalShadow;
 }

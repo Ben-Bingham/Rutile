@@ -20,7 +20,9 @@ namespace Rutile {
 
     void Renderer::UpdateCamera() { }
 
-    void Renderer::UpdateShadowMap() { }
+    void Renderer::UpdateDirectionalShadowMap() { }
+
+    void Renderer::UpdateOmnidirectionalShadowMap() { }
 
     void Renderer::UpdateShadowMapMode() { }
 

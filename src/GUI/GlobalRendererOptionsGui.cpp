@@ -50,7 +50,7 @@ namespace Rutile {
                 App::renderer->UpdateNearPlane();
                 App::renderer->UpdateFarPlane();
 
-                App::renderer->UpdateShadowMap();
+                App::renderer->UpdateDirectionalShadowMap();
             }
 
             ImGui::EndCombo();
@@ -104,38 +104,61 @@ namespace Rutile {
         }
 
         if (ImGui::TreeNode("Shadow Map Settings")) {
+            if (ImGui::TreeNode("Directional")) {
+                ImGui::Text("Shadow map mode");
+                if (ImGui::RadioButton("None##ShadowMapMode", (int*)&App::settings.shadowMapMode, 0)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
+                if (ImGui::RadioButton("One shadow emitter##ShadowMapMode", (int*)&App::settings.shadowMapMode, 1)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
+                if (ImGui::RadioButton("Cascading shadow maps##ShadowMapMode", (int*)&App::settings.shadowMapMode, 2)) { App::renderer->UpdateShadowMapMode(); }
 
-            ImGui::Text("Shadow map mode");
-            if (ImGui::RadioButton("None##ShadowMapMode",                  (int*)&App::settings.shadowMapMode, 0)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
-            if (ImGui::RadioButton("One shadow emitter##ShadowMapMode",    (int*)&App::settings.shadowMapMode, 1)) { App::renderer->UpdateShadowMapMode(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Cascading shadow maps##ShadowMapMode", (int*)&App::settings.shadowMapMode, 2)) { App::renderer->UpdateShadowMapMode(); }
+                ImGui::Separator();
 
-            ImGui::Separator();
+                ImGui::Text("Bias mode");
+                if (ImGui::RadioButton("None##biasMode", (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateDirectionalShadowMap(); } ImGui::SameLine();
+                if (ImGui::RadioButton("Static", (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateDirectionalShadowMap(); } ImGui::SameLine();
+                if (ImGui::RadioButton("Dynamic", (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateDirectionalShadowMap(); }
 
-            ImGui::Text("Bias mode");
-            if (ImGui::RadioButton("None##biasMode", (int*)&App::settings.shadowMapBiasMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Static",         (int*)&App::settings.shadowMapBiasMode, 1)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Dynamic",        (int*)&App::settings.shadowMapBiasMode, 2)) { App::renderer->UpdateShadowMap(); }
+                if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::STATIC) {
+                    if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateDirectionalShadowMap(); }
+                }
+                else if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::DYNAMIC) {
+                    if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateDirectionalShadowMap(); }
+                    if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateDirectionalShadowMap(); }
+                }
 
-            if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::STATIC) {
-                if (ImGui::DragFloat("Bias", &App::settings.shadowMapBias, 0.0001f)) { App::renderer->UpdateShadowMap(); }
-            } else if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::DYNAMIC) {
-                if (ImGui::DragFloat("Dynamic Bias Minimum", &App::settings.dynamicShadowMapBiasMin, 0.0001f)) { App::renderer->UpdateShadowMap(); }
-                if (ImGui::DragFloat("Dynamic Bias Maximum", &App::settings.dynamicShadowMapBiasMax, 0.0001f)) { App::renderer->UpdateShadowMap(); }
+                ImGui::Separator();
+
+                ImGui::Text("Culled face during shadow map rendering");
+                ImGui::RadioButton("Front##shadowMapMode", (int*)&App::settings.culledFaceDuringShadowMapping, 0); ImGui::SameLine();
+                ImGui::RadioButton("Back##shadowMapMode", (int*)&App::settings.culledFaceDuringShadowMapping, 1);
+
+                ImGui::Separator();
+
+                ImGui::Text("PCF mode");
+                if (ImGui::RadioButton("None##pcfMode", (int*)&App::settings.shadowMapPcfMode, 0)) { App::renderer->UpdateDirectionalShadowMap(); } ImGui::SameLine();
+                if (ImGui::RadioButton("Sampling from adjacent texels", (int*)&App::settings.shadowMapPcfMode, 1)) { App::renderer->UpdateDirectionalShadowMap(); }
+                ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Omnidirectional")) {
+                if (ImGui::DragFloat("Bias", &App::settings.omnidirectionalShadowMapBias, 0.0001f)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                ImGui::TreePop();
 
-            ImGui::Separator();
+                ImGui::Text("PCF mode");
+                if (ImGui::RadioButton("None##omni",     (int*)&App::settings.omnidirectionalShadowMapPcfMode, 0)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                if (ImGui::RadioButton("Standard##omni", (int*)&App::settings.omnidirectionalShadowMapPcfMode, 1)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                if (ImGui::RadioButton("Fixed##omni",    (int*)&App::settings.omnidirectionalShadowMapPcfMode, 2)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
 
-            ImGui::Text("Culled face during shadow map rendering");
-            ImGui::RadioButton("Front##shadowMapMode", (int*)&App::settings.culledFaceDuringShadowMapping, 0); ImGui::SameLine();
-            ImGui::RadioButton("Back##shadowMapMode",  (int*)&App::settings.culledFaceDuringShadowMapping, 1);
+                if (App::settings.omnidirectionalShadowMapPcfMode == OmnidirectionalShadowMapPCFMode::STANDARD) {
+                    if (ImGui::DragFloat("Samples##omni", &App::settings.omnidirectionalShadowMapSamples, 0.01f)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                } else {
+                    ImGui::Text("Disk radius mode");
+                    if (ImGui::RadioButton("Static##omni",  (int*)&App::settings.omnidirectionalShadowMapDiskRadiusMode, 0)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                    if (ImGui::RadioButton("Dynamic##omni", (int*)&App::settings.omnidirectionalShadowMapDiskRadiusMode, 1)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
 
-            ImGui::Separator();
-
-            ImGui::Text("PCF mode");
-            if (ImGui::RadioButton("None##pcfMode",                          (int*)&App::settings.shadowMapPcfMode, 0)) { App::renderer->UpdateShadowMap(); } ImGui::SameLine();
-            if (ImGui::RadioButton("Sampling from adjacent texels", (int*)&App::settings.shadowMapPcfMode, 1)) { App::renderer->UpdateShadowMap(); }
-
+                    if (App::settings.omnidirectionalShadowMapDiskRadiusMode == OmnidirectionalShadowMapDiskRadiusMode::STATIC) {
+                        if (ImGui::DragFloat("Disk Radius", &App::settings.omnidirectionalShadowMapDiskRadius, 0.001f)) { App::renderer->UpdateOmnidirectionalShadowMap(); }
+                    }
+                }
+            }
             ImGui::TreePop();
         }
     }
