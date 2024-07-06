@@ -1,11 +1,13 @@
 #include "MainGuiWindow.h"
-
-#include "GlobalRendererOptionsGui.h"
+#include "GeneralSettings.h"
 
 #include "imgui.h"
+#include "RenderingSettings.h"
+#include "ShadowSettings.h"
 
-#include "Scenes/SceneGui.h"
+#include "SceneObjects.h"
 
+#include "Settings/App.h"
 
 namespace Rutile {
     void MainGuiWindow() {
@@ -14,14 +16,22 @@ namespace Rutile {
 
         ImGui::Begin("Rutile");
         {
-            if (ImGui::CollapsingHeader("Global Renderer Options")) {
-                GlobalRendererOptionsGui();
+            if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen)) {
+                GeneralSettings();
             }
 
-            if (ImGui::CollapsingHeader("Local Renderer Options")) {}
+            if (ImGui::CollapsingHeader("Rendering Settings")) {
+                RenderingSettings();
+            }
 
-            if (ImGui::CollapsingHeader("Scene Options")) {
-                MainSceneGui();
+            if (App::settings.materialType != MaterialType::SOLID) {
+                if (ImGui::CollapsingHeader("Shadows")) {
+                    ShadowSettings();
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Scene Objects")) {
+                SceneObjects();
             }
         }
         ImGui::End();

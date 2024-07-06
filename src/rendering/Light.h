@@ -2,39 +2,15 @@
 #include <glm/vec3.hpp>
 
 namespace Rutile {
-    enum class LightType {
-        POINT,
-        SPOTLIGHT
+    struct DirectionalLight {
+        glm::vec3 direction = { -1.0f, -1.0f, -1.0f };
+
+        glm::vec3 ambient =  { 0.2f, 0.2f, 0.2f };
+        glm::vec3 diffuse =  { 0.5f, 0.5f, 0.5f };
+        glm::vec3 specular = { 0.1f, 0.1f, 0.1f };
     };
 
-    class DirectionalLight {
-    public:
-        glm::vec3 direction;
-
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        glm::vec3 specular;
-    };
-
-    class Light {
-    public:
-        Light() = default;
-        Light(const Light& other) = default;
-        Light(Light&& other) noexcept = default;
-        Light& operator=(const Light& other) = default;
-        Light& operator=(Light&& other) noexcept = default;
-        virtual ~Light() = default;
-    };
-
-    class PointLight : public Light {
-    public:
-        PointLight() = default;
-        PointLight(const PointLight& other) = default;
-        PointLight(PointLight&& other) noexcept = default;
-        PointLight& operator=(const PointLight& other) = default;
-        PointLight& operator=(PointLight&& other) noexcept = default;
-        ~PointLight() override = default;
-
+    struct PointLight {
         glm::vec3 position;
 
         float constant;
@@ -44,29 +20,8 @@ namespace Rutile {
         glm::vec3 ambient;
         glm::vec3 diffuse;
         glm::vec3 specular;
-    };
 
-    class SpotLight : public Light {
-    public:
-        SpotLight() = default;
-        SpotLight(const SpotLight& other) = default;
-        SpotLight(SpotLight&& other) noexcept = default;
-        SpotLight& operator=(const SpotLight& other) = default;
-        SpotLight& operator=(SpotLight&& other) noexcept = default;
-        ~SpotLight() override = default;
-
-        glm::vec3 position;
-        glm::vec3 direction;
-
-        float cutOff;
-        float outerCutOff;
-
-        float constant;
-        float linear;
-        float quadratic;
-
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        glm::vec3 specular;
+        float shadowMapNearPlane = 1.0f;
+        float shadowMapFarPlane  = 25.0f;
     };
 }

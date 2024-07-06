@@ -127,4 +127,13 @@ namespace Rutile {
     void Shader::SetMat4(const std::string& name, const glm::mat4& value) {
         glUniformMatrix4fv(glGetUniformLocation(m_ShaderHandle, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
     }
+
+    void Shader::SetBool(const std::string& name, const bool& value) {
+        int realValue = 0;
+        if (value) {
+            realValue = 1;
+        }
+
+        SetInt(name, realValue);
+    }
 }

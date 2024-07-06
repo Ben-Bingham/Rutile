@@ -7,8 +7,8 @@
 #include "glm/glm.hpp"
 
 #include "Scenes/Scene.h"
-#include "tools/ImGuiInstance.h"
-#include "tools/GLFW.h"
+#include "utility/ImGuiInstance.h"
+#include "utility/GLFW.h"
 
 #include "renderers/Renderer.h"
 
@@ -29,8 +29,12 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static Scene scene = SceneManager::GetScene(SceneType::GENERAL_SCENE);
-        inline static SceneType currentSceneType = SceneType::GENERAL_SCENE;
+        inline static GeometryBank geometryBank{ };
+        inline static MaterialBank materialBank{ };
+        inline static TransformBank transformBank{ };
+
+        inline static Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
+        inline static SceneType currentSceneType = SceneType::ORIGINAL_SCENE;
         inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;

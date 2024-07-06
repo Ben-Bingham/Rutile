@@ -25,6 +25,8 @@ project "Rutile"
 
 	cppdialect "C++20"
 
+	flags "MultiProcessorCompile"
+
 	targetdir ("%{wks.location}/build/bin/%{prj.name}")
 	objdir ("%{wks.location}/build/bin-int/%{prj.name}")
 

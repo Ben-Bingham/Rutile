@@ -22,6 +22,8 @@ namespace Rutile {
         void SetVec3(const std::string& name, const glm::vec3& value);
         void SetMat4(const std::string& name, const glm::mat4& value);
 
+        void SetBool(const std::string& name, const bool& value);
+
     private:
         unsigned int m_ShaderHandle;
     };

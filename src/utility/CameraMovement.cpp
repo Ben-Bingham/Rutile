@@ -66,5 +66,7 @@ namespace Rutile {
 
             App::updateCameraVectors = false;
         }
+
+        App::renderer->CameraUpdateEvent();
     }
 }

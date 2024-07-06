@@ -12,12 +12,16 @@ namespace Rutile {
 	public:
 		Scene GetScene();
 
-		void Add(Primitive primitive, Transform* transform, MaterialType materialType, Material* material);
+		MaterialIndex Add(const std::string& objectName, Primitive primitive, const Transform& transform, const std::string& materialName, const Solid& solid, const Phong& phong);
 
-		void Add(LightType type, Light* light);
-		void Add(DirectionalLight* light);
+		MaterialIndex Add(const std::string& objectName, Primitive primitive, const Transform& transform, MaterialIndex material);
+
+		void Add(const PointLight& pointLight);
+		void Add(const DirectionalLight& light);
 
 	private:
+		std::pair<Geometry, std::string> GetGeometry(Primitive primitive);
+
 		Scene m_CurrentScene;
 	};
 }

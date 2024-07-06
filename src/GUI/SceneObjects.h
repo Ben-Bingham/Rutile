@@ -1,5 +1,5 @@
 #pragma once
 
 namespace Rutile {
-	void GlobalRendererOptionsGui();
+    void SceneObjects();
 }

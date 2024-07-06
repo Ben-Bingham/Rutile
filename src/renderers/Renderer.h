@@ -15,56 +15,43 @@ namespace Rutile {
         Renderer& operator=(Renderer&& other) noexcept = default;
         virtual ~Renderer() = default;
 
+        // Necessities
         virtual GLFWwindow* Init() = 0;
         virtual void Cleanup(GLFWwindow* window) = 0;
 
         virtual void Render() = 0;
 
-        virtual void SetScene(const Scene& scene) = 0;
+        // Events
+        virtual void WindowResizeEvent() { }
+        virtual void CameraUpdateEvent() { }
 
-        virtual void WindowResize();
+        virtual void ProjectionMatrixUpdate() { }
 
-        // These functions replace either a light or packet at a specified index within the current scene
-            // A packet is considered invalid if it has no vertices
-            // A light is considered invalid if it is a nullptr
-        //virtual void SetPacket(size_t index, Packet packet);
-        //virtual void SetLight(size_t index, LightType type, Light* light);
+        // Scene updates
+        virtual void SignalNewScene() { }
 
-        // These functions add on a NEW packet/light onto the current scene
-        //virtual void AddPacket(Packet packet);
-        //virtual void AddLight(LightType type, Light* light);
+        virtual void SignalObjectGeometryUpdate(ObjectIndex i)  { }
+        virtual void SignalObjectMaterialUpdate(ObjectIndex i)  { }
+        virtual void SignalObjectTransformUpdate(ObjectIndex i) { }
 
-        // These functions are called when a value within either the material or transform of a packet are modified
-        virtual void UpdatePacketMaterial(size_t index);
-        virtual void UpdatePacketTransform(size_t index);
-        virtual void UpdateSceneLight(size_t index);
-        virtual void UpdateSceneDirectionalLight();
+        virtual void SignalDirectionalLightUpdate() { }
+        virtual void SignalPointLightUpdate(LightIndex i) { }
 
-        // These functions are called when the value of a setting is modified
-        virtual void UpdateFieldOfView();
-        virtual void UpdateNearPlane();
-        virtual void UpdateFarPlane();
+        // Global settings updates
+        virtual void SignalSettingsUpdate() { }
 
-        virtual void UpdateCamera();
+        virtual void SignalGeneralShadowMapUpdate()         { }
+        virtual void SignalDirectionalShadowMapUpdate()     { }
+        virtual void SignalOmnidirectionalShadowMapUpdate() { }
 
-        // When called renderer should update:
-            // shadowMapBiasMode
-            // shadowMapBias
-            // dynamicShadowMapBiasMin
-            // dynamicShadowMapBiasMax
-            // shadowMapPcfMode
-        // One or all could have been changed
-        virtual void UpdateDirectionalShadowMap();
+        // Material settings updates
+        virtual void SignalMaterialTypeUpdate() { }
 
-        virtual void UpdateOmnidirectionalShadowMap();
+        virtual void SignalSolidMaterialUpdate() { }
+        virtual void SignalPhongMaterialUpdate() { }
 
-        // When called renderer should adapt to the new shadow map mode
-        virtual void UpdateShadowMapMode();
-
-        // These functions allow the renderer to supply an optional visualization of a Scene Object
-        //virtual void ProvidePacketVisualization(size_t i);
-        //virtual void ProvidePacketMaterialVisualization(size_t i);
-        virtual void ProvideLightVisualization(size_t i);
-        virtual void ProvideDirectionalLightVisualization();
+        // ImGui visualizations
+        virtual void ProvideLightVisualization(LightIndex lightIndex) { }
+        virtual void ProvideDirectionalLightVisualization() { }
 	};
 }

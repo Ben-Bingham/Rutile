@@ -13,7 +13,7 @@
 
 #include "Scenes/SceneManager.h"
 
-#include "tools/CameraMovement.h"
+#include "utility/CameraMovement.h"
 
 using namespace Rutile;
 
@@ -28,7 +28,14 @@ void CreateCurrentRenderer(RendererType type) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
     App::window = App::renderer->Init();
-    App::renderer->SetScene(App::scene);
+
+    for (auto object : App::scene.objects) {
+        App::transformBank[object.transform].CalculateMatrix();
+    }
+
+    App::renderer->SignalNewScene();
+    App::renderer->SignalSettingsUpdate();
+    App::renderer->ProjectionMatrixUpdate();
 
     App::glfw.AttachOntoWindow(App::window);
 
@@ -76,7 +83,12 @@ int main() {
 
             if (App::currentSceneType != App::lastSceneType) {
                 App::scene = SceneManager::GetScene(App::currentSceneType);
-                App::renderer->SetScene(App::scene);
+
+                for (auto object : App::scene.objects) {
+                    App::transformBank[object.transform].CalculateMatrix();
+                }
+
+                App::renderer->SignalNewScene();
             }
 
             App::lastSceneType = App::currentSceneType;

@@ -17,7 +17,7 @@ namespace Rutile {
         App::screenHeight = h;
 
         if (App::renderer) {
-            App::renderer->WindowResize();
+            App::renderer->WindowResizeEvent();
         }
     }
 

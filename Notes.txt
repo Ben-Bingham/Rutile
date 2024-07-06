@@ -26,3 +26,38 @@ TODO Update shadow map mode might not need its own function in renderer
 TODO cubemap visualization only supports depth, and no color
 
 TODO multiple point lights
+
+
+TODO Clear color in ImGui
+TODO Perspective/ortho in ImGui
+
+TODO improve SceneFactory add, optimize by checking if we already have a copy of that primitive and returing a GeometryIndex from the geometyBank
+
+TODO disable face culling for 2d objects especially when shadow mapping
+
+
+Final goal, be able to render Sponza (and similar scenes) in 4 different renderers:
+	OpenGl
+	Vulkan
+	DirectX
+	BackendGeneric
+
+This is a renderer not a game engine, data can be stored in whatever method serves best for rendering. Just needs to be generic enough
+to work for any of the 4 renderers
+
+
+Material Ranks:
+	Solid -> Solid color
+	Phong -> Phong or blin phong -> diffuse, ambient, etc
+	Phong-Texture -> Phong or blin-phong with textures
+	PBR, maybe with or without IBL
+
+
+Scene object:
+	Geometry -> Same as current
+	Transform -> Same as current
+	Material Index -> new
+		Every unique material has a unique material index, which can be stored in a central material bank,
+		But that same bank stores multiple versions of the same materials, one for each material rank.
+		ie: if the solid rank is active, than the materialIndex 0 would point to a specific material that has just a color,
+		but when the the PBR rank is active, the 0th material will now be a collection of textures required for PBR rendering

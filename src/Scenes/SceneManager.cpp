@@ -4,33 +4,10 @@
 
 #include <glm/ext/quaternion_trigonometric.hpp>
 
+#include "Settings/App.h"
+
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {
-        for (const Material* material : m_Materials) {
-            delete material;
-        }
-
-        m_Materials.clear();
-        m_MaterialTypes.clear();
-
-        for (const Light* light : m_Lights) {
-            delete light;
-        }
-
-        m_Lights.clear();
-        m_LightTypes.clear();
-
-        for (const Transform* transform : m_Transforms) {
-            delete transform;
-        }
-
-        m_Transforms.clear();
-
-        if (m_HaveCreatedDirectionalLight) {
-            delete m_DirectionalLight;
-            m_HaveCreatedDirectionalLight = false;
-        }
-
         switch (scene) {
             default: {
                 std::cout << "ERROR: Unknown SceneType" << std::endl;
@@ -42,6 +19,7 @@ namespace Rutile {
             case SceneType::ORIGINAL_SCENE: {
                 return GetOriginalScene();
             }
+            /*
             case SceneType::SHADOW_MAP_TESTING_SCENE: {
                 return GetShadowMapTestingScene();
             }
@@ -54,62 +32,47 @@ namespace Rutile {
             case SceneType::GENERAL_SCENE: {
                 return GetGeneralScene();
             }
-        }
-    }
-
-    Material* SceneManager::GetMaterial(MaterialType type) {
-        switch (type) {
-            case MaterialType::SOLID: {
-                m_Materials.push_back(new Solid{ });
-                m_MaterialTypes.push_back(MaterialType::SOLID);
-                break;
-            }
-            case MaterialType::PHONG: {
-                m_Materials.push_back(new Phong{ });
-                m_MaterialTypes.push_back(MaterialType::PHONG);
-                break;
+            */
+            case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
+                return GetDoublePointLightTestScene();
             }
         }
-
-        return m_Materials.back();
     }
 
-    Light* SceneManager::GetLight(LightType type) {
-        switch (type) {
-            case LightType::POINT: {
-                m_Lights.push_back(new PointLight{ });
-                m_LightTypes.push_back(LightType::POINT);
-                break;
-            }
-            case LightType::SPOTLIGHT: {
-                m_Lights.push_back(new SpotLight{ });
-                m_LightTypes.push_back(LightType::SPOTLIGHT);
-                break;
-            }
-        }
+    Phong SceneManager::GetPhong(const Solid& solid) {
+        Phong phong;
 
-        return m_Lights.back();
+        phong.diffuse = solid.color;
+        phong.ambient = solid.color * 0.4f;
+        phong.specular = phong.ambient * 0.2f;
+
+        phong.shininess = 16.0f;
+
+        return phong;
     }
 
-    DirectionalLight* SceneManager::GetDirectionalLight() {
-        m_DirectionalLight = new DirectionalLight;
-        m_HaveCreatedDirectionalLight = true;
-        return m_DirectionalLight;
-    }
+    Solid SceneManager::GetSolid(const Phong& phong) {
+        Solid solid;
 
-    Transform* SceneManager::GetTransform() {
-        m_Transforms.push_back(new Transform{ });
+        solid.color = phong.diffuse;
 
-        return m_Transforms.back();
+        return solid;
     }
 
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        Transform* transform = GetTransform();
-        Solid* solid = dynamic_cast<Solid*>(GetMaterial(MaterialType::SOLID));
-        solid->color = { 1.0f, 0.0f, 0.0f };
-        sceneFactory.Add(Primitive::TRIANGLE, transform, MaterialType::SOLID, solid);
+        Transform transform{ };
+
+        Solid solid{ };
+        solid.color = { 1.0f, 0.0f, 0.0f };
+
+        Phong phong = GetPhong(solid);
+
+        sceneFactory.Add("Hello Triangle", Primitive::TRIANGLE, transform, "Triangle Material", solid, phong);
+
+        DirectionalLight dirLight{ };
+        sceneFactory.Add(dirLight);
 
         return sceneFactory.GetScene();
     }
@@ -117,82 +80,90 @@ namespace Rutile {
     Scene SceneManager::GetOriginalScene() {
         SceneFactory sceneFactory{ };
 
-        Solid* solid = dynamic_cast<Solid*>(GetMaterial(MaterialType::SOLID));
-        solid->color = { 1.0f, 0.0f, 1.0f };
+        Solid solid{ };
+        solid.color = { 1.0f, 0.0f, 1.0f };
 
-        Solid* solid2 = dynamic_cast<Solid*>(GetMaterial(MaterialType::SOLID));
-        solid2->color = { 0.2f, 0.5f, 0.7f };
+        Phong phong = GetPhong(solid);
 
-        Phong* phong = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
+        Solid solid2{ };
+        solid2.color = { 0.2f, 0.5f, 0.7f };
 
-        phong->ambient = { 1.0f, 0.5f, 0.31f };
-        phong->diffuse = { 1.0f, 0.5f, 0.31f };
-        phong->specular = { 0.5f, 0.5f, 0.5f };
-        phong->shininess = 32.0f;
+        Phong phong2 = GetPhong(solid2);
 
-        Transform* transform1 = GetTransform();
-        transform1->position = { 1.0f, 1.0f, 0.0f };
-        sceneFactory.Add(Primitive::TRIANGLE, transform1, MaterialType::SOLID, solid);
+        Phong phong3{ };
 
-        Transform* transform2 = GetTransform();
-        transform2->position = { -1.0f, -1.0f, 0.0f };
-        sceneFactory.Add(Primitive::TRIANGLE, transform2, MaterialType::SOLID, solid2);
+        phong3.ambient = { 1.0f, 0.5f, 0.31f };
+        phong3.diffuse = { 1.0f, 0.5f, 0.31f };
+        phong3.specular = { 0.5f, 0.5f, 0.5f };
+        phong3.shininess = 32.0f;
 
-        Transform* transform3 = GetTransform();
-        transform3->position = { 0.0f, 0.0f, 0.0f };
-        sceneFactory.Add(Primitive::SQUARE, transform3, MaterialType::SOLID, solid);
+        Solid solid3 = GetSolid(phong3);
 
-        Transform* transform4 = GetTransform();
-        transform4->position = { 1.0f, -1.0f, 0.0f };
-        sceneFactory.Add(Primitive::CUBE, transform4, MaterialType::SOLID, solid2);
+        Solid solid4{ };
+        solid4.color = { 1.0f, 1.0f, 0.0f };
 
-        Transform* transform5 = GetTransform();
-        transform5->position = { -1.0f, 1.0f, 0.0f };
-        sceneFactory.Add(Primitive::CUBE, transform5, MaterialType::PHONG, phong);
+        Phong phong4 = GetPhong(solid4);
 
-        PointLight* pointLight = dynamic_cast<PointLight*>(GetLight(LightType::POINT));
-        pointLight->position = { -2.0f, 2.0f, 2.0f };
+        Transform transform1{ };
+        transform1.position = { 1.0f, 1.0f, 0.0f };
+        MaterialIndex mat1 = sceneFactory.Add("Top Right", Primitive::TRIANGLE, transform1, "Material 1", solid, phong);
 
-        pointLight->ambient = { 0.05f, 0.05f, 0.05f };
-        pointLight->diffuse = { 0.8f, 0.8f, 0.8f };
-        pointLight->specular = { 1.0f, 1.0f, 1.0f };
+        Transform transform2{ };
+        transform2.position = { -1.0f, -1.0f, 0.0f };
+        MaterialIndex mat2 = sceneFactory.Add("Bottom Left", Primitive::SQUARE, transform2, "Material 2", solid2, phong2);
 
-        pointLight->constant = 1.0f;
-        pointLight->linear = 0.09f;
-        pointLight->quadratic = 0.032f;
+        Transform transform3{ };
+        transform3.position = { 0.0f, 0.0f, 0.0f };
+        sceneFactory.Add("Center", Primitive::CUBE, transform3, mat1);
 
-        sceneFactory.Add(LightType::POINT, pointLight);
+        Transform transform4{ };
+        transform4.position = { 1.0f, -1.0f, 0.0f };
+        sceneFactory.Add("Bottom Right", Primitive::CUBE, transform4, mat2);
 
-        DirectionalLight* directionalLight = GetDirectionalLight();
-        directionalLight->direction = { 0.0f, -1.0f, 0.0f };
+        Transform transform5{ };
+        transform5.position = { -1.0f, 1.0f, 0.0f };
+        sceneFactory.Add("Top Left", Primitive::CUBE, transform5, "Material 3", solid3, phong3);
 
-        directionalLight->ambient = { 0.05f, 0.05f, 0.05f };
-        directionalLight->diffuse = { 0.4f, 0.4f, 0.4f };
-        directionalLight->specular = { 0.5f, 0.5f, 0.5f };
+        Transform transform6{ };
+        transform6.scale = { 5.0f, 1.0f, 3.0f };
+        transform6.position = { 0.0f, -2.0f, 0.0f };
+        MaterialIndex mat4 = sceneFactory.Add("Floor", Primitive::CUBE, transform6, "Material 4", solid4, phong4);
 
-        sceneFactory.Add(directionalLight);
+        Transform transform7{ };
+        transform7.scale = { 5.0f, 5.0f, 1.0f };
+        transform7.position = { 0.0f, 0.0f, -2.0f };
+        sceneFactory.Add("Floor", Primitive::CUBE, transform7, mat4);
 
-        SpotLight* spotLight = dynamic_cast<SpotLight*>(GetLight(LightType::SPOTLIGHT));
+        PointLight pointLight{ };
+        pointLight.position = { 0.0f, 0.0f, 1.0f };
 
-        spotLight->position = { 0.0f, 0.0f, 0.0f };
-        spotLight->direction = { 0.0f, 0.0f, -1.0f };
+        pointLight.ambient = { 0.05f, 0.05f, 0.05f };
+        pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
+        pointLight.specular = { 1.0f, 1.0f, 1.0f };
 
-        spotLight->ambient = { 0.0f, 0.0f, 0.0f };
-        spotLight->diffuse = { 1.0f, 1.0f, 1.0f };
-        spotLight->specular = { 1.0f, 1.0f, 1.0f };
+        pointLight.constant = 1.0f;
+        pointLight.linear = 0.65f;
+        pointLight.quadratic = 0.032f;
 
-        spotLight->constant = 1.0f;
-        spotLight->linear = 0.09f;
-        spotLight->quadratic = 0.032f;
+        sceneFactory.Add(pointLight);
 
-        spotLight->cutOff = glm::cos(glm::radians(12.5f));
-        spotLight->outerCutOff = glm::cos(glm::radians(15.0f));
+        PointLight pointLight2{ };
+        pointLight2.position = { -2.0f, 0.0f, 1.0f };
 
-        sceneFactory.Add(LightType::SPOTLIGHT, spotLight);
+        pointLight2.ambient = { 0.05f, 0.05f, 0.05f };
+        pointLight2.diffuse = { 0.8f, 0.8f, 0.8f };
+        pointLight2.specular = { 1.0f, 1.0f, 1.0f };
+
+        pointLight2.constant = 1.0f;
+        pointLight2.linear = 0.65f;
+        pointLight2.quadratic = 0.032f;
+
+        sceneFactory.Add(pointLight2);
 
         return sceneFactory.GetScene();
     }
 
+    /*
     Scene SceneManager::GetShadowMapTestingScene() {
         SceneFactory sceneFactory{ };
 
@@ -559,6 +530,62 @@ namespace Rutile {
         pointLight->quadratic = 0.035f;
 
         sceneFactory.Add(LightType::POINT, pointLight);
+
+        return sceneFactory.GetScene();
+    }
+    */
+
+    Scene SceneManager::GetDoublePointLightTestScene() {
+        SceneFactory sceneFactory;
+
+        Solid solid1{ };
+        solid1.color = { 1.0f, 0.0f, 1.0f };
+
+        Phong phong1 = GetPhong(solid1);
+
+        Solid solid2{ };
+        solid2.color = { 0.4f, 0.4f, 0.4f };
+
+        Phong phong2 = GetPhong(solid2);
+
+        Transform floor{ };
+        floor.scale = { 11.0f, 1.0f, 11.0f };
+        MaterialIndex mat2 = sceneFactory.Add("Floor", Primitive::CUBE, floor, "Material 2", solid2, phong2);
+
+        Transform wall{ };
+        wall.position = { 0.0f, 5.0f, -5.0f };
+        wall.scale = { 11.0f, 11.0f, 1.0f };
+        sceneFactory.Add("Wall", Primitive::CUBE, wall, mat2);
+
+        Transform cube{ };
+        cube.position.y = 2.0f;
+        sceneFactory.Add("Cube", Primitive::CUBE, cube, "Material 1", solid1, phong1);
+
+        PointLight pointLight{ };
+        pointLight.position = { 3.0f, 4.0f, 0.0f };
+
+        pointLight.ambient = { 0.05f, 0.05f, 0.05f };
+        pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
+        pointLight.specular = { 1.0f, 1.0f, 1.0f };
+
+        pointLight.constant = 1.0f;
+        pointLight.linear = 0.0f;
+        pointLight.quadratic = 0.032f;
+
+        sceneFactory.Add(pointLight);
+
+        PointLight pointLight2{ };
+        pointLight2.position = { -3.0f, 4.0f, 0.0f };
+
+        pointLight2.ambient = { 0.05f, 0.05f, 0.05f };
+        pointLight2.diffuse = { 0.8f, 0.8f, 0.8f };
+        pointLight2.specular = { 1.0f, 1.0f, 1.0f };
+
+        pointLight2.constant = 1.0f;
+        pointLight2.linear = 0.0f;
+        pointLight2.quadratic = 0.032f;
+
+        sceneFactory.Add(pointLight2);
 
         return sceneFactory.GetScene();
     }

@@ -3,15 +3,24 @@
 #include <vector>
 
 #include "rendering/Light.h"
-#include "rendering/Packet.h"
+#include "rendering/Object.h"
 
 namespace Rutile {
+    using ObjectIndex = size_t;
+    using LightIndex = size_t;
+
     struct Scene {
-        std::vector<Packet> packets;
+        friend class SceneFactory;
 
-        std::vector<LightType> lightTypes;
-        std::vector<Light*> lights;
+        std::vector<Object> objects;
 
-        DirectionalLight* directionalLight;
+        std::vector<PointLight> pointLights;
+
+        DirectionalLight directionalLight;
+
+        bool HasDirectionalLight();
+
+    private:
+        bool m_EnableDirectionalLight{ false };
     };
 }

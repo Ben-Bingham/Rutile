@@ -3,8 +3,12 @@
 #include "SettingsEnums.h"
 #include <chrono>
 
+#include "rendering/Material.h"
+
 namespace Rutile {
     struct Settings {
+        MaterialType materialType = MaterialType::SOLID;
+
         float fieldOfView = 60.0f;
         float nearPlane = 0.1f;
         float farPlane = 1000.0f;
@@ -18,24 +22,29 @@ namespace Rutile {
 
         WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
 
-        // Shadow Maps
-        ShadowMapMode shadowMapMode = ShadowMapMode::NONE;
+        // Directional Shadow maps
+        bool directionalShadowMaps = true;
 
         ShadowMapBiasMode shadowMapBiasMode = ShadowMapBiasMode::DYNAMIC;
-        float shadowMapBias = 0.005f;
+        float directionalShadowMapBias = 0.005f;
 
-        float dynamicShadowMapBiasMin = 0.005f;
-        float dynamicShadowMapBiasMax = 0.05f;
+        float directionalDynamicShadowMapBiasMin = 0.005f;
+        float directionalDynamicShadowMapBiasMax = 0.05f;
 
-        ShadowMapPCFMode shadowMapPcfMode = ShadowMapPCFMode::NONE;
+        GeometricFace culledFaceDuringDirectionalShadowMapping = GeometricFace::FRONT;
 
-        GeometricFace culledFaceDuringShadowMapping = GeometricFace::FRONT;
+        bool directionalShadowMapPCF = true;
 
-        // Omnidirectional Shadow Maps
+        // Omnidirectional Shadow maps
+        bool omnidirectionalShadowMaps = true;
+
         float omnidirectionalShadowMapBias = 0.05f;
-        OmnidirectionalShadowMapPCFMode omnidirectionalShadowMapPcfMode = OmnidirectionalShadowMapPCFMode::FIXED;
 
-        float omnidirectionalShadowMapSamples = 4.0f;
+        GeometricFace culledFaceDuringOmnidirectionalShadowMapping = GeometricFace::FRONT;
+
+        OmnidirectionalShadowMapPCFMode omnidirectionalShadowMapPCFMode = OmnidirectionalShadowMapPCFMode::FIXED_SAMPLE_DIRECTIONS;
+
+        int omnidirectionalShadowMapSampleCount = 4;
 
         OmnidirectionalShadowMapDiskRadiusMode omnidirectionalShadowMapDiskRadiusMode = OmnidirectionalShadowMapDiskRadiusMode::DYNAMIC;
         float omnidirectionalShadowMapDiskRadius = 0.05f;
