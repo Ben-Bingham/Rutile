@@ -1,6 +1,6 @@
 #version 460 core
     
-layout(triangles, invocations = 3) in; // TODO this 10 should be however many cascades we have curently
+layout(triangles, invocations = 10) in; // TODO this 10 should be however many cascades we have curently
 layout(triangle_strip, max_vertices = 3) out;
 
 const int MAX_CASCADE_COUNT = 10;

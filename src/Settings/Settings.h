@@ -11,7 +11,7 @@ namespace Rutile {
 
         float fieldOfView = 60.0f;
         float nearPlane = 0.1f;
-        float farPlane = 1000.0f;
+        float farPlane = 100.0f;
 
         std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
 
@@ -48,6 +48,12 @@ namespace Rutile {
 
         OmnidirectionalShadowMapDiskRadiusMode omnidirectionalShadowMapDiskRadiusMode = OmnidirectionalShadowMapDiskRadiusMode::DYNAMIC;
         float omnidirectionalShadowMapDiskRadius = 0.05f;
+
+        // Cascading Shadow maps
+        bool visualizeCascades = false;
+        bool visualizeCascadeLights = false;
+
+        bool lockCascadeCamera = false;
     };
 
     Settings DefaultSettings();

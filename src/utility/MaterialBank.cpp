@@ -21,6 +21,8 @@ namespace Rutile {
                 return &m_PhongMaterials[i];
             }
         }
+
+        return nullptr;
     }
 
     std::string MaterialBank::GetName(MaterialIndex i) {

@@ -53,5 +53,7 @@ namespace Rutile {
         // ImGui visualizations
         virtual void ProvideLightVisualization(LightIndex lightIndex) { }
         virtual void ProvideDirectionalLightVisualization() { }
+
+        virtual void ProvideCSMVisualization() { }
 	};
 }

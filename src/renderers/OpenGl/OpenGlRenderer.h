@@ -32,6 +32,8 @@ namespace Rutile {
 
         void RenderScene();
 
+        std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
+
 	public:
         // Events
         void ProjectionMatrixUpdate() override;
@@ -39,9 +41,10 @@ namespace Rutile {
         void SignalNewScene() override;
 
         void ProvideLightVisualization(LightIndex lightIndex) override;
-        void ProvideDirectionalLightVisualization() override;
 
-	private:
+        void ProvideCSMVisualization() override;
+
+    private:
         glm::mat4 m_Projection { 1.0f };
 
         // Shaders
@@ -82,8 +85,8 @@ namespace Rutile {
         int m_CascadingShadowMapWidth { 1024 };
         int m_CascadingShadowMapHeight{ 1024 };
 
-        unsigned int m_CascadeCount{ 3 };
-        unsigned int m_MaxCascadeCount{ 10 };
+        int m_CascadeCount{ 3 };
+        int m_MaxCascadeCount{ 10 };
 
         unsigned int m_ShadowCascadesVisualizationFBO{ 0 };
         unsigned int m_ShadowCascadesVisualizationRBO{ 0 };
@@ -94,7 +97,13 @@ namespace Rutile {
         int m_CascadeVisualizationWidth{ 1024 };
         int m_CascadeVisualizationHeight{ 1024 };
 
-        void VisualizeShadowCascade(int layer);
+        std::vector<glm::mat4> m_CascadeCameraProjections;
+        std::vector<std::pair<glm::vec3, glm::vec3>> m_CascadeLightBoxes;
+
+        void VisualizeCascadeShadowMap(int layer);
+
+        void VisualizeShadowCascades();
+        void VisualizeCascadeLights();
 
         // Objects
         size_t m_ObjectCount;

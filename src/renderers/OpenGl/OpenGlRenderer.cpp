@@ -250,12 +250,20 @@ namespace Rutile {
 
         RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
-        if (App::scene.HasDirectionalLight() && App::settings.directionalShadowMaps) {
+        if (App::scene.HasDirectionalLight() && App::settings.directionalShadowMaps && !App::settings.lockCascadeCamera) {
             RenderCascadingShadowMaps(); // TODO this should be called sparingly
         }
 
         RenderScene();
-        
+
+        if (App::settings.visualizeCascades) {
+            VisualizeShadowCascades();
+        }
+
+        if (App::settings.visualizeCascadeLights) {
+            VisualizeCascadeLights();
+        }
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
@@ -330,73 +338,23 @@ namespace Rutile {
 
         std::vector<glm::mat4> lightSpaceMatrices;
 
+        m_CascadeCameraProjections.clear();
+        m_CascadeLightBoxes.clear();
+
         for (int i = 0; i < (int)m_CascadeCount; ++i) {
             float nearPlane = frustumPlanes[i];
-            //float nearPlane = App::settings.nearPlane;
             float farPlane  = frustumPlanes[i + 1];
-
-            glm::mat4 proj = m_Projection;
 
             glm::mat4 cameraProjection{ 1.0f };
             cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, nearPlane, farPlane);
 
-            // Getting frustum corners in world space
-            glm::mat4 projView = cameraProjection * App::camera.View();
-            glm::mat4 invProjView = glm::inverse(projView);
-
-
-
-
-
-
-
-            //glm::vec3 cameraDirection = App::camera.frontVector;
-
-            //glm::vec3 start = App::camera.position + nearPlane * cameraDirection;
-            //glm::vec3 end = App::camera.position + farPlane * cameraDirection;
-
-            //glm::vec4 camCenterAtNearZ = projView * glm::vec4(start, 1.0f);
-            //glm::vec4 camCenterAtFarZ = projView * glm::vec4(end, 1.0f);
-
-            //float clipZNear = camCenterAtNearZ.z / camCenterAtNearZ.w;
-            //float clipZFar = camCenterAtFarZ.z / camCenterAtFarZ.w;
-
-            //std::vector<glm::vec4> frustumCorners;
-            //for (uint32_t x = 0; x < 2; x++)
-            //{
-            //    for (uint32_t y = 0; y < 2; y++)
-            //    {
-            //        for (uint32_t z = 0; z < 2; z++)
-            //        {
-            //            //const glm::vec4 pt = invProjView * glm::vec4(2.0f * x + clipZNear, 2.0f * y + clipZNear, 2.0f * z + clipZFar, 1.0f);
-            //            glm::vec4 pt = invProjView * glm::vec4(2.0 * x - 1, 2.0 * y - 1, z == 0 ? clipZNear : clipZFar, 1.0);
-            //            frustumCorners.push_back(pt / pt.w);
-            //        }
-            //    }
-            //}
-
-
-
-
-
-
-
-
+            m_CascadeCameraProjections.push_back(cameraProjection * App::camera.View());
 
             // After we have applied the cameras view and projection matrices to a point in world space it ends up being in the NDC Cube, so its in a box
             // with corners { -1.0f, -1.0f, -1.0f } and { 1.0f, 1.0f, 1.0f }. If we instead go the other direction: We start with a the NDC Cube and than
             // transform back into world space (by applying the inverse of both the cameras projection and view matrices) we can get the corners of
             // the cameras frustum in world space.
-            std::vector<glm::vec4> frustumCorners;
-            for (int x = 0; x < 2; ++x) {
-                for (int y = 0; y < 2; ++y) {
-                    for (int z = 0; z < 2; ++z) {
-                        glm::vec4 corner = invProjView * glm::vec4{ 2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f };
-
-                        frustumCorners.push_back(corner / corner.w);
-                    }
-                }
-            }
+            std::vector<glm::vec4> frustumCorners = GetFrustumCornersInWorldSpace(cameraProjection * App::camera.View());
 
             // frustumCorners is now a list of the corners of the Camera frustum in World space
 
@@ -409,7 +367,7 @@ namespace Rutile {
 
             // frustumCenter is now the center of the cameras frustum
 
-            glm::mat4 lightView = glm::lookAt(frustumCenter + glm::normalize(App::scene.directionalLight.direction), frustumCenter, glm::vec3{ 0.0f, 1.0f, 0.0f });
+            glm::mat4 lightView = glm::lookAt(frustumCenter - glm::normalize(App::scene.directionalLight.direction), frustumCenter, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
             float minX = std::numeric_limits<float>::max();
             float maxX = std::numeric_limits<float>::lowest();
@@ -417,6 +375,14 @@ namespace Rutile {
             float maxY = std::numeric_limits<float>::lowest();
             float minZ = std::numeric_limits<float>::max();
             float maxZ = std::numeric_limits<float>::lowest();
+
+            float minXWorld = std::numeric_limits<float>::max();
+            float maxXWorld = std::numeric_limits<float>::lowest();
+            float minYWorld = std::numeric_limits<float>::max();
+            float maxYWorld = std::numeric_limits<float>::lowest();
+            float minZWorld = std::numeric_limits<float>::max();
+            float maxZWorld = std::numeric_limits<float>::lowest();
+
             for (auto corner : frustumCorners) {
                 const auto transformedCorner = lightView * glm::vec4{ corner };
                 minX = std::min(minX, transformedCorner.x);
@@ -425,39 +391,31 @@ namespace Rutile {
                 maxY = std::max(maxY, transformedCorner.y);
                 minZ = std::min(minZ, transformedCorner.z);
                 maxZ = std::max(maxZ, transformedCorner.z);
+
+                minXWorld = std::min(minXWorld, corner.x);
+                maxXWorld = std::max(maxXWorld, corner.x);
+                minYWorld = std::min(minYWorld, corner.y);
+                maxYWorld = std::max(maxYWorld, corner.y);
+                minZWorld = std::min(minZWorld, corner.z);
+                maxZWorld = std::max(maxZWorld, corner.z);
             }
 
+            float zMult = 10.0f; // TODO Add to imGui
+            if (minZ < 0) {
+                minZ *= zMult;
+            }
+            else {
+                minZ /= zMult;
+            }
 
+            if (maxZ < 0) {
+                maxZ /= zMult;
+            }
+            else {
+                maxZ *= zMult;
+            }
 
-
-
-
-
-            glm::mat4 invLightView = glm::inverse(lightView);
-            glm::vec3 worldMin = invLightView * glm::vec4{ minX, minY, minZ, 1.0f };
-            glm::vec3 worldMax = invLightView * glm::vec4{ maxX, maxY, maxZ, 1.0f };
-
-
-
-
-
-
-
-
-            //float zMult = 10.0f; // TODO Add to imGui
-            //if (minZ < 0) {
-            //    minZ *= zMult;
-            //}
-            //else {
-            //    minZ /= zMult;
-            //}
-
-            //if (maxZ < 0) {
-            //    maxZ /= zMult;
-            //}
-            //else {
-            //    maxZ *= zMult;
-            //}
+            m_CascadeLightBoxes.push_back(std::make_pair<glm::vec3, glm::vec3>({ minXWorld, minYWorld, minZWorld }, { maxXWorld, maxYWorld, maxZWorld }));
 
             glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
 
@@ -514,7 +472,7 @@ namespace Rutile {
                     Solid* solid = dynamic_cast<Solid*>(App::materialBank[object.material]);
 
                     // Material
-                    shaderProgram->SetVec3("color", solid->color);
+                    shaderProgram->SetVec4("color", glm::vec4{ solid->color, 1.0f });
 
                     break;
                 }
@@ -715,6 +673,23 @@ namespace Rutile {
         }
     }
 
+    std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
+        glm::mat4 invFrustum = glm::inverse(frustum);
+
+        std::vector<glm::vec4> frustumCorners;
+        for (int x = 0; x < 2; ++x) {
+            for (int y = 0; y < 2; ++y) {
+                for (int z = 0; z < 2; ++z) {
+                    glm::vec4 corner = invFrustum * glm::vec4{ 2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f };
+
+                    frustumCorners.push_back(corner / corner.w);
+                }
+            }
+        }
+
+        return frustumCorners;
+    }
+
     void OpenGlRenderer::ProjectionMatrixUpdate() {
         m_Projection = glm::mat4{ 1.0f };
         m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
@@ -831,40 +806,47 @@ namespace Rutile {
         }
     }
 
-    void OpenGlRenderer::ProvideDirectionalLightVisualization() {
-        if (ImGui::TreeNode("Shadow Map##dirLight")) {
+    void OpenGlRenderer::ProvideLightVisualization(LightIndex lightIndex) {
+        if (ImGui::TreeNode("Shadow Map##pointLight")) {
+            ImGui::Text("Texture");
+            ImGui::DragInt(("Shadow Map Width##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapWidth);
+            ImGui::DragInt(("Shadow Map Height##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapHeight);
 
-            ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
-            ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
+            ImGui::Text("Depth map");
 
-            ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.1f, 0, (int)m_CascadeCount - 1);
+            float vertical = glm::degrees(m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
+            float horizontal = glm::degrees(m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
 
-            VisualizeShadowCascade(m_DisplayedCascadeLayer);
-            ImGui::Image((ImTextureID)m_ShadowCascadesVisualizationTexture, ImVec2{ (float)m_CascadeVisualizationWidth, (float)m_CascadeVisualizationHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+            ImGui::DragFloat(("Vertical shift##pointLight" + std::to_string(lightIndex)).c_str(), &vertical, 1.0f, -360.0f, 360.0f);
+            ImGui::DragFloat(("Horizontal shift##pointLight" + std::to_string(lightIndex)).c_str(), &horizontal, 1.0f, -360.0f, 360.0f);
+
+            m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex] = glm::radians(vertical);
+            m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex] = glm::radians(horizontal);
+
+            VisualizeCubeMap(lightIndex);
+            ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{ (float)m_CubeMapVisualizationWidth, (float)m_CubeMapVisualizationHeight });
 
             ImGui::TreePop();
         }
     }
 
-    void OpenGlRenderer::ProvideLightVisualization(LightIndex lightIndex) {
-        if (ImGui::TreeNode("Shadow Map##pointLight")) {
-            ImGui::Text("Texture");
-            ImGui::DragInt(("Shadow Map Width##pointLight"  + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapWidth);
-            ImGui::DragInt(("Shadow Map Height##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapHeight);
+    void OpenGlRenderer::ProvideCSMVisualization() {
+        if (ImGui::TreeNode("Shadow Map##dirLight")) {
 
-            ImGui::Text("Depth map");
+            ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
+            ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
 
-            float vertical =   glm::degrees(m_OmnidirectionalShadowMapVisualizationVerticalOffsets  [lightIndex]);
-            float horizontal = glm::degrees(m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
-            
-            ImGui::DragFloat(("Vertical shift##pointLight"   + std::to_string(lightIndex)).c_str(),   &vertical,   1.0f, -360.0f, 360.0f);
-            ImGui::DragFloat(("Horizontal shift##pointLight" + std::to_string(lightIndex)).c_str(), &horizontal, 1.0f, -360.0f, 360.0f);
+            if (ImGui::DragInt("Number of Layers##cascadeVisualization", &m_CascadeCount, 0.01f, 1, m_MaxCascadeCount)) {
+                glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+                glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+            }
 
-            m_OmnidirectionalShadowMapVisualizationVerticalOffsets  [lightIndex] = glm::radians(vertical);
-            m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex] = glm::radians(horizontal);
+            if (m_CascadeCount != 1) {
+                ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.10f, 0, m_CascadeCount - 1);
+            }
 
-            VisualizeCubeMap(lightIndex);
-            ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{ (float)m_CubeMapVisualizationWidth, (float)m_CubeMapVisualizationHeight });
+            VisualizeCascadeShadowMap(m_DisplayedCascadeLayer);
+            ImGui::Image((ImTextureID)m_ShadowCascadesVisualizationTexture, ImVec2{ (float)m_CascadeVisualizationWidth, (float)m_CascadeVisualizationHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 
             ImGui::TreePop();
         }
@@ -938,7 +920,7 @@ namespace Rutile {
         glDeleteVertexArrays(1, &VAO);
     }
 
-    void OpenGlRenderer::VisualizeShadowCascade(int layer) {
+    void OpenGlRenderer::VisualizeCascadeShadowMap(int layer) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
 
         glViewport(0, 0, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
@@ -1002,5 +984,196 @@ namespace Rutile {
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
         glDeleteVertexArrays(1, &VAO);
+    }
+
+    void OpenGlRenderer::VisualizeShadowCascades() {
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        std::vector<glm::vec3> colors {
+            { 1.0f, 1.0f, 0.0f },
+            { 1.0f, 0.0f, 1.0f },
+            { 0.0f, 1.0f, 1.0f },
+            { 1.0f, 0.0f, 0.0f },
+            { 0.0f, 1.0f, 0.0f },
+            { 0.0f, 0.0f, 1.0f },
+            { 0.5f, 0.5f, 0.0f },
+            { 0.5f, 0.0f, 0.5f },
+            { 0.0f, 0.5f, 0.5f },
+            { 1.0f, 1.0f, 1.0f }
+        };
+
+        int i = 0;
+        for (const auto& frustum : m_CascadeCameraProjections) {
+            std::vector<glm::vec4> frustumCorners = GetFrustumCornersInWorldSpace(frustum);
+
+            std::vector<float> vertices{ };
+
+            for (auto corner : frustumCorners) {
+                vertices.push_back(corner.x);
+                vertices.push_back(corner.y);
+                vertices.push_back(corner.z);
+            }
+
+            std::vector<Index> indices = {
+                0, 2, 3,
+                0, 3, 1,
+                4, 6, 2,
+                4, 2, 0,
+                5, 7, 6,
+                5, 6, 4,
+                1, 3, 7,
+                1, 7, 5,
+                6, 7, 3,
+                6, 3, 2,
+                1, 5, 4,
+                0, 1, 4
+            };
+
+            unsigned int VAO;
+            unsigned int VBO;
+            unsigned int EBO;
+
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
+
+            glBindVertexArray(VAO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+            glEnableVertexAttribArray(0);
+
+            m_SolidShader->Bind();
+
+            m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
+            m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
+
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+            glDeleteBuffers(1, &VBO);
+            glDeleteBuffers(1, &EBO);
+            glDeleteVertexArrays(1, &VAO);
+
+            ++i;
+        }
+        glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
+    }
+
+    void OpenGlRenderer::VisualizeCascadeLights() {
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        std::vector<glm::vec3> colors {
+            { 1.0f, 1.0f, 1.0f },
+            { 0.0f, 0.5f, 0.5f },
+            { 0.5f, 0.0f, 0.5f },
+            { 0.5f, 0.5f, 0.0f },
+            { 0.0f, 0.0f, 1.0f },
+            { 0.0f, 1.0f, 0.0f },
+            { 1.0f, 0.0f, 0.0f },
+            { 0.0f, 1.0f, 1.0f },
+            { 1.0f, 0.0f, 1.0f },
+            { 1.0f, 1.0f, 0.0f }
+        };
+
+        int i = 0;
+        for (const auto& corners : m_CascadeLightBoxes) {
+            std::vector<float> vertices{ };
+
+            glm::vec3 min = corners.first;
+            glm::vec3 max = corners.second;
+
+            vertices.push_back(min.x);
+            vertices.push_back(min.y);
+            vertices.push_back(min.z);
+
+            vertices.push_back(min.x);
+            vertices.push_back(min.y);
+            vertices.push_back(max.z);
+
+            vertices.push_back(min.x);
+            vertices.push_back(max.y);
+            vertices.push_back(min.z);
+
+            vertices.push_back(min.x);
+            vertices.push_back(max.y);
+            vertices.push_back(max.z);
+
+            vertices.push_back(max.x);
+            vertices.push_back(min.y);
+            vertices.push_back(min.z);
+
+            vertices.push_back(max.x);
+            vertices.push_back(min.y);
+            vertices.push_back(max.z);
+
+            vertices.push_back(max.x);
+            vertices.push_back(max.y);
+            vertices.push_back(min.z);
+
+            vertices.push_back(max.x);
+            vertices.push_back(max.y);
+            vertices.push_back(max.z);
+
+            std::vector<Index> indices = {
+                0, 2, 3,
+                0, 3, 1,
+                4, 6, 2,
+                4, 2, 0,
+                5, 7, 6,
+                5, 6, 4,
+                1, 3, 7,
+                1, 7, 5,
+                6, 7, 3,
+                6, 3, 2,
+                1, 5, 4,
+                0, 1, 4
+            };
+
+            unsigned int VAO;
+            unsigned int VBO;
+            unsigned int EBO;
+
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
+
+            glBindVertexArray(VAO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+            glEnableVertexAttribArray(0);
+
+            m_SolidShader->Bind();
+
+            m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
+            m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
+
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+            glDeleteBuffers(1, &VBO);
+            glDeleteBuffers(1, &EBO);
+            glDeleteVertexArrays(1, &VAO);
+
+            ++i;
+        }
+        glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
     }
 }

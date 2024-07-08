@@ -35,6 +35,18 @@ namespace Rutile {
             ImGui::Checkbox("Enable PCF##dir", &App::settings.directionalShadowMapPCF);
         }
 
+        // Cascading Shadow maps
+        ImGui::Text("Cascading Shadow maps");
+
+        ImGui::Separator();
+
+        ImGui::Checkbox("Cascade Visualization", &App::settings.visualizeCascades);
+        ImGui::Checkbox("Cascade Light Visualization", &App::settings.visualizeCascadeLights);
+
+        ImGui::Checkbox("Lock Cascade Camera", &App::settings.lockCascadeCamera);
+
+        App::renderer->ProvideCSMVisualization();
+
         // Omnidirectional
         ImGui::Separator();
 
