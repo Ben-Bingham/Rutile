@@ -28,6 +28,8 @@ namespace Rutile {
     private:
         void RenderOmnidirectionalShadowMaps();
 
+        void RenderCascadingShadowMaps();
+
         void RenderScene();
 
 	public:
@@ -46,11 +48,13 @@ namespace Rutile {
         std::unique_ptr<Shader> m_SolidShader;
         std::unique_ptr<Shader> m_PhongShader;
 
-        std::unique_ptr<Shader> m_DirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_CubeMapVisualizationShader;
 
-        // Omnidirectional Shadow Maps
+        std::unique_ptr<Shader> m_CascadingShadowMapShader;
+        std::unique_ptr<Shader> m_CascadingShadowMapVisualizationShader;
+
+        // Omnidirectional Shadow maps
         std::vector<float> m_OmnidirectionalShadowMapVisualizationHorizontalOffsets{ 0.0f };
         std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };
 
@@ -66,7 +70,31 @@ namespace Rutile {
 
         std::vector<unsigned int> m_CubeMapVisualizationTextures;
 
+        int m_CubeMapVisualizationWidth{ 1024 };
+        int m_CubeMapVisualizationHeight{ 512 };
+
         void VisualizeCubeMap(LightIndex lightIndex);
+
+        // Cascading Shadow maps
+        unsigned int m_CascadingShadowMapFBO;
+        unsigned int m_CascadingShadowMapTexture;
+
+        int m_CascadingShadowMapWidth { 1024 };
+        int m_CascadingShadowMapHeight{ 1024 };
+
+        unsigned int m_CascadeCount{ 3 };
+        unsigned int m_MaxCascadeCount{ 10 };
+
+        unsigned int m_ShadowCascadesVisualizationFBO{ 0 };
+        unsigned int m_ShadowCascadesVisualizationRBO{ 0 };
+        unsigned int m_ShadowCascadesVisualizationTexture{ 0 };
+
+        int m_DisplayedCascadeLayer{ 0 };
+
+        int m_CascadeVisualizationWidth{ 1024 };
+        int m_CascadeVisualizationHeight{ 1024 };
+
+        void VisualizeShadowCascade(int layer);
 
         // Objects
         size_t m_ObjectCount;

@@ -19,10 +19,11 @@ namespace Rutile {
             case SceneType::ORIGINAL_SCENE: {
                 return GetOriginalScene();
             }
-            /*
+            
             case SceneType::SHADOW_MAP_TESTING_SCENE: {
                 return GetShadowMapTestingScene();
             }
+            /*
             case SceneType::MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE: {
                 return GetMultiLightShadowMapTestingScene();
             }
@@ -163,75 +164,83 @@ namespace Rutile {
         return sceneFactory.GetScene();
     }
 
-    /*
+
     Scene SceneManager::GetShadowMapTestingScene() {
         SceneFactory sceneFactory{ };
 
-        Phong* phong1 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
-        phong1->diffuse = { 0.324f, 0.474f, 0.974f };
-        phong1->ambient = { 0.275f, 0.64f, 0.234f };
-        phong1->specular = { 0.432f, 0.8367f, 0.123f };
-        phong1->shininess = 15.0f;
+        Phong phong1{ };
+        phong1.diffuse = { 0.324f, 0.474f, 0.974f };
+        phong1.ambient = { 0.275f, 0.64f, 0.234f };
+        phong1.specular = { 0.432f, 0.8367f, 0.123f };
+        phong1.shininess = 15.0f;
 
-        Phong* phong2 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
-        phong2->diffuse = { 0.84f, 0.753f, 0.859f };
-        phong2->ambient = { 0.569f, 0.5638f, 0.194f };
-        phong2->specular = { 0.113f, 0.754f, 0.943f };
-        phong2->shininess = 64.0f;
+        Solid solid1 = GetSolid(phong1);
 
-        Phong* phong3 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
-        phong3->diffuse = { 0.129f, 0.00f, 0.333f };
-        phong3->ambient = { 0.783f, 0.356f, 0.324566f };
-        phong3->specular = { 0.012f, 0.268f, 0.73f };
-        phong3->shininess = 128.0f;
+        Phong phong2{ };
+        phong2.diffuse = { 0.84f, 0.753f, 0.859f };
+        phong2.ambient = { 0.569f, 0.5638f, 0.194f };
+        phong2.specular = { 0.113f, 0.754f, 0.943f };
+        phong2.shininess = 64.0f;
 
-        Phong* phong4 = dynamic_cast<Phong*>(GetMaterial(MaterialType::PHONG));
-        phong4->diffuse = { 0.129f, 0.00f, 0.333f };
-        phong4->ambient = { 0.569f, 0.5638f, 0.194f };
-        phong4->specular = { 0.432f, 0.8367f, 0.123f };
-        phong4->shininess = 16.0f;
+        Solid solid2 = GetSolid(phong2);
 
-        DirectionalLight* dirLight1 = GetDirectionalLight();
-        dirLight1->direction = { -1.0f, -1.0f, -1.0f };
-        dirLight1->diffuse = { 1.0f, 1.0f, 1.0f };
-        dirLight1->ambient = { 1.0f, 1.0f, 1.0f };
-        dirLight1->specular = { 1.0f, 1.0f, 1.0f };
+        Phong phong3{ };
+        phong3.diffuse = { 0.129f, 0.00f, 0.333f };
+        phong3.ambient = { 0.783f, 0.356f, 0.324566f };
+        phong3.specular = { 0.012f, 0.268f, 0.73f };
+        phong3.shininess = 128.0f;
 
-        sceneFactory.Add(dirLight1);
+        Solid solid3 = GetSolid(phong3);
 
-        Transform* floorTransform = GetTransform();
-        floorTransform->position.y = -1.0f;
-        floorTransform->scale = { 30.0f, 1.0f, 30.0f };
+        Phong phong4{ };
+        phong4.diffuse = { 0.129f, 0.00f, 0.333f };
+        phong4.ambient = { 0.569f, 0.5638f, 0.194f };
+        phong4.specular = { 0.432f, 0.8367f, 0.123f };
+        phong4.shininess = 16.0f;
 
-        sceneFactory.Add(Primitive::CUBE, floorTransform, MaterialType::PHONG, phong1);
+        Solid solid4 = GetSolid(phong4);
 
-        Transform* box1 = GetTransform();
-        box1->position = { 3.0f, 0.0f, 3.0f };
-        box1->scale = { 0.5f, 1.0f, 0.5f };
-        box1->rotation = glm::angleAxis(glm::radians(45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        DirectionalLight dirLight{ };
+        dirLight.direction = { -1.0f, -1.0f, -1.0f };
+        dirLight.diffuse = { 1.0f, 1.0f, 1.0f };
+        dirLight.ambient = { 1.0f, 1.0f, 1.0f };
+        dirLight.specular = { 1.0f, 1.0f, 1.0f };
 
-        sceneFactory.Add(Primitive::CUBE, box1, MaterialType::PHONG, phong2);
+        sceneFactory.Add(dirLight);
 
-        Transform* box2 = GetTransform();
-        box2->position = { 3.0f, 0.0f, -3.0f };
-        box2->rotation = glm::angleAxis(glm::radians(30.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        Transform floorTransform{ };
+        floorTransform.position.y = -1.0f;
+        floorTransform.scale = { 30.0f, 1.0f, 30.0f };
 
-        sceneFactory.Add(Primitive::CUBE, box2, MaterialType::PHONG, phong3);
+        MaterialIndex mat1 = sceneFactory.Add("Floor", Primitive::CUBE, floorTransform, "Material 1", solid1, phong1);
 
-        Transform* box3 = GetTransform();
-        box3->position = { 3.0f, 1.0f, -3.0f };
-        box3->rotation = glm::angleAxis(glm::radians(60.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        Transform box1{ };
+        box1.position = { 3.0f, 0.0f, 3.0f };
+        box1.scale = { 0.5f, 1.0f, 0.5f };
+        box1.rotation = glm::angleAxis(glm::radians(45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
 
-        sceneFactory.Add(Primitive::CUBE, box3, MaterialType::PHONG, phong4);
+        MaterialIndex mat2 = sceneFactory.Add("Box 1", Primitive::CUBE, box1, "Material 2", solid2, phong2);
 
-        Transform* box4 = GetTransform();
-        box4->position.y = 2.0f;
+        Transform box2{ };
+        box2.position = { 3.0f, 0.0f, -3.0f };
+        box2.rotation = glm::angleAxis(glm::radians(30.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
 
-        sceneFactory.Add(Primitive::CUBE, box4, MaterialType::PHONG, phong3);
+        MaterialIndex mat3 = sceneFactory.Add("Box 2", Primitive::CUBE, box2, "Material 3", solid3, phong3);
+
+        Transform box3{ };
+        box3.position = { 3.0f, 1.0f, -3.0f };
+        box3.rotation = glm::angleAxis(glm::radians(60.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+        sceneFactory.Add("Box 3", Primitive::CUBE, box3, "Material 4", solid4, phong4);
+
+        Transform box4{ };
+        box4.position.y = 2.0f;
+
+        sceneFactory.Add("Box 4", Primitive::CUBE, box4, mat3);
 
         return sceneFactory.GetScene();
     }
-
+    /*
     Scene SceneManager::GetMultiLightShadowMapTestingScene() {
         SceneFactory sceneFactory{ };
 

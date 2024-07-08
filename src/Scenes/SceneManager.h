@@ -23,7 +23,7 @@ namespace Rutile {
 
         static Scene GetTriangleScene();
         static Scene GetOriginalScene();
-        //static Scene GetShadowMapTestingScene();
+        static Scene GetShadowMapTestingScene();
         //static Scene GetMultiLightShadowMapTestingScene();
         //static Scene GetOmnidirectionalShadowMapTestingScene();
         //static Scene GetGeneralScene();

@@ -11,6 +11,9 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 namespace Rutile {
     GLFWwindow* OpenGlRenderer::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -39,9 +42,12 @@ namespace Rutile {
         // Shaders
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
-        m_DirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\shadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\shadowMapping.frag");
+
         m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
         m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
+
+        m_CascadingShadowMapShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.geom");
+        m_CascadingShadowMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.frag");
 
         // Omnidirectional Shadow maps
         glGenFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
@@ -57,12 +63,8 @@ namespace Rutile {
 
         glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
         glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(1024), static_cast<GLsizei>(512));
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-
-        //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        //    std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        //}
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         //glBindTexture(GL_TEXTURE_2D, 0);
@@ -96,12 +98,64 @@ namespace Rutile {
 
         */
 
+        // Cascading Shadow maps
+        glGenFramebuffers(1, &m_CascadingShadowMapFBO);
+
+        glGenTextures(1, &m_CascadingShadowMapTexture);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+        constexpr float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CascadingShadowMapFBO);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_CascadingShadowMapTexture, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "Error: Framebuffer is not complete" << std::endl;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // Cascading Shadow map Visualization
+        glGenFramebuffers(1, &m_ShadowCascadesVisualizationFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
+
+        glGenTextures(1, &m_ShadowCascadesVisualizationTexture);
+        glBindTexture(GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture, 0);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glGenRenderbuffers(1, &m_ShadowCascadesVisualizationRBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
+
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Cascading shadow map visualization framebuffer is not complete" << std::endl;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        // OpenGl settings
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-
-        //UpdateDirectionalShadowMap();
-        //UpdateShadowMapMode();
-        //UpdateOmnidirectionalShadowMap();
 
         return window;
     }
@@ -110,24 +164,34 @@ namespace Rutile {
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
-        //glDeleteTextures(1, &m_ShadowMapTexture);
-        //glDeleteFramebuffers(1, &m_DepthMapFBO);
-
+        // Cascading Shadow maps
+        glDeleteTextures(1, &m_CascadingShadowMapTexture);
+        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
 
         // Cubemap Visualization
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
+
         glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        //glDeleteTextures(1, &m_CubeMapVisualizationTexture);
         glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
 
         // Omnidirectional Shadow maps
+        for (const auto& cubeMap : m_PointLightCubeMaps) {
+            glDeleteTextures(1, &cubeMap);
+        }
+
         glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
 
         // Shaders
         m_SolidShader.reset();
         m_PhongShader.reset();
-        m_DirectionalShadowMappingShader.reset();
+
         m_OmnidirectionalShadowMappingShader.reset();
         m_CubeMapVisualizationShader.reset();
+
+        m_CascadingShadowMapShader.reset();
+        m_CascadingShadowMapVisualizationShader.reset();
 
         glfwDestroyWindow(window);
     }
@@ -185,6 +249,10 @@ namespace Rutile {
         */
 
         RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
+
+        if (App::scene.HasDirectionalLight() && App::settings.directionalShadowMaps) {
+            RenderCascadingShadowMaps(); // TODO this should be called sparingly
+        }
 
         RenderScene();
         
@@ -246,6 +314,177 @@ namespace Rutile {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ++pointLightIndex;
         }
+    }
+
+    void OpenGlRenderer::RenderCascadingShadowMaps() {
+        float distance = abs(App::settings.farPlane - App::settings.nearPlane);
+
+        // There should be one more plane than cascades
+        std::vector<float> frustumPlanes;
+
+        frustumPlanes.push_back(App::settings.nearPlane);
+        for (int i = 1; i < (int)m_CascadeCount; ++i) {
+            frustumPlanes.push_back((distance / (float)m_CascadeCount) * (float)i);
+        }
+        frustumPlanes.push_back(App::settings.farPlane);
+
+        std::vector<glm::mat4> lightSpaceMatrices;
+
+        for (int i = 0; i < (int)m_CascadeCount; ++i) {
+            float nearPlane = frustumPlanes[i];
+            //float nearPlane = App::settings.nearPlane;
+            float farPlane  = frustumPlanes[i + 1];
+
+            glm::mat4 proj = m_Projection;
+
+            glm::mat4 cameraProjection{ 1.0f };
+            cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, nearPlane, farPlane);
+
+            // Getting frustum corners in world space
+            glm::mat4 projView = cameraProjection * App::camera.View();
+            glm::mat4 invProjView = glm::inverse(projView);
+
+
+
+
+
+
+
+            //glm::vec3 cameraDirection = App::camera.frontVector;
+
+            //glm::vec3 start = App::camera.position + nearPlane * cameraDirection;
+            //glm::vec3 end = App::camera.position + farPlane * cameraDirection;
+
+            //glm::vec4 camCenterAtNearZ = projView * glm::vec4(start, 1.0f);
+            //glm::vec4 camCenterAtFarZ = projView * glm::vec4(end, 1.0f);
+
+            //float clipZNear = camCenterAtNearZ.z / camCenterAtNearZ.w;
+            //float clipZFar = camCenterAtFarZ.z / camCenterAtFarZ.w;
+
+            //std::vector<glm::vec4> frustumCorners;
+            //for (uint32_t x = 0; x < 2; x++)
+            //{
+            //    for (uint32_t y = 0; y < 2; y++)
+            //    {
+            //        for (uint32_t z = 0; z < 2; z++)
+            //        {
+            //            //const glm::vec4 pt = invProjView * glm::vec4(2.0f * x + clipZNear, 2.0f * y + clipZNear, 2.0f * z + clipZFar, 1.0f);
+            //            glm::vec4 pt = invProjView * glm::vec4(2.0 * x - 1, 2.0 * y - 1, z == 0 ? clipZNear : clipZFar, 1.0);
+            //            frustumCorners.push_back(pt / pt.w);
+            //        }
+            //    }
+            //}
+
+
+
+
+
+
+
+
+
+            // After we have applied the cameras view and projection matrices to a point in world space it ends up being in the NDC Cube, so its in a box
+            // with corners { -1.0f, -1.0f, -1.0f } and { 1.0f, 1.0f, 1.0f }. If we instead go the other direction: We start with a the NDC Cube and than
+            // transform back into world space (by applying the inverse of both the cameras projection and view matrices) we can get the corners of
+            // the cameras frustum in world space.
+            std::vector<glm::vec4> frustumCorners;
+            for (int x = 0; x < 2; ++x) {
+                for (int y = 0; y < 2; ++y) {
+                    for (int z = 0; z < 2; ++z) {
+                        glm::vec4 corner = invProjView * glm::vec4{ 2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f };
+
+                        frustumCorners.push_back(corner / corner.w);
+                    }
+                }
+            }
+
+            // frustumCorners is now a list of the corners of the Camera frustum in World space
+
+            glm::vec3 frustumCenter = { 0.0f, 0.0f, 0.0f };
+            for (auto corner : frustumCorners) {
+                frustumCenter += glm::vec3{ corner };
+            }
+
+            frustumCenter /= static_cast<float>(frustumCorners.size());
+
+            // frustumCenter is now the center of the cameras frustum
+
+            glm::mat4 lightView = glm::lookAt(frustumCenter + glm::normalize(App::scene.directionalLight.direction), frustumCenter, glm::vec3{ 0.0f, 1.0f, 0.0f });
+
+            float minX = std::numeric_limits<float>::max();
+            float maxX = std::numeric_limits<float>::lowest();
+            float minY = std::numeric_limits<float>::max();
+            float maxY = std::numeric_limits<float>::lowest();
+            float minZ = std::numeric_limits<float>::max();
+            float maxZ = std::numeric_limits<float>::lowest();
+            for (auto corner : frustumCorners) {
+                const auto transformedCorner = lightView * glm::vec4{ corner };
+                minX = std::min(minX, transformedCorner.x);
+                maxX = std::max(maxX, transformedCorner.x);
+                minY = std::min(minY, transformedCorner.y);
+                maxY = std::max(maxY, transformedCorner.y);
+                minZ = std::min(minZ, transformedCorner.z);
+                maxZ = std::max(maxZ, transformedCorner.z);
+            }
+
+
+
+
+
+
+
+            glm::mat4 invLightView = glm::inverse(lightView);
+            glm::vec3 worldMin = invLightView * glm::vec4{ minX, minY, minZ, 1.0f };
+            glm::vec3 worldMax = invLightView * glm::vec4{ maxX, maxY, maxZ, 1.0f };
+
+
+
+
+
+
+
+
+            //float zMult = 10.0f; // TODO Add to imGui
+            //if (minZ < 0) {
+            //    minZ *= zMult;
+            //}
+            //else {
+            //    minZ /= zMult;
+            //}
+
+            //if (maxZ < 0) {
+            //    maxZ /= zMult;
+            //}
+            //else {
+            //    maxZ *= zMult;
+            //}
+
+            glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+
+            glm::mat4 lightViewProjection = lightProjection * lightView;
+
+            lightSpaceMatrices.push_back(lightViewProjection);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CascadingShadowMapFBO);
+
+        glViewport(0, 0, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        m_CascadingShadowMapShader->Bind();
+
+        for (const auto& object : App::scene.objects) {
+            m_CascadingShadowMapShader->SetMat4("model", App::transformBank[object.transform].matrix);
+
+            for (int i = 0; i < (int)m_CascadeCount; ++i) {
+                m_CascadingShadowMapShader->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
+            }
+
+            glBindVertexArray(m_VAOs[object.geometry]);
+            glDrawElements(GL_TRIANGLES, (int)App::geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void OpenGlRenderer::RenderScene() {
@@ -528,7 +767,7 @@ namespace Rutile {
 
             glGenTextures(1, &cubeMapVisualizationTexture);
             glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(1024), static_cast<GLsizei>(512), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -593,26 +832,18 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::ProvideDirectionalLightVisualization() {
-        //if (ImGui::TreeNode("Shadow Map")) {
-        //    ImGui::DragFloat3("Position", glm::value_ptr(m_DirectionalLightPosition));
-        //
-        //    ImGui::Text("Texture");
-        //    ImGui::DragInt("Shadow Map Width", &m_DirectionalShadowMapWidth);
-        //    ImGui::DragInt("Shadow Map Height", &m_DirectionalShadowMapHeight);
-        //
-        //    ImGui::Text("Frustum");
-        //    ImGui::DragFloat("Left", &m_DirectionalLightLeft);
-        //    ImGui::DragFloat("Right", &m_DirectionalLightRight);
-        //    ImGui::DragFloat("Bottom", &m_DirectionalLightBottom);
-        //    ImGui::DragFloat("Top", &m_DirectionalLightTop);
-        //
-        //    ImGui::DragFloat("Near Plane", &m_DirectionalLightNear);
-        //    ImGui::DragFloat("Far Plane", &m_DirectionalLightFar);
-        //
-        //    ImGui::Image((ImTextureID)m_ShadowMapTexture, ImVec2{ (float)m_DirectionalShadowMapWidth, (float)m_DirectionalShadowMapHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+        if (ImGui::TreeNode("Shadow Map##dirLight")) {
 
-        //    ImGui::TreePop();
-        //}
+            ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
+            ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
+
+            ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.1f, 0, (int)m_CascadeCount - 1);
+
+            VisualizeShadowCascade(m_DisplayedCascadeLayer);
+            ImGui::Image((ImTextureID)m_ShadowCascadesVisualizationTexture, ImVec2{ (float)m_CascadeVisualizationWidth, (float)m_CascadeVisualizationHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+
+            ImGui::TreePop();
+        }
     }
 
     void OpenGlRenderer::ProvideLightVisualization(LightIndex lightIndex) {
@@ -633,7 +864,7 @@ namespace Rutile {
             m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex] = glm::radians(horizontal);
 
             VisualizeCubeMap(lightIndex);
-            ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{(float)1024, (float)512});
+            ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{ (float)m_CubeMapVisualizationWidth, (float)m_CubeMapVisualizationHeight });
 
             ImGui::TreePop();
         }
@@ -698,6 +929,72 @@ namespace Rutile {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[lightIndex]);
 
         m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &VAO);
+    }
+
+    void OpenGlRenderer::VisualizeShadowCascade(int layer) {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
+
+        glViewport(0, 0, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+        }
+
+        std::vector<Vertex> vertices = {
+            //      Position                         Normal                         Uv
+            Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+        };
+
+        std::vector<unsigned int> indices = {
+            2, 1, 0,
+            3, 2, 0
+        };
+
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
+
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(2);
+
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        m_CascadingShadowMapVisualizationShader->Bind();
+
+        m_CascadingShadowMapVisualizationShader->SetInt("layer", layer);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+        m_CascadingShadowMapVisualizationShader->SetInt("shadowMap", 0);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
