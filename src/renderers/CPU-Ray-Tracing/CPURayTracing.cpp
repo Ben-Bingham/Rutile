@@ -6,8 +6,6 @@
 #include "Settings/App.h"
 
 namespace Rutile {
-    unsigned int shaderProgram;
-
     const char* vertexShaderSource = \
         "#version 330 core\n"
         "\n"
@@ -34,10 +32,6 @@ namespace Rutile {
         "   outFragColor = texture(tex, uv);\n"
         "}\n\0";
 
-    unsigned int VAO;
-    unsigned int VBO;
-    unsigned int EBO;
-
     std::vector<float> vertices = {
         // Positions              // Uvs
         -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
@@ -50,7 +44,6 @@ namespace Rutile {
         0, 1, 2,
         0, 2, 3
     };
-
 
     GLFWwindow* CPURayTracing::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -100,14 +93,14 @@ namespace Rutile {
             std::cout << infoLog << std::endl;
         }
 
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
+        m_ShaderProgram = glCreateProgram();
+        glAttachShader(m_ShaderProgram, vertexShader);
+        glAttachShader(m_ShaderProgram, fragmentShader);
+        glLinkProgram(m_ShaderProgram);
 
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+        glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
         if (!success) {
-            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+            glGetProgramInfoLog(m_ShaderProgram, 512, nullptr, infoLog);
             std::cout << "ERROR: Shader program failed to link:" << std::endl;
             std::cout << infoLog << std::endl;
         }
@@ -115,16 +108,16 @@ namespace Rutile {
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
+        glGenVertexArrays(1, &m_VAO);
+        glGenBuffers(1, &m_VBO);
+        glGenBuffers(1, &m_EBO);
 
-        glBindVertexArray(VAO);
+        glBindVertexArray(m_VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0 * sizeof(float)));
@@ -139,38 +132,35 @@ namespace Rutile {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        glUseProgram(shaderProgram);
-        glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
+        glUseProgram(m_ShaderProgram);
+        glUniform1i(glGetUniformLocation(m_ShaderProgram, "tex"), 0);
+
+        glGenTextures(1, &m_ScreenTexture);
+        glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         return window;
     }
 
     void CPURayTracing::Cleanup(GLFWwindow* window) {
+        glDeleteTextures(1, &m_ScreenTexture);
+
         glfwDestroyWindow(window);
     }
 
     void CPURayTracing::Render() {
-        std::vector<unsigned char> pixels;
+        std::vector<unsigned int> pixels;
+        pixels.reserve(App::screenWidth * App::screenHeight);
 
-        for (int x = 0; x < App::screenWidth; ++x) {
-            for (int y = 0; y < App::screenHeight; ++y) {
-                pixels.push_back(255);
-                pixels.push_back(0);
-                pixels.push_back(0);
-                pixels.push_back(255);
+        for (unsigned int x = 0; x < (unsigned int)App::screenWidth; ++x) {
+            for (unsigned int y = 0; y < (unsigned int)App::screenHeight; ++y) {
+                pixels.push_back(PixelShader(x, y));
             }
         }
-
-        unsigned int texture;
-
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -179,12 +169,26 @@ namespace Rutile {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
 
-        glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
+        glUseProgram(m_ShaderProgram);
+        glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+    }
 
-        glDeleteTextures(1, &texture);
+    unsigned CPURayTracing::PixelShader(unsigned x, unsigned y) {
+        unsigned int val = 0;
+
+        unsigned char* r = &((unsigned char*)&val)[0];
+        unsigned char* g = &((unsigned char*)&val)[1];
+        unsigned char* b = &((unsigned char*)&val)[2];
+        unsigned char* a = &((unsigned char*)&val)[3];
+
+        *r = 255;
+        *g = 0;
+        *b = 0;
+        *a = 255;
+
+        return val;
     }
 }
