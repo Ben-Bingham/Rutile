@@ -46,7 +46,7 @@ uniform DirectionalLight directionalLight;
 uniform bool haveDirectionalLight;
 
 vec3 pointLightAddition      (PointLight light,       vec3 normal, vec3 viewDir, float shadow);
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir);
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow);
 
 // Omnidirectional Shadow Maps
 float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition);
@@ -67,6 +67,23 @@ uniform samplerCube pointLightCubeMap0;
 uniform samplerCube pointLightCubeMap1;
 uniform samplerCube pointLightCubeMap2;
 uniform samplerCube pointLightCubeMap3;
+
+// Directional Shadows
+float calculateDirectionalShadow();
+
+uniform bool directionalShadows;
+
+uniform mat4 view;
+
+// Cascading Shadow maps
+uniform sampler2DArray cascadingShadowMap;
+
+uniform int cascadeCount;
+uniform float cascadeFrustumPlanes[11];
+
+uniform mat4 lightSpaceMatrices[10];
+
+uniform float farPlane;
 
 //vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
 
@@ -110,24 +127,139 @@ uniform int shadowMapPcfMode;
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Works
+    //vec4 fragPositionViewSpace = view * vec4(fragPosition, 1.0);
+    //float fragmentDepth = abs(fragPositionViewSpace.z);
+    //
+    //outFragColor = vec4((view * vec4(fragPosition.xyz, 1.0)).xyz, 1.0);
+    //outFragColor = vec4(fragmentDepth, fragmentDepth, fragmentDepth, 1.0);
+    //
+    //
+    //int layer = -1;
+    //for (int i = 0; i < cascadeCount; ++i) {
+    //    if (fragmentDepth < cascadeFrustumPlanes[i + 1]) {
+    //        layer = i;
+    //        break;
+    //    }
+    //}
+    //if (layer == -1) {
+    //    layer = cascadeCount;
+    //}
+    //
+    //float l = float(layer) / float(cascadeCount);
+    //
+    ////outFragColor = vec4(l, l, l, 1.0);
+    //
+    //vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosition, 1.0);
+    //
+    ////outFragColor = vec4(fragPosLightSpace.xyz, 1.0);
+    //
+    //vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    //projCoords = projCoords * 0.5 + 0.5;
+    //
+    ////outFragColor = vec4(projCoords.xyz, 1.0);
+    //
+    //float currentDepth = projCoords.z;
+    //
+    ////outFragColor = vec4(currentDepth, currentDepth, currentDepth, 1.0);
+    //
+    //float depth = texture(cascadingShadowMap, vec3(projCoords.xy, layer)).r;
+    //
+    //outFragColor = vec4(depth, depth, depth, 1.0);
+    //
+    //return;
+
+
+
+
+
+
+
+
+    //
+    //float bias = 0.005;
+    //float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
+    ////if (layer == 0) {
+    ////    float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
+    //outFragColor = vec4(shadow, shadow, shadow, 1.0);
+    ////} else {
+    ////    outFragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    ////}
+    ////return;
+    //
+    //
+    ////return;
+    //
+    ////return;
+    ////if (currentDepth > 1.0) {
+    ////    return;
+    ////}
+    ////
+    ////return;
+    //
+    //
+    //
+    ////vec3 norma = normalize(normal);
+    ////vec3 viewDira = normalize(cameraPosition - fragPosition);
+    //
+    //float s = calculateDirectionalShadow();
+    //
+    //outFragColor = vec4(s, s, s, 1.0);
+    //vec3 val = directionalLightAddition(directionalLight, norma, viewDira, s);
+    //outFragColor = vec4(val.xyz, 1.0);
+
+    //outFragColor = vec4(1.0,1.0,0.0,1.0);
+    //return;
+
+
+
+
+
+
+
+
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
-
-    for (int i = 0; i < pointLightCount; ++i) {
-        float shadow = 0.0;
-        if (omnidirectionalShadowMaps) {
-            shadow = calculateOmnidirectionalShadow(i, fragPosition);
-        }
-        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
-    }
     
-    if (haveDirectionalLight) {
-        result += directionalLightAddition(directionalLight, norm, viewDir);
-    }
-
+    //for (int i = 0; i < pointLightCount; ++i) {
+    //    float shadow = 0.0;
+    //    if (omnidirectionalShadowMaps) {
+    //        shadow = calculateOmnidirectionalShadow(i, fragPosition);
+    //    }
+    //    result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
+    //}
+    
+    float shadow = calculateDirectionalShadow();
+    //if (haveDirectionalLight) {
+    //    float shadow = 0.0;
+    //    if (directionalShadows) {
+    //        shadow = calculateDirectionalShadow();
+    //    }
+    //
+        result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
+    //}
+    
     outFragColor = vec4(result, 1.0);
 }
-
 
 vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
     //float shadow = shadowCalculationForOmnidirectionalShadowMaps(fragPosition);
@@ -158,7 +290,7 @@ vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shado
     return (ambient + diffuse + specular);
 }
 
-vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir) {
+vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDirection = normalize(-light.direction);
 
     // Diffuse
@@ -172,8 +304,8 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir)
     vec3 diffuse = light.diffuse * diff * phong.diffuse;
     vec3 specular = light.specular * spec * phong.specular;
 
-    //diffuse *= (1.0 - shadow);
-    //specular *= (1.0 - shadow);
+    diffuse *= (1.0 - shadow);
+    specular *= (1.0 - shadow);
 
     return (ambient + diffuse + specular);
 }
@@ -281,4 +413,141 @@ float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition) {
     }
 
     return shadow;
+}
+
+float calculateDirectionalShadow() {
+    //vec4 fragPositionViewSpace = view * vec4(fragPosition, 1.0);
+    //float fragmentDepth = abs(fragPositionViewSpace.z);
+    //
+    //outFragColor = vec4((view * vec4(fragPosition.xyz, 1.0)).xyz, 1.0);
+    //outFragColor = vec4(fragmentDepth, fragmentDepth, fragmentDepth, 1.0);
+    //
+    //
+    //int layer = -1;
+    //for (int i = 0; i < cascadeCount; ++i) {
+    //    if (fragmentDepth < cascadeFrustumPlanes[i + 1]) {
+    //        layer = i;
+    //        break;
+    //    }
+    //}
+    //if (layer == -1) {
+    //    layer = cascadeCount;
+    //}
+    //
+    //float l = float(layer) / float(cascadeCount);
+    //
+    ////outFragColor = vec4(l, l, l, 1.0);
+    //
+    //vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosition, 1.0);
+    //
+    ////outFragColor = vec4(fragPosLightSpace.xyz, 1.0);
+    //
+    //vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    //projCoords = projCoords * 0.5 + 0.5;
+    //
+    ////outFragColor = vec4(projCoords.xyz, 1.0);
+    //
+    //float currentDepth = projCoords.z;
+    //
+    ////outFragColor = vec4(currentDepth, currentDepth, currentDepth, 1.0);
+    //
+    //float depth = texture(cascadingShadowMap, vec3(projCoords.xy, layer)).r;
+    //
+    //outFragColor = vec4(depth, depth, depth, 1.0);
+    //
+    //float bias = 0.005;
+    //float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
+    ////if (layer == 0) {
+    ////    float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
+    //outFragColor = vec4(shadow, shadow, shadow, 1.0);
+    //
+    //return shadow;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    vec4 fragPositionViewSpace = view * vec4(fragPosition, 1.0);
+    float fragmentDepth = abs(fragPositionViewSpace.z);
+    
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i) {
+        if (fragmentDepth < cascadeFrustumPlanes[i + 1]) {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1) {
+        layer = cascadeCount - 1;
+    }
+    
+    vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosition, 1.0);
+    
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    
+    float currentDepth = projCoords.z;
+    //if (currentDepth > 1.0) {
+    //    return 0.0;
+    //}
+    
+    //vec3 norm = normalize(normal);
+    //float bias = max(0.05 * (1.0 - dot(norm, directionalLight.direction)), 0.005);
+    //if (layer == cascadeCount) {
+    //    bias *= 1.0 / (farPlane * 0.5);
+    //}
+    //else {
+    //    bias *= 1.0 / (cascadeFrustumPlanes[layer] * 0.5);
+    //}
+    
+    //if (projCoords.z > 1.0) {
+    //    return 0.0;
+    //}
+    
+    float depth = texture(cascadingShadowMap, vec3(projCoords.xy, layer)).r;
+    
+    outFragColor = vec4(depth, depth, depth, 1.0);
+    
+    //return depth;
+
+    float bias = 0.005f;
+    //return 1.0;
+
+    //return float(layer) / float(cascadeCount);
+    
+    return (currentDepth - bias) > depth ? 1.0 : 0.0;
+    
+    
+    //float shadow = 0.0;
+    //vec2 texelSize = 1.0 / vec2(textureSize(cascadingShadowMap, 0));
+    //for(int x = -1; x <= 1; ++x)
+    //{
+    //    for(int y = -1; y <= 1; ++y)
+    //    {
+    //        float pcfDepth = texture(cascadingShadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+    //        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+    //    }
+    //}
+    //shadow /= 9.0;
+    //
+    //return shadow;
 }

@@ -21,6 +21,6 @@ void main() {
 	normal = inNormal;
 	fragPosition = vec3(model * vec4(inPos, 1.0));
 
-	// Shadow Maps
+	// Cascading Shadow maps
 	//fragPositionInLightSpace = lightSpaceMatrix * vec4(fragPosition, 1.0);
 }

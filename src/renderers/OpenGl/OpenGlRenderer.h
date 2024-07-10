@@ -85,7 +85,7 @@ namespace Rutile {
         int m_CascadingShadowMapWidth { 1024 };
         int m_CascadingShadowMapHeight{ 1024 };
 
-        int m_CascadeCount{ 3 };
+        int m_CascadeCount{ 5 };
         int m_MaxCascadeCount{ 10 };
 
         unsigned int m_ShadowCascadesVisualizationFBO{ 0 };
@@ -97,8 +97,13 @@ namespace Rutile {
         int m_CascadeVisualizationWidth{ 1024 };
         int m_CascadeVisualizationHeight{ 1024 };
 
+        float m_ZMinMultiplier{ 1.5f };
+        float m_ZMaxMultiplier{ 1.5f };
+
         std::vector<glm::mat4> m_CascadeCameraProjections;
         std::vector<std::pair<glm::vec3, glm::vec3>> m_CascadeLightBoxes;
+        std::vector<float> m_CascadingFrustumPlanes;
+        std::vector<glm::mat4> m_LightSpaceMatrices;
 
         void VisualizeCascadeShadowMap(int layer);
 

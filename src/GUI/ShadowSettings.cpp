@@ -11,9 +11,9 @@ namespace Rutile {
 
         ImGui::Separator();
 
-        if (ImGui::Checkbox("Enable##dir", &App::settings.directionalShadowMaps)) { App::renderer->SignalDirectionalShadowMapUpdate(); }
+        if (ImGui::Checkbox("Enable##dir", &App::settings.directionalShadows)) { App::renderer->SignalDirectionalShadowMapUpdate(); }
 
-        if (App::settings.directionalShadowMaps) {
+        if (App::settings.directionalShadows) {
             ImGui::Separator();
 
             RadioButtons("Bias mode", { "None##biasMode", "Static##biasMode", "Dynamic##biasMode" }, (int*)&App::settings.shadowMapBiasMode, &Renderer::SignalDirectionalShadowMapUpdate);

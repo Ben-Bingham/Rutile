@@ -250,7 +250,7 @@ namespace Rutile {
 
         RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
-        if (App::scene.HasDirectionalLight() && App::settings.directionalShadowMaps && !App::settings.lockCascadeCamera) {
+        if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
             RenderCascadingShadowMaps(); // TODO this should be called sparingly
         }
 
@@ -336,7 +336,9 @@ namespace Rutile {
         }
         frustumPlanes.push_back(App::settings.farPlane);
 
-        std::vector<glm::mat4> lightSpaceMatrices;
+        m_CascadingFrustumPlanes = frustumPlanes;
+
+        m_LightSpaceMatrices.clear();
 
         m_CascadeCameraProjections.clear();
         m_CascadeLightBoxes.clear();
@@ -367,7 +369,7 @@ namespace Rutile {
 
             // frustumCenter is now the center of the cameras frustum
 
-            glm::mat4 lightView = glm::lookAt(frustumCenter - glm::normalize(App::scene.directionalLight.direction), frustumCenter, glm::vec3{ 0.0f, 1.0f, 0.0f });
+            glm::mat4 lightView = glm::lookAt(frustumCenter + -glm::normalize(App::scene.directionalLight.direction), frustumCenter, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
             float minX = std::numeric_limits<float>::max();
             float maxX = std::numeric_limits<float>::lowest();
@@ -400,19 +402,18 @@ namespace Rutile {
                 maxZWorld = std::max(maxZWorld, corner.z);
             }
 
-            float zMult = 10.0f; // TODO Add to imGui
             if (minZ < 0) {
-                minZ *= zMult;
+                minZ *= m_ZMinMultiplier;
             }
             else {
-                minZ /= zMult;
+                minZ /= m_ZMinMultiplier;
             }
 
             if (maxZ < 0) {
-                maxZ /= zMult;
+                maxZ /= m_ZMaxMultiplier;
             }
             else {
-                maxZ *= zMult;
+                maxZ *= m_ZMaxMultiplier;
             }
 
             m_CascadeLightBoxes.push_back(std::make_pair<glm::vec3, glm::vec3>({ minXWorld, minYWorld, minZWorld }, { maxXWorld, maxYWorld, maxZWorld }));
@@ -421,7 +422,7 @@ namespace Rutile {
 
             glm::mat4 lightViewProjection = lightProjection * lightView;
 
-            lightSpaceMatrices.push_back(lightViewProjection);
+            m_LightSpaceMatrices.push_back(lightViewProjection);
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, m_CascadingShadowMapFBO);
@@ -434,8 +435,8 @@ namespace Rutile {
         for (const auto& object : App::scene.objects) {
             m_CascadingShadowMapShader->SetMat4("model", App::transformBank[object.transform].matrix);
 
-            for (int i = 0; i < (int)m_CascadeCount; ++i) {
-                m_CascadingShadowMapShader->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
+            for (int i = 0; i < m_CascadeCount; ++i) {
+                m_CascadingShadowMapShader->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", m_LightSpaceMatrices[i]);
             }
 
             glBindVertexArray(m_VAOs[object.geometry]);
@@ -505,8 +506,35 @@ namespace Rutile {
                         shaderProgram->SetVec3("directionalLight.ambient", App::scene.directionalLight.ambient);
                         shaderProgram->SetVec3("directionalLight.diffuse", App::scene.directionalLight.diffuse);
                         shaderProgram->SetVec3("directionalLight.specular", App::scene.directionalLight.specular);
+
+                        shaderProgram->SetBool("directionalShadows", App::settings.directionalShadows);
+
+                        shaderProgram->SetMat4("view", App::camera.View()); // TODO might need to cache viewMatrix
+
+                        shaderProgram->SetInt("cascadeCount", m_CascadeCount);
+
+                        int i = 0;
+                        for (const float& plane : m_CascadingFrustumPlanes) {
+                            shaderProgram->SetFloat("cascadeFrustumPlanes[" + std::to_string(i) + "]", plane);
+
+                            ++i;
+                        }
+
+                        i = 0;
+                        for (const glm::mat4& mat : m_LightSpaceMatrices) {
+                            shaderProgram->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", mat);
+                            ++i;
+                        }
+
+                        shaderProgram->SetFloat("farPlane", App::settings.farPlane);
+
+                        glActiveTexture(GL_TEXTURE4);
+                        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+                        shaderProgram->SetInt("cascadingShadowMap", 4);
+
                     } else {
                         shaderProgram->SetBool("haveDirectionalLight", false);
+                        shaderProgram->SetBool("directionalShadows",   false);
                     }
 
                     // Point Lights
@@ -680,7 +708,7 @@ namespace Rutile {
         for (int x = 0; x < 2; ++x) {
             for (int y = 0; y < 2; ++y) {
                 for (int z = 0; z < 2; ++z) {
-                    glm::vec4 corner = invFrustum * glm::vec4{ 2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f };
+                    glm::vec4 corner = invFrustum * glm::vec4{ (2.0f * x) - 1.0f, (2.0f * y) - 1.0f, (2.0f * z) - 1.0f, 1.0f };
 
                     frustumCorners.push_back(corner / corner.w);
                 }
@@ -833,6 +861,9 @@ namespace Rutile {
     void OpenGlRenderer::ProvideCSMVisualization() {
         if (ImGui::TreeNode("Shadow Map##dirLight")) {
 
+            ImGui::DragFloat("Frustum Plane Minimum Multiplier", &m_ZMinMultiplier, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Frustum Plane Maximum Multiplier", &m_ZMaxMultiplier, 0.1f, 0.0f, 100.0f);
+
             ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
             ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
 
@@ -842,7 +873,7 @@ namespace Rutile {
             }
 
             if (m_CascadeCount != 1) {
-                ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.10f, 0, m_CascadeCount - 1);
+                ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.01f, 0, m_CascadeCount - 1);
             }
 
             VisualizeCascadeShadowMap(m_DisplayedCascadeLayer);

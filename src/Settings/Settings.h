@@ -22,8 +22,8 @@ namespace Rutile {
 
         WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
 
-        // Directional Shadow maps
-        bool directionalShadowMaps = true;
+        // Directional Shadows
+        bool directionalShadows = true;
 
         ShadowMapBiasMode shadowMapBiasMode = ShadowMapBiasMode::DYNAMIC;
         float directionalShadowMapBias = 0.005f;
@@ -34,6 +34,12 @@ namespace Rutile {
         GeometricFace culledFaceDuringDirectionalShadowMapping = GeometricFace::FRONT;
 
         bool directionalShadowMapPCF = true;
+
+        // Cascading Shadow maps
+        bool visualizeCascades = false;
+        bool visualizeCascadeLights = false;
+
+        bool lockCascadeCamera = false;
 
         // Omnidirectional Shadow maps
         bool omnidirectionalShadowMaps = true;
@@ -48,12 +54,6 @@ namespace Rutile {
 
         OmnidirectionalShadowMapDiskRadiusMode omnidirectionalShadowMapDiskRadiusMode = OmnidirectionalShadowMapDiskRadiusMode::DYNAMIC;
         float omnidirectionalShadowMapDiskRadius = 0.05f;
-
-        // Cascading Shadow maps
-        bool visualizeCascades = false;
-        bool visualizeCascadeLights = false;
-
-        bool lockCascadeCamera = false;
     };
 
     Settings DefaultSettings();
