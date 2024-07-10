@@ -127,136 +127,26 @@ uniform int shadowMapPcfMode;
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Works
-    //vec4 fragPositionViewSpace = view * vec4(fragPosition, 1.0);
-    //float fragmentDepth = abs(fragPositionViewSpace.z);
-    //
-    //outFragColor = vec4((view * vec4(fragPosition.xyz, 1.0)).xyz, 1.0);
-    //outFragColor = vec4(fragmentDepth, fragmentDepth, fragmentDepth, 1.0);
-    //
-    //
-    //int layer = -1;
-    //for (int i = 0; i < cascadeCount; ++i) {
-    //    if (fragmentDepth < cascadeFrustumPlanes[i + 1]) {
-    //        layer = i;
-    //        break;
-    //    }
-    //}
-    //if (layer == -1) {
-    //    layer = cascadeCount;
-    //}
-    //
-    //float l = float(layer) / float(cascadeCount);
-    //
-    ////outFragColor = vec4(l, l, l, 1.0);
-    //
-    //vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosition, 1.0);
-    //
-    ////outFragColor = vec4(fragPosLightSpace.xyz, 1.0);
-    //
-    //vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    //projCoords = projCoords * 0.5 + 0.5;
-    //
-    ////outFragColor = vec4(projCoords.xyz, 1.0);
-    //
-    //float currentDepth = projCoords.z;
-    //
-    ////outFragColor = vec4(currentDepth, currentDepth, currentDepth, 1.0);
-    //
-    //float depth = texture(cascadingShadowMap, vec3(projCoords.xy, layer)).r;
-    //
-    //outFragColor = vec4(depth, depth, depth, 1.0);
-    //
-    //return;
-
-
-
-
-
-
-
-
-    //
-    //float bias = 0.005;
-    //float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
-    ////if (layer == 0) {
-    ////    float shadow = (currentDepth - bias) > depth ? 1.0 : 0.0;
-    //outFragColor = vec4(shadow, shadow, shadow, 1.0);
-    ////} else {
-    ////    outFragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    ////}
-    ////return;
-    //
-    //
-    ////return;
-    //
-    ////return;
-    ////if (currentDepth > 1.0) {
-    ////    return;
-    ////}
-    ////
-    ////return;
-    //
-    //
-    //
-    ////vec3 norma = normalize(normal);
-    ////vec3 viewDira = normalize(cameraPosition - fragPosition);
-    //
-    //float s = calculateDirectionalShadow();
-    //
-    //outFragColor = vec4(s, s, s, 1.0);
-    //vec3 val = directionalLightAddition(directionalLight, norma, viewDira, s);
-    //outFragColor = vec4(val.xyz, 1.0);
-
-    //outFragColor = vec4(1.0,1.0,0.0,1.0);
-    //return;
-
-
-
-
-
-
-
-
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
     
-    //for (int i = 0; i < pointLightCount; ++i) {
-    //    float shadow = 0.0;
-    //    if (omnidirectionalShadowMaps) {
-    //        shadow = calculateOmnidirectionalShadow(i, fragPosition);
-    //    }
-    //    result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
-    //}
+    for (int i = 0; i < pointLightCount; ++i) {
+        float shadow = 0.0;
+        if (omnidirectionalShadowMaps) {
+            shadow = calculateOmnidirectionalShadow(i, fragPosition);
+        }
+        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
+    }
     
     float shadow = calculateDirectionalShadow();
-    //if (haveDirectionalLight) {
-    //    float shadow = 0.0;
-    //    if (directionalShadows) {
-    //        shadow = calculateDirectionalShadow();
-    //    }
-    //
+    if (haveDirectionalLight) {
+        float shadow = 0.0;
+        if (directionalShadows) {
+            shadow = calculateDirectionalShadow();
+        }
+    
         result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
-    //}
+    }
     
     outFragColor = vec4(result, 1.0);
 }

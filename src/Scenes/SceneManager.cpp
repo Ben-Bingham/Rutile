@@ -123,7 +123,7 @@ namespace Rutile {
 
         Transform transform5{ };
         transform5.position = { -1.0f, 1.0f, 0.0f };
-        sceneFactory.Add("Top Left", Primitive::CUBE, transform5, "Material 3", solid3, phong3);
+        MaterialIndex mat3 = sceneFactory.Add("Top Left", Primitive::CUBE, transform5, "Material 3", solid3, phong3);
 
         Transform transform6{ };
         transform6.scale = { 5.0f, 1.0f, 3.0f };
@@ -135,31 +135,44 @@ namespace Rutile {
         transform7.position = { 0.0f, 0.0f, -2.0f };
         sceneFactory.Add("Floor", Primitive::CUBE, transform7, mat4);
 
-        PointLight pointLight{ };
-        pointLight.position = { 0.0f, 0.0f, 1.0f };
+        //PointLight pointLight{ };
+        //pointLight.position = { 0.0f, 0.0f, 1.0f };
 
-        pointLight.ambient = { 0.05f, 0.05f, 0.05f };
-        pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
-        pointLight.specular = { 1.0f, 1.0f, 1.0f };
+        //pointLight.ambient = { 0.05f, 0.05f, 0.05f };
+        //pointLight.diffuse = { 0.8f, 0.8f, 0.8f };
+        //pointLight.specular = { 1.0f, 1.0f, 1.0f };
 
-        pointLight.constant = 1.0f;
-        pointLight.linear = 0.65f;
-        pointLight.quadratic = 0.032f;
+        //pointLight.constant = 1.0f;
+        //pointLight.linear = 0.65f;
+        //pointLight.quadratic = 0.032f;
 
-        sceneFactory.Add(pointLight);
+        //sceneFactory.Add(pointLight);
 
-        PointLight pointLight2{ };
-        pointLight2.position = { -2.0f, 0.0f, 1.0f };
+        //PointLight pointLight2{ };
+        //pointLight2.position = { -2.0f, 0.0f, 1.0f };
 
-        pointLight2.ambient = { 0.05f, 0.05f, 0.05f };
-        pointLight2.diffuse = { 0.8f, 0.8f, 0.8f };
-        pointLight2.specular = { 1.0f, 1.0f, 1.0f };
+        //pointLight2.ambient = { 0.05f, 0.05f, 0.05f };
+        //pointLight2.diffuse = { 0.8f, 0.8f, 0.8f };
+        //pointLight2.specular = { 1.0f, 1.0f, 1.0f };
 
-        pointLight2.constant = 1.0f;
-        pointLight2.linear = 0.65f;
-        pointLight2.quadratic = 0.032f;
+        //pointLight2.constant = 1.0f;
+        //pointLight2.linear = 0.65f;
+        //pointLight2.quadratic = 0.032f;
 
-        sceneFactory.Add(pointLight2);
+        //sceneFactory.Add(pointLight2);
+
+        DirectionalLight dirLight{ };
+        dirLight.ambient =  { 0.6f, 0.6f, 0.6f };
+        dirLight.specular = { 0.6f, 0.6f, 0.6f };
+        dirLight.diffuse =  { 0.6f, 0.6f, 0.6f };
+
+        sceneFactory.Add(dirLight);
+
+        Transform ball1{ };
+        ball1.position = { 2.0f, 0.0f, 0.0f };
+        ball1.scale = { 0.5f, 0.5f, 0.5f };
+
+        sceneFactory.Add("Ball 1", Primitive::SPHERE, ball1, mat3);
 
         return sceneFactory.GetScene();
     }

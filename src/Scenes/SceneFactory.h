@@ -5,7 +5,8 @@ namespace Rutile {
     enum class Primitive {
         TRIANGLE,
 		SQUARE,
-		CUBE
+		CUBE,
+		SPHERE
     };
 
 	class SceneFactory {
