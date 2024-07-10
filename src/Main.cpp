@@ -62,7 +62,7 @@ int main() {
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
-        auto frameStart = std::chrono::system_clock::now();
+        auto frameStartTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
 
@@ -101,9 +101,13 @@ int main() {
         { // Rendering
             App::imGui.StartNewFrame();
 
+            auto imGuiStartTime = std::chrono::steady_clock::now();
             MainGuiWindow();
+            App::timingData.imGuiTime = std::chrono::steady_clock::now() - imGuiStartTime;
 
+            auto renderStartTime = std::chrono::steady_clock::now();
             App::renderer->Render();
+            App::timingData.renderTime = std::chrono::steady_clock::now() - renderStartTime;
 
             App::imGui.FinishFrame();
 
@@ -111,9 +115,7 @@ int main() {
         }
 
         // Timing the frame
-        auto frameEnd = std::chrono::system_clock::now();
-
-        App::frameTime = frameEnd - frameStart;
+        App::timingData.frameTime = std::chrono::steady_clock::now() - frameStartTime;
     }
 
     App::imGui.Cleanup();

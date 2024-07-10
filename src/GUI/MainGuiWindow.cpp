@@ -6,6 +6,7 @@
 #include "ShadowSettings.h"
 
 #include "SceneObjects.h"
+#include "TimingStatistics.h"
 
 #include "Settings/App.h"
 
@@ -18,6 +19,10 @@ namespace Rutile {
         {
             if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen)) {
                 GeneralSettings();
+            }
+
+            if (ImGui::CollapsingHeader("Timing Statistics")) {
+                TimingStatistics();
             }
 
             if (ImGui::CollapsingHeader("Rendering Settings")) {

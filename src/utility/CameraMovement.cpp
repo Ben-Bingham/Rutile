@@ -3,7 +3,7 @@
 
 namespace Rutile {
     void MoveCamera() {
-        const float dt = static_cast<float>(App::frameTime.count());
+        const float dt = static_cast<float>(App::timingData.frameTime.count());
         const float velocity = App::camera.speed * dt;
 
         if (glfwGetKey(App::window, GLFW_KEY_W) == GLFW_PRESS) {

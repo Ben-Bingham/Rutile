@@ -16,6 +16,8 @@
 
 #include "Scenes/SceneManager.h"
 
+#include "utility/TimingData.h"
+
 namespace Rutile {
     struct App {
         inline static std::string name = "Rutile";
@@ -50,6 +52,6 @@ namespace Rutile {
         inline static glm::ivec2 mousePosition = { 0, 0 };
         inline static glm::ivec2 lastMousePosition = mousePosition;
 
-        inline static std::chrono::duration<double> frameTime = std::chrono::duration<double>(0.0);
+        inline static TimingData timingData{ };
     };
 }
