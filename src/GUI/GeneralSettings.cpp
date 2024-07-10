@@ -9,8 +9,8 @@ namespace Rutile {
         // Select renderer
         RadioButtons(
             "Select Renderer", 
-            { "OpenGl" }, 
-            (int*)&App::currentRendererType, 
+            { "OpenGl", "CPU Ray-Tracing" },
+            (int*)&App::currentRendererType,
             nullptr
         );
 
@@ -40,7 +40,8 @@ namespace Rutile {
                 "Multi Shadow map Testing Scene",
                 "Omnidirectional Shadow map Testing Scene",
                 "General Scene",
-                "Double Point Light Test Scene"
+                "Double Point Light Test Scene",
+                "All Spheres"
             }, 
             (int*)&App::currentSceneType, 
             &Renderer::SignalNewScene

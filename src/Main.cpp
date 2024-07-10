@@ -11,6 +11,8 @@
 
 #include "GUI/MainGUIWindow.h"
 
+#include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
+
 #include "Scenes/SceneManager.h"
 
 #include "utility/CameraMovement.h"
@@ -22,6 +24,8 @@ void CreateCurrentRenderer(RendererType type) {
     case RendererType::OPENGL:
         App::renderer = std::make_unique<OpenGlRenderer>();
         break;
+    case RendererType::CPU_RAY_TRACING:
+        App::renderer = std::make_unique<CPURayTracing>();
     }
 
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);

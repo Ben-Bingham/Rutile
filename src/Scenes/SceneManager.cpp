@@ -37,6 +37,9 @@ namespace Rutile {
             case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
                 return GetDoublePointLightTestScene();
             }
+            case SceneType::ALL_SPHERES: {
+                return GetAllSpheresScene();
+            }
         }
     }
 
@@ -608,6 +611,23 @@ namespace Rutile {
         pointLight2.quadratic = 0.032f;
 
         sceneFactory.Add(pointLight2);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetAllSpheresScene() {
+        SceneFactory sceneFactory;
+
+        Solid solid1{ };
+        solid1.color = { 1.0f, 0.0f, 0.0f };
+
+        Phong phong1 = GetPhong(solid1);
+
+        Transform ball1{ };
+        MaterialIndex mat1 = sceneFactory.Add("Ball 1", Primitive::SPHERE, ball1, "Material 1", solid1, phong1);
+
+        DirectionalLight dirLight{ };
+        sceneFactory.Add(dirLight);
 
         return sceneFactory.GetScene();
     }

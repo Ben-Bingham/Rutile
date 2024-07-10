@@ -2,6 +2,7 @@
 
 namespace Rutile {
     enum class RendererType {
-        OPENGL
+        OPENGL,
+        CPU_RAY_TRACING
     };
 }

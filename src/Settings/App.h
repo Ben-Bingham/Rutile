@@ -33,8 +33,8 @@ namespace Rutile {
         inline static MaterialBank materialBank{ };
         inline static TransformBank transformBank{ };
 
-        inline static Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
-        inline static SceneType currentSceneType = SceneType::ORIGINAL_SCENE;
+        inline static Scene scene = SceneManager::GetScene(SceneType::ALL_SPHERES);
+        inline static SceneType currentSceneType = SceneType::ALL_SPHERES;
         inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
