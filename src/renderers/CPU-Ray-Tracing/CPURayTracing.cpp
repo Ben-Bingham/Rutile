@@ -6,6 +6,8 @@
 
 #include "Settings/App.h"
 
+#include "utility/ThreadPool.h"
+
 namespace Rutile {
     unsigned RenderPixel(unsigned x, unsigned y) {
         unsigned int val = 0;
@@ -25,7 +27,6 @@ namespace Rutile {
 
 
     void RenderSection(Section& section) {
-        auto start = std::chrono::steady_clock::now();
         int x = (int)section.startIndex % App::screenWidth;
         int y = (int)section.startIndex / App::screenWidth;
 
@@ -38,8 +39,6 @@ namespace Rutile {
                 ++y;
             }
         }
-
-        std::cout << (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count() / 1000000.0 << std::endl;
     }
 
     const char* vertexShaderSource = \
@@ -179,12 +178,16 @@ namespace Rutile {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        m_ThreadPool = std::make_unique<ThreadPool>(m_SectionCount);
+
         CalculateSections();
 
         return window;
     }
 
     void CPURayTracing::Cleanup(GLFWwindow* window) {
+        m_ThreadPool.reset();
+
         glDeleteTextures(1, &m_ScreenTexture);
 
         glfwDestroyWindow(window);
@@ -257,6 +260,10 @@ namespace Rutile {
         }
 
         m_Sections.back().length += remainder;
+
+        m_ThreadPool.reset();
+
+        m_ThreadPool = std::make_unique<ThreadPool>(m_SectionCount);
     }
 
     void CPURayTracing::ProvideTimingStatistics() {

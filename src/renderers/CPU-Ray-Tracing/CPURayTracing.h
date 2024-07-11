@@ -6,6 +6,8 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "utility/ThreadPool.h"
+
 namespace Rutile {
     struct Section {
         size_t startIndex;
@@ -31,6 +33,7 @@ namespace Rutile {
         void ProvideLocalRendererSettings() override;
 
     private:
+        std::unique_ptr<ThreadPool> m_ThreadPool;
 
         int m_SectionCount{ 2 };
         std::vector<Section> m_Sections;
