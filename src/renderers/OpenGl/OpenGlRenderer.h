@@ -44,6 +44,8 @@ namespace Rutile {
 
         void ProvideCSMVisualization() override;
 
+        void WindowResizeEvent() override;
+
     private:
         glm::mat4 m_Projection { 1.0f };
 

@@ -143,6 +143,8 @@ namespace Rutile {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        CalculateSections();
+
         return window;
     }
 
@@ -154,12 +156,16 @@ namespace Rutile {
 
     void CPURayTracing::Render() {
         std::vector<unsigned int> pixels;
-        pixels.reserve(App::screenWidth * App::screenHeight);
+        pixels.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
 
-        for (unsigned int x = 0; x < (unsigned int)App::screenWidth; ++x) {
-            for (unsigned int y = 0; y < (unsigned int)App::screenHeight; ++y) {
-                pixels.push_back(PixelShader(x, y));
-            }
+        for (auto& section : m_Sections) {
+            section.pixels.clear();
+
+            section.pixels.resize(section.length);
+
+            RenderSection(section);
+
+            std::memcpy(pixels.data() + section.startIndex, section.pixels.data(), section.length * sizeof(unsigned int));
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
@@ -176,7 +182,13 @@ namespace Rutile {
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
     }
 
-    unsigned CPURayTracing::PixelShader(unsigned x, unsigned y) {
+    void CPURayTracing::WindowResizeEvent() {
+        CalculateSections();
+
+        glViewport(0, 0, App::screenWidth, App::screenHeight);
+    }
+
+    unsigned CPURayTracing::RenderPixel(unsigned x, unsigned y) {
         unsigned int val = 0;
 
         unsigned char* r = &((unsigned char*)&val)[0];
@@ -184,11 +196,40 @@ namespace Rutile {
         unsigned char* b = &((unsigned char*)&val)[2];
         unsigned char* a = &((unsigned char*)&val)[3];
 
-        *r = 255;
-        *g = 0;
+        *r = (unsigned char)(((float)y / (float)App::screenHeight) * 255.0f);
+        *g = (unsigned char)(((float)x / (float)App::screenWidth) * 255.0f);
         *b = 0;
         *a = 255;
 
         return val;
+    }
+
+    void CPURayTracing::CalculateSections() {
+        m_Sections.clear();
+
+        Section section{ };
+        section.startIndex = 0;
+        section.length = (size_t)App::screenWidth * (size_t)App::screenHeight;
+
+        m_Sections.push_back(section);
+    }
+
+    void CPURayTracing::RenderSection(Section& section) {
+        int x = 0;
+        int y = 0;
+
+        for (size_t i = section.startIndex; i < section.length; ++i) {
+            section.pixels[i] = RenderPixel(x, y);
+
+            ++x;
+            if (x == App::screenWidth) {
+                x = 0;
+                ++y;
+            }
+        }
+    }
+
+    std::vector<unsigned> CPURayTracing::CombineSections() {
+        return std::vector<unsigned int>{ };
     }
 }

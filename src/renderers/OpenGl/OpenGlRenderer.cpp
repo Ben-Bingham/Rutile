@@ -883,6 +883,10 @@ namespace Rutile {
         }
     }
 
+    void OpenGlRenderer::WindowResizeEvent() {
+        ProjectionMatrixUpdate();
+    }
+
     void OpenGlRenderer::VisualizeCubeMap(LightIndex lightIndex) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
