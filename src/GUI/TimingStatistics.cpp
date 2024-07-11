@@ -14,5 +14,7 @@ namespace Rutile {
 
         const auto imGuiTime = std::chrono::duration_cast<std::chrono::nanoseconds>(App::timingData.imGuiTime);
         ImGui::Text(("ImGui Time: " + std::to_string((double)imGuiTime.count() / 1000000.0) + "ms").c_str());
+
+        App::renderer->ProvideTimingStatistics();
     }
 }

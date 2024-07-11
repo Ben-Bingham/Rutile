@@ -1,4 +1,5 @@
 #include "CPURayTracing.h"
+#include "imgui.h"
 #include <iostream>
 
 #include "renderers/OpenGl/utility/GLDebug.h"
@@ -6,6 +7,41 @@
 #include "Settings/App.h"
 
 namespace Rutile {
+    unsigned RenderPixel(unsigned x, unsigned y) {
+        unsigned int val = 0;
+
+        unsigned char* r = &((unsigned char*)&val)[0];
+        unsigned char* g = &((unsigned char*)&val)[1];
+        unsigned char* b = &((unsigned char*)&val)[2];
+        unsigned char* a = &((unsigned char*)&val)[3];
+
+        *r = (unsigned char)(((float)y / (float)App::screenHeight) * 255.0f);
+        *g = (unsigned char)(((float)x / (float)App::screenWidth) * 255.0f);
+        *b = 0;
+        *a = 255;
+
+        return val;
+    }
+
+
+    void RenderSection(Section& section) {
+        auto start = std::chrono::steady_clock::now();
+        int x = (int)section.startIndex % App::screenWidth;
+        int y = (int)section.startIndex / App::screenWidth;
+
+        for (size_t i = section.startIndex; i < section.startIndex + section.length; ++i) {
+            section.pixels[i - section.startIndex] = RenderPixel(x, y);
+
+            ++x;
+            if (x == App::screenWidth) {
+                x = 0;
+                ++y;
+            }
+        }
+
+        std::cout << (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count() / 1000000.0 << std::endl;
+    }
+
     const char* vertexShaderSource = \
         "#version 330 core\n"
         "\n"
@@ -158,15 +194,30 @@ namespace Rutile {
         std::vector<unsigned int> pixels;
         pixels.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
 
+        // Pixel Rendering
+        const auto pixelRenderStart = std::chrono::steady_clock::now();
+
+        std::vector<std::thread> threads;
         for (auto& section : m_Sections) {
             section.pixels.clear();
 
             section.pixels.resize(section.length);
 
-            RenderSection(section);
+            threads.emplace_back(RenderSection, std::ref(section));
+        }
 
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        m_PixelRenderTime = std::chrono::steady_clock::now() - pixelRenderStart;
+
+        // Section combining
+        const auto sectionCombinationStart = std::chrono::steady_clock::now();
+        for (auto& section : m_Sections) {
             std::memcpy(pixels.data() + section.startIndex, section.pixels.data(), section.length * sizeof(unsigned int));
         }
+        m_SectionCombinationTime = std::chrono::steady_clock::now() - sectionCombinationStart;
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -188,48 +239,47 @@ namespace Rutile {
         glViewport(0, 0, App::screenWidth, App::screenHeight);
     }
 
-    unsigned CPURayTracing::RenderPixel(unsigned x, unsigned y) {
-        unsigned int val = 0;
-
-        unsigned char* r = &((unsigned char*)&val)[0];
-        unsigned char* g = &((unsigned char*)&val)[1];
-        unsigned char* b = &((unsigned char*)&val)[2];
-        unsigned char* a = &((unsigned char*)&val)[3];
-
-        *r = (unsigned char)(((float)y / (float)App::screenHeight) * 255.0f);
-        *g = (unsigned char)(((float)x / (float)App::screenWidth) * 255.0f);
-        *b = 0;
-        *a = 255;
-
-        return val;
-    }
-
     void CPURayTracing::CalculateSections() {
         m_Sections.clear();
 
-        Section section{ };
-        section.startIndex = 0;
-        section.length = (size_t)App::screenWidth * (size_t)App::screenHeight;
+        const size_t pixelCount = (size_t)App::screenWidth * (size_t)App::screenHeight;
 
-        m_Sections.push_back(section);
-    }
+        size_t remainder = pixelCount % m_SectionCount;
+        size_t sectionSize = (pixelCount - remainder) / m_SectionCount;
 
-    void CPURayTracing::RenderSection(Section& section) {
-        int x = 0;
-        int y = 0;
+        for (size_t i = 0; i < (size_t)m_SectionCount; ++i) {
+            Section section{ };
 
-        for (size_t i = section.startIndex; i < section.length; ++i) {
-            section.pixels[i] = RenderPixel(x, y);
+            section.startIndex = i * sectionSize;
+            section.length = sectionSize;
 
-            ++x;
-            if (x == App::screenWidth) {
-                x = 0;
-                ++y;
-            }
+            m_Sections.push_back(section);
         }
+
+        m_Sections.back().length += remainder;
     }
 
-    std::vector<unsigned> CPURayTracing::CombineSections() {
-        return std::vector<unsigned int>{ };
+    void CPURayTracing::ProvideTimingStatistics() {
+        ImGui::Separator();
+
+        const auto totalPixelRenderTime = std::chrono::duration_cast<std::chrono::nanoseconds>(m_PixelRenderTime);
+        ImGui::Text(("Total Pixel Rendering Time: " + std::to_string((double)totalPixelRenderTime.count() / 1000000.0) + "ms").c_str());
+
+        const auto totalSectionCombinationTime = std::chrono::duration_cast<std::chrono::nanoseconds>(m_SectionCombinationTime);
+        ImGui::Text(("Total Section Combination Time: " + std::to_string((double)totalSectionCombinationTime.count() / 1000000.0) + "ms").c_str());
+
+        ImGui::Separator();
+
+        const auto averagePixelRenderTime = std::chrono::duration_cast<std::chrono::nanoseconds>(m_PixelRenderTime);
+        ImGui::Text(("Average Pixel Rendering Time: " + std::to_string((double)averagePixelRenderTime.count() / 1000000.0 / (double)m_SectionCount) + "ms").c_str());
+
+        const auto averageSectionCombinationTime = std::chrono::duration_cast<std::chrono::nanoseconds>(m_SectionCombinationTime);
+        ImGui::Text(("Average Section Combination Time: " + std::to_string((double)averageSectionCombinationTime.count() / 1000000.0 / (double)m_SectionCount) + "ms").c_str());
+    }
+
+    void CPURayTracing::ProvideLocalRendererSettings() {
+        if (ImGui::DragInt("Section Count", &m_SectionCount, 0.01f, 1, 100)) {
+            CalculateSections();
+        }
     }
 }

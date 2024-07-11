@@ -55,5 +55,8 @@ namespace Rutile {
         virtual void ProvideDirectionalLightVisualization() { }
 
         virtual void ProvideCSMVisualization() { }
+
+        virtual void ProvideTimingStatistics() { }
+        virtual void ProvideLocalRendererSettings() { }
 	};
 }

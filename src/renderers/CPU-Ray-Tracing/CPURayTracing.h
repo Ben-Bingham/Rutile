@@ -1,19 +1,24 @@
 #pragma once
+#include <chrono>
+
 #include "renderers/Renderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
 namespace Rutile {
+    struct Section {
+        size_t startIndex;
+        size_t length;
+
+        std::vector<unsigned int> pixels;
+    };
+
+    void RenderSection(Section& section);
+    unsigned int RenderPixel(unsigned int x, unsigned int y);
+
     class CPURayTracing : public Renderer {
     public:
-        struct Section {
-            size_t startIndex;
-            size_t length;
-
-            std::vector<unsigned int> pixels;
-        };
-
         GLFWwindow* Init() override;
         void Cleanup(GLFWwindow* window) override;
         void Render() override;
@@ -21,18 +26,20 @@ namespace Rutile {
         // Events
         void WindowResizeEvent() override;
 
-    private:
-        unsigned int RenderPixel(unsigned int x, unsigned int y);
+        // GUI
+        void ProvideTimingStatistics() override;
+        void ProvideLocalRendererSettings() override;
 
+    private:
+
+        int m_SectionCount{ 2 };
         std::vector<Section> m_Sections;
 
         void CalculateSections();
-        void RenderSection(Section& section);
 
-        std::vector<unsigned int> CombineSections();
-
-        unsigned int m_XSectionCount{ 4 };
-        unsigned int m_YSectionCount{ 4 };
+        // Timing Statistics
+        std::chrono::duration<double> m_PixelRenderTime;
+        std::chrono::duration<double> m_SectionCombinationTime;
 
         // Presenting Image
         unsigned int m_ShaderProgram;
