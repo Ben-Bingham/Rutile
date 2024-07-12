@@ -41,7 +41,7 @@ namespace Rutile {
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 
-        inline static RendererType currentRendererType = RendererType::OPENGL;
+        inline static RendererType currentRendererType = RendererType::CPU_RAY_TRACING;
         inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
 

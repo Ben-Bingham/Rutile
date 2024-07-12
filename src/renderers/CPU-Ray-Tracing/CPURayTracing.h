@@ -16,8 +16,15 @@ namespace Rutile {
         std::vector<unsigned int> pixels;
     };
 
+    unsigned int RenderPixel(glm::u32vec2 pixelCoordinate);
     void RenderSection(Section* section);
-    unsigned int RenderPixel(unsigned int x, unsigned int y);
+
+    struct Ray {
+        glm::vec3 origin;
+        glm::vec3 direction;
+    };
+
+    glm::vec3 FireRayIntoScene(const Ray& ray);
 
     class CPURayTracing : public Renderer {
     public:
@@ -37,7 +44,7 @@ namespace Rutile {
     private:
         std::unique_ptr<RayTracingThreadPool> m_ThreadPool;
 
-        int m_SectionCount{ 1 };
+        int m_SectionCount{ 16 };
         std::vector<Section> m_Sections;
 
         void CalculateSections();

@@ -624,6 +624,7 @@ namespace Rutile {
         Phong phong1 = GetPhong(solid1);
 
         Transform ball1{ };
+        ball1.position = { 0.0f, 0.0f, -1.0f };
         MaterialIndex mat1 = sceneFactory.Add("Ball 1", Primitive::SPHERE, ball1, "Material 1", solid1, phong1);
 
         DirectionalLight dirLight{ };

@@ -25,10 +25,8 @@ namespace Rutile {
                 TimingStatistics();
             }
 
-            if (App::currentRendererType != RendererType::CPU_RAY_TRACING) {
-                if (ImGui::CollapsingHeader("Rendering Settings")) {
-                    RenderingSettings();
-                }
+            if (ImGui::CollapsingHeader("Rendering Settings")) {
+                RenderingSettings();
             }
 
             if (ImGui::CollapsingHeader("Local Renderer Settings")) {

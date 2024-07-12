@@ -9,7 +9,7 @@
 #include "utility/ThreadPool.h"
 
 namespace Rutile {
-    unsigned RenderPixel(unsigned x, unsigned y) {
+    unsigned RenderPixel(glm::u32vec2 pixelCoordinate) {
         unsigned int val = 0;
 
         unsigned char* r = &((unsigned char*)&val)[0];
@@ -17,21 +17,67 @@ namespace Rutile {
         unsigned char* b = &((unsigned char*)&val)[2];
         unsigned char* a = &((unsigned char*)&val)[3];
 
-        *r = static_cast<unsigned char>(App::settings.backgroundColor.r * 255.0f);
-        *g = static_cast<unsigned char>(App::settings.backgroundColor.g * 255.0f);
-        *b = static_cast<unsigned char>(App::settings.backgroundColor.b * 255.0f);
+        //Ray ray;
+
+        //for (int i = 0; i < maxBounces; ++i) {
+        //    float closestDistance;
+        //    Object closestObject;
+        //    for (const auto& object : App::scene.objects) {
+        //        glm::mat4 inverseMvp = ...;
+
+        //        tempRayPos = inverseMvp * ray.pos;
+        //        tempRayDir = inverseMvp * ray.dir;
+
+        //        if (ray hits) {
+        //            float distance = ...;
+        //            closestDistance = min(closestDistance, distance);
+        //            if (closestDistance == distance) {
+        //                closestObject = object;
+        //            }
+        //        }
+        //    }
+
+        //    Material = ...;
+        //    BoundceRay();
+        //}
+
+        glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)App::screenWidth, (float)pixelCoordinate.y / (float)App::screenHeight };
+
+        Ray ray;
+
+        const glm::mat4 cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+        const glm::mat4 inverseProjection = glm::inverse(cameraProjection);
+
+        const glm::mat4 inverseView = glm::inverse(App::camera.View());
+
+        // This coordinate is the target of the ray, it starts in screen space, but this line brings it into clip space
+        normalizedPixelCoordinate = normalizedPixelCoordinate * 2.0f - 1.0f; // Bring into the range [-1, 1]
+
+        // Here we bring the target of the ray from clip space into view space
+        const glm::vec4 target = inverseProjection * glm::vec4(normalizedPixelCoordinate.x, normalizedPixelCoordinate.y, 1, 1);
+
+        // Finally we bring the ray target from view space into world space
+        ray.direction = glm::vec3(inverseView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0));
+
+        // The cameras position is already in world space, and so it does not need to be transformed
+        ray.origin = App::camera.position;
+
+        const glm::vec3 pixelColor = FireRayIntoScene(ray);
+
+        *r = static_cast<unsigned char>(pixelColor.r * 255.0f);
+        *g = static_cast<unsigned char>(pixelColor.g * 255.0f);
+        *b = static_cast<unsigned char>(pixelColor.b * 255.0f);
         *a = 255;
 
         return val;
     }
-
 
     void RenderSection(Section* section) {
         int x = (int)section->startIndex % App::screenWidth;
         int y = (int)section->startIndex / App::screenWidth;
 
         for (size_t i = section->startIndex; i < section->startIndex + section->length; ++i) {
-            section->pixels[i - section->startIndex] = RenderPixel(x, y);
+            section->pixels[i - section->startIndex] = RenderPixel(glm::u32vec2{ x, y });
 
             ++x;
             if (x == App::screenWidth) {
@@ -39,6 +85,29 @@ namespace Rutile {
                 ++y;
             }
         }
+    }
+
+    glm::vec3 FireRayIntoScene(const Ray& ray) {
+        constexpr float r = 1.0f; // Sphere radius in local space
+        constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
+
+        const glm::mat4 inverseSphereModel = glm::inverse(App::transformBank[App::scene.objects[0].transform].matrix);
+
+        const glm::vec3 o = inverseSphereModel * glm::vec4{ ray.origin, 1.0f };
+        const glm::vec3 d = inverseSphereModel * glm::vec4{ ray.direction, 0.0f };
+
+        glm::vec3 co = spherePos - o;
+        const float a = dot(d, d);
+        const float b = 2.0f * glm::dot(d, co);
+        const float c = dot(co, co) - (r * r);
+
+        const float discriminant = (b * b) - (4.0f * a * c);
+
+        if (discriminant >= 0.0f) {
+            return glm::vec3{ 0.0f, 1.0f, 0.0f };
+        }
+
+        return App::settings.backgroundColor;
     }
 
     const char* vertexShaderSource = \
