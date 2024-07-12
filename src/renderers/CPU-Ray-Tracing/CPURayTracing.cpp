@@ -26,12 +26,12 @@ namespace Rutile {
     }
 
 
-    void RenderSection(Section& section) {
-        int x = (int)section.startIndex % App::screenWidth;
-        int y = (int)section.startIndex / App::screenWidth;
+    void RenderSection(Section* section) {
+        int x = (int)section->startIndex % App::screenWidth;
+        int y = (int)section->startIndex / App::screenWidth;
 
-        for (size_t i = section.startIndex; i < section.startIndex + section.length; ++i) {
-            section.pixels[i - section.startIndex] = RenderPixel(x, y);
+        for (size_t i = section->startIndex; i < section->startIndex + section->length; ++i) {
+            section->pixels[i - section->startIndex] = RenderPixel(x, y);
 
             ++x;
             if (x == App::screenWidth) {
@@ -178,7 +178,7 @@ namespace Rutile {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        m_ThreadPool = std::make_unique<ThreadPool>(m_SectionCount);
+        m_ThreadPool = std::make_unique<RayTracingThreadPool>(m_SectionCount);
 
         CalculateSections();
 
@@ -199,19 +199,14 @@ namespace Rutile {
 
         // Pixel Rendering
         const auto pixelRenderStart = std::chrono::steady_clock::now();
-
-        std::vector<std::thread> threads;
         for (auto& section : m_Sections) {
             section.pixels.clear();
-
             section.pixels.resize(section.length);
 
-            threads.emplace_back(RenderSection, std::ref(section));
+            m_ThreadPool->QueueJob(RenderSection, &section);
         }
 
-        for (auto& thread : threads) {
-            thread.join();
-        }
+        m_ThreadPool->WaitForCompletion();
 
         m_PixelRenderTime = std::chrono::steady_clock::now() - pixelRenderStart;
 
@@ -263,7 +258,7 @@ namespace Rutile {
 
         m_ThreadPool.reset();
 
-        m_ThreadPool = std::make_unique<ThreadPool>(m_SectionCount);
+        m_ThreadPool = std::make_unique<RayTracingThreadPool>(m_SectionCount);
     }
 
     void CPURayTracing::ProvideTimingStatistics() {

@@ -16,11 +16,13 @@ namespace Rutile {
         std::vector<unsigned int> pixels;
     };
 
-    void RenderSection(Section& section);
+    void RenderSection(Section* section);
     unsigned int RenderPixel(unsigned int x, unsigned int y);
 
     class CPURayTracing : public Renderer {
     public:
+        using RayTracingThreadPool = ThreadPool<Section*>;
+
         GLFWwindow* Init() override;
         void Cleanup(GLFWwindow* window) override;
         void Render() override;
@@ -33,9 +35,9 @@ namespace Rutile {
         void ProvideLocalRendererSettings() override;
 
     private:
-        std::unique_ptr<ThreadPool> m_ThreadPool;
+        std::unique_ptr<RayTracingThreadPool> m_ThreadPool;
 
-        int m_SectionCount{ 2 };
+        int m_SectionCount{ 1 };
         std::vector<Section> m_Sections;
 
         void CalculateSections();
