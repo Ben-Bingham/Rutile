@@ -17,9 +17,9 @@ namespace Rutile {
         unsigned char* b = &((unsigned char*)&val)[2];
         unsigned char* a = &((unsigned char*)&val)[3];
 
-        *r = (unsigned char)(((float)y / (float)App::screenHeight) * 255.0f);
-        *g = (unsigned char)(((float)x / (float)App::screenWidth) * 255.0f);
-        *b = 0;
+        *r = static_cast<unsigned char>(App::settings.backgroundColor.r * 255.0f);
+        *g = static_cast<unsigned char>(App::settings.backgroundColor.g * 255.0f);
+        *b = static_cast<unsigned char>(App::settings.backgroundColor.b * 255.0f);
         *a = 255;
 
         return val;

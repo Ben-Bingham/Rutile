@@ -22,6 +22,8 @@ namespace Rutile {
 
         WindingOrder frontFace = WindingOrder::COUNTER_CLOCK_WISE;
 
+        glm::vec3 backgroundColor = { 0.5f, 0.5f, 0.5f };
+
         // Directional Shadows
         bool directionalShadows = true;
 
