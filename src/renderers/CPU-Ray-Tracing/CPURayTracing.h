@@ -50,16 +50,16 @@ namespace Rutile {
         void CalculateSections();
 
         // Timing Statistics
-        std::chrono::duration<double> m_PixelRenderTime;
-        std::chrono::duration<double> m_SectionCombinationTime;
+        std::chrono::duration<double> m_PixelRenderTime{ };
+        std::chrono::duration<double> m_SectionCombinationTime{ };
 
         // Presenting Image
-        unsigned int m_ShaderProgram;
+        unsigned int m_ShaderProgram{ 0 };
 
-        unsigned int m_VAO;
-        unsigned int m_VBO;
-        unsigned int m_EBO;
+        unsigned int m_VAO{ 0 };
+        unsigned int m_VBO{ 0 };
+        unsigned int m_EBO{ 0 };
 
-        unsigned int m_ScreenTexture;
+        unsigned int m_ScreenTexture{ 0 };
     };
 }
