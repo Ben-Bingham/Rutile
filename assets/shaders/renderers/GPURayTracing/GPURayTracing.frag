@@ -6,6 +6,7 @@ struct Ray {
 };
 
 struct Object {
+    mat4 model;
     mat4 invModel;
     int materialIndex;
 };
@@ -58,6 +59,7 @@ vec3 FireRayIntoScene(Ray ray) {
     bool hitSomething = false;
     float closestDistance = MAX_FLOAT;
     int hitObjectIndex;
+    vec3 normal;
 
     for (int i = 0; i < objectCount; ++i) {
         vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
@@ -92,11 +94,20 @@ vec3 FireRayIntoScene(Ray ray) {
             closestDistance = t;
             hitSomething = true;
             hitObjectIndex = i;
+
+            vec3 hitPointLocalSpace = o + t * d;
+
+            normal = normalize(hitPointLocalSpace - spherePos);
+
+            // Transform normal back to world space
+            vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * normal;
+            normal = normalize(normalWorldSpace);
         }
     }
 
     if (hitSomething) {
-        return materialBank[objects[hitObjectIndex].materialIndex].color;
+          return (normal + 1.0) * 0.5;
+        //return materialBank[objects[hitObjectIndex].materialIndex].color;
     }
 
     return backgroundColor;

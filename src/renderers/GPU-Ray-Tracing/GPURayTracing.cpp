@@ -128,6 +128,7 @@ namespace Rutile {
         for (const auto& object : App::scene.objects) {
             const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
+            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].model",         App::transformBank[object.transform].matrix);
             m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].invModel",      invModel);
             m_RayTracingShader->SetInt ("objects[" + std::to_string(i) + "].materialIndex", (int)object.material);
 
