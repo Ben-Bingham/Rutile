@@ -106,8 +106,7 @@ vec3 FireRayIntoScene(Ray ray) {
     }
 
     if (hitSomething) {
-          return (normal + 1.0) * 0.5;
-        //return materialBank[objects[hitObjectIndex].materialIndex].color;
+        return materialBank[objects[hitObjectIndex].materialIndex].color;
     }
 
     return backgroundColor;

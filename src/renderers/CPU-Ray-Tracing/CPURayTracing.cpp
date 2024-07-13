@@ -146,8 +146,7 @@ namespace Rutile {
         }
 
         if (hitSomething) {
-            return (normal + 1.0f) * 0.5f;
-            //return App::materialBank.GetSolid(hitObject->material)->color;
+            return App::materialBank.GetSolid(hitObject->material)->color;
         }
 
         return App::settings.backgroundColor;
@@ -306,8 +305,8 @@ namespace Rutile {
     }
 
     void CPURayTracing::Render() {
-        std::vector<unsigned int> pixels;
-        pixels.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+        std::vector<unsigned int> presentationPixels;
+        presentationPixels.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
 
         // Pixel Rendering
         const auto pixelRenderStart = std::chrono::steady_clock::now();
@@ -324,12 +323,14 @@ namespace Rutile {
 
         // Section combining
         const auto sectionCombinationStart = std::chrono::steady_clock::now();
+
         for (auto& section : m_Sections) {
-            std::memcpy(pixels.data() + section.startIndex, section.pixels.data(), section.length * sizeof(unsigned int));
+            std::memcpy(presentationPixels.data() + section.startIndex, section.pixels.data(), section.length * sizeof(unsigned int));
         }
+
         m_SectionCombinationTime = std::chrono::steady_clock::now() - sectionCombinationStart;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, presentationPixels.data());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
