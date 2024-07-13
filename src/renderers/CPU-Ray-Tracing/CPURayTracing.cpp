@@ -42,7 +42,6 @@ namespace Rutile {
         //}
 
         glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)App::screenWidth, (float)pixelCoordinate.y / (float)App::screenHeight };
-
         Ray ray;
 
         const glm::mat4 cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
@@ -62,7 +61,11 @@ namespace Rutile {
         // The cameras position is already in world space, and so it does not need to be transformed
         ray.origin = App::camera.position;
 
-        const glm::vec3 pixelColor = FireRayIntoScene(ray);
+        glm::vec3 pixelColor = FireRayIntoScene(ray);
+
+        pixelColor.r = glm::clamp(pixelColor.r, 0.0f, 1.0f);
+        pixelColor.g = glm::clamp(pixelColor.g, 0.0f, 1.0f);
+        pixelColor.b = glm::clamp(pixelColor.b, 0.0f, 1.0f);
 
         *r = static_cast<unsigned char>(pixelColor.r * 255.0f);
         *g = static_cast<unsigned char>(pixelColor.g * 255.0f);
