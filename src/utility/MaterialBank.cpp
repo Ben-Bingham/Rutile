@@ -36,4 +36,8 @@ namespace Rutile {
     std::string MaterialBank::GetName(MaterialIndex i) {
         return m_Names[i];
     }
+
+    size_t MaterialBank::Size() {
+        return m_SolidMaterials.size();
+    }
 }

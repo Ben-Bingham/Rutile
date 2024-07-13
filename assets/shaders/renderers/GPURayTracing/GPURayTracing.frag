@@ -7,6 +7,11 @@ struct Ray {
 
 struct Object {
     mat4 invModel;
+    int materialIndex;
+};
+
+struct Material {
+    vec3 color;
 };
 
 out vec4 outFragColor;
@@ -23,6 +28,11 @@ uniform vec3 backgroundColor;
 const int MAX_OBJECTS = 50;
 uniform Object objects[MAX_OBJECTS];
 uniform int objectCount;
+
+const int MAX_MATERIALS = 50;
+uniform Material materialBank[MAX_MATERIALS];
+
+const float MAX_FLOAT = 3.402823466e+38F;
 
 vec3 FireRayIntoScene(Ray ray);
 
@@ -46,6 +56,8 @@ vec3 FireRayIntoScene(Ray ray) {
     vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
     bool hitSomething = false;
+    float closestDistance = MAX_FLOAT;
+    int hitObjectIndex;
 
     for (int i = 0; i < objectCount; ++i) {
         vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
@@ -58,14 +70,33 @@ vec3 FireRayIntoScene(Ray ray) {
 
         float discriminant = (b * b) - (4.0f * a * c);
 
-        if (discriminant >= 0.0f) {
+        if (discriminant < 0.0) {
+            continue;
+        }
+
+        float sqrtDiscriminant = sqrt(discriminant);
+
+        // Because we subtract the discriminant, this root will always be smaller than the other one
+        float t = (-b - sqrtDiscriminant) / (2.0 * a);
+
+        if (t < 0.0) {
+            t = (-b + sqrtDiscriminant) / (2.0 * a);
+            if (t < 0.0) {
+                continue;
+            }
+        }
+
+        // At this point, no matter what t will be the closest hit for this object
+
+        if (t < closestDistance) {
+            closestDistance = t;
             hitSomething = true;
-            break;
+            hitObjectIndex = i;
         }
     }
 
     if (hitSomething) {
-        return vec3(0.0, 1.0, 0.0);
+        return materialBank[objects[hitObjectIndex].materialIndex].color;
     }
 
     return backgroundColor;

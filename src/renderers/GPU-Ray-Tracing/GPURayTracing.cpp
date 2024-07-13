@@ -120,11 +120,16 @@ namespace Rutile {
 
         m_RayTracingShader->SetVec3("backgroundColor", App::settings.backgroundColor);
 
+        for (size_t i = 0; i < App::materialBank.Size(); ++i) {
+            m_RayTracingShader->SetVec3("materialBank[" + std::to_string(i) + "].color", App::materialBank.GetSolid(i)->color);
+        }
+
         int i = 0;
         for (const auto& object : App::scene.objects) {
             const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
-            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].invModel", invModel);
+            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].invModel",      invModel);
+            m_RayTracingShader->SetInt ("objects[" + std::to_string(i) + "].materialIndex", (int)object.material);
 
             ++i;
         }

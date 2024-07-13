@@ -18,6 +18,8 @@ namespace Rutile {
 
 		std::string GetName(MaterialIndex i);
 
+		size_t Size();
+
 	private:
 		std::vector<Solid> m_SolidMaterials;
 		std::vector<Phong> m_PhongMaterials;
