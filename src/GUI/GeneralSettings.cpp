@@ -9,7 +9,7 @@ namespace Rutile {
         // Select renderer
         RadioButtons(
             "Select Renderer", 
-            { "OpenGl", "CPU Ray-Tracing" },
+            { "OpenGl", "CPU Ray-Tracing", "GPU Ray-Tracing" },
             (int*)&App::currentRendererType,
             nullptr
         );

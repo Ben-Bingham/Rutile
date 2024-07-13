@@ -36,6 +36,8 @@ TODO improve SceneFactory add, optimize by checking if we already have a copy of
 TODO disable face culling for 2d objects especially when shadow mapping
 
 
+TODO make projection matrix more universal, probably pass it to Renderer::Render();
+
 Final goal, be able to render Sponza (and similar scenes) in 4 different renderers:
 	OpenGl
 	Vulkan

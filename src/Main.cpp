@@ -12,6 +12,7 @@
 #include "GUI/MainGUIWindow.h"
 
 #include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
+#include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
 
 #include "Scenes/SceneManager.h"
 
@@ -26,6 +27,10 @@ void CreateCurrentRenderer(RendererType type) {
         break;
     case RendererType::CPU_RAY_TRACING:
         App::renderer = std::make_unique<CPURayTracing>();
+        break;
+    case RendererType::GPU_RAY_TRACING:
+        App::renderer = std::make_unique<GPURayTracing>();
+        break;
     }
 
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
