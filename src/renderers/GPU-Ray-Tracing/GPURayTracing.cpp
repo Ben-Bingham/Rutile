@@ -108,6 +108,29 @@ namespace Rutile {
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_RayTracingShader->Bind();
+
+        const glm::mat4 cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+        const glm::mat4 inverseProjection = glm::inverse(cameraProjection);
+
+        const glm::mat4 inverseView = glm::inverse(App::camera.View());
+
+        m_RayTracingShader->SetMat4("invView", inverseView);
+        m_RayTracingShader->SetMat4("invProjection", inverseProjection);
+        m_RayTracingShader->SetVec3("cameraPosition", App::camera.position);
+
+        m_RayTracingShader->SetVec3("backgroundColor", App::settings.backgroundColor);
+
+        int i = 0;
+        for (const auto& object : App::scene.objects) {
+            const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
+
+            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].invModel", invModel);
+
+            ++i;
+        }
+
+        m_RayTracingShader->SetInt("objectCount", App::scene.objects.size());
+
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
