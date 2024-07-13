@@ -90,17 +90,6 @@ namespace Rutile {
         glBindVertexArray(0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        m_RayTracingShader->Bind();
-        m_RayTracingShader->SetInt("tex", 0);
-
-        glGenTextures(1, &m_ScreenTexture);
-        glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
         return window;
     }
 
@@ -109,22 +98,14 @@ namespace Rutile {
         glDeleteBuffers(1, &m_VBO);
         glDeleteBuffers(1, &m_EBO);
 
-        glDeleteTextures(1, &m_ScreenTexture);
-
         m_RayTracingShader.reset();
 
         glfwDestroyWindow(window);
     }
 
     void GPURayTracing::Render() {
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-        //glGenerateMipmap(GL_TEXTURE_2D);
-
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
 
         m_RayTracingShader->Bind();
         glBindVertexArray(m_VAO);
