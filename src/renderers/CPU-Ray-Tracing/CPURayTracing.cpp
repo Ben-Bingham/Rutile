@@ -97,6 +97,7 @@ namespace Rutile {
         bool hitSomething = false;
         float closestDistance = std::numeric_limits<float>::max();
         Object* hitObject = nullptr;
+        glm::vec3 normal{ };
 
         for (auto& object : App::scene.objects) {
             const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
@@ -133,11 +134,20 @@ namespace Rutile {
                 closestDistance = t;
                 hitSomething = true;
                 hitObject = &object;
+
+                glm::vec3 hitPointLocalSpace = o + t * d;
+
+                normal = glm::normalize(hitPointLocalSpace - spherePos);
+
+                // Transform normal back to world space
+                glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * normal;
+                normal = glm::normalize(normalWorldSpace);
             }
         }
 
         if (hitSomething) {
-            return App::materialBank.GetSolid(hitObject->material)->color;
+            return (normal + 1.0f) * 0.5f;
+            //return App::materialBank.GetSolid(hitObject->material)->color;
         }
 
         return App::settings.backgroundColor;
