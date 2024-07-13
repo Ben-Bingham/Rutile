@@ -34,11 +34,11 @@ namespace Rutile {
             "}\n\0";
 
         std::vector<float> vertices = {
-            // Positions              // Uvs
-            -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,
-            -1.0f,  1.0f, 0.0f,       0.0f, 1.0f,
-             1.0f,  1.0f, 0.0f,       1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f,       1.0f, 0.0f,
+            // Positions
+            -1.0f, -1.0f, 0.0f,
+            -1.0f,  1.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,
+             1.0f, -1.0f, 0.0f,
         };
 
         std::vector<unsigned int> indices = {
@@ -69,44 +69,7 @@ namespace Rutile {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
 
-        unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-        glCompileShader(vertexShader);
-
-        int success;
-        char infoLog[512];
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-            std::cout << "ERROR: Vertex shader failed to compile:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-        glCompileShader(fragmentShader);
-
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-            std::cout << "ERROR: Fragment shader failed to compile:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        m_ShaderProgram = glCreateProgram();
-        glAttachShader(m_ShaderProgram, vertexShader);
-        glAttachShader(m_ShaderProgram, fragmentShader);
-        glLinkProgram(m_ShaderProgram);
-
-        glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(m_ShaderProgram, 512, nullptr, infoLog);
-            std::cout << "ERROR: Shader program failed to link:" << std::endl;
-            std::cout << infoLog << std::endl;
-        }
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+        m_RayTracingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\GPURayTracing\\GPURayTracing.vert", "assets\\shaders\\renderers\\GPURayTracing\\GPURayTracing.frag");
 
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
@@ -120,20 +83,15 @@ namespace Rutile {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(0 * sizeof(float)));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(0 * sizeof(float)));
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
         glBindVertexArray(0);
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        glUseProgram(m_ShaderProgram);
-        glUniform1i(glGetUniformLocation(m_ShaderProgram, "tex"), 0);
+        m_RayTracingShader->Bind();
+        m_RayTracingShader->SetInt("tex", 0);
 
         glGenTextures(1, &m_ScreenTexture);
         glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
@@ -153,6 +111,8 @@ namespace Rutile {
 
         glDeleteTextures(1, &m_ScreenTexture);
 
+        m_RayTracingShader.reset();
+
         glfwDestroyWindow(window);
     }
 
@@ -166,7 +126,7 @@ namespace Rutile {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
 
-        glUseProgram(m_ShaderProgram);
+        m_RayTracingShader->Bind();
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }

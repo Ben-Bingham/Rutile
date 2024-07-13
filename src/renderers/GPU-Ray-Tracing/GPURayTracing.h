@@ -1,8 +1,12 @@
 #pragma once
+#include <memory>
+
 #include "renderers/Renderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "renderers/OpenGl/utility/Shader.h"
 
 namespace Rutile {
     class GPURayTracing : public Renderer {
@@ -15,7 +19,7 @@ namespace Rutile {
         void WindowResizeEvent() override;
 
     private:
-        unsigned int m_ShaderProgram{ 0 };
+        std::unique_ptr<Shader> m_RayTracingShader;
 
         unsigned int m_VAO{ 0 };
         unsigned int m_VBO{ 0 };

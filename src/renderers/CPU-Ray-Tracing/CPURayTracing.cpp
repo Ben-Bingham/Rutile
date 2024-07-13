@@ -304,7 +304,6 @@ namespace Rutile {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
-        glUniform1i(glGetUniformLocation(m_ShaderProgram, "tex"), 0);
 
         glUseProgram(m_ShaderProgram);
         glBindVertexArray(m_VAO);
