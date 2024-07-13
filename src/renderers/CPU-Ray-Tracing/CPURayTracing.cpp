@@ -91,19 +91,29 @@ namespace Rutile {
         constexpr float r = 1.0f; // Sphere radius in local space
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
-        const glm::mat4 inverseSphereModel = glm::inverse(App::transformBank[App::scene.objects[0].transform].matrix);
+        bool hitSomething = false;
 
-        const glm::vec3 o = inverseSphereModel * glm::vec4{ ray.origin, 1.0f };
-        const glm::vec3 d = inverseSphereModel * glm::vec4{ ray.direction, 0.0f };
+        for (const auto& object : App::scene.objects) {
+            const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
-        glm::vec3 co = spherePos - o;
-        const float a = dot(d, d);
-        const float b = 2.0f * glm::dot(d, co);
-        const float c = dot(co, co) - (r * r);
+            const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
+            const glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f };
 
-        const float discriminant = (b * b) - (4.0f * a * c);
+            glm::vec3 co = spherePos - o;
+            const float a = dot(d, d);
+            const float b = 2.0f * glm::dot(d, co);
+            const float c = dot(co, co) - (r * r);
 
-        if (discriminant >= 0.0f) {
+            const float discriminant = (b * b) - (4.0f * a * c);
+
+            if (discriminant >= 0.0f) {
+                hitSomething = true;
+                break;
+            }
+        }
+
+
+        if (hitSomething) {
             return glm::vec3{ 0.0f, 1.0f, 0.0f };
         }
 
