@@ -9,14 +9,7 @@
 #include "utility/ThreadPool.h"
 
 namespace Rutile {
-    unsigned RenderPixel(glm::u32vec2 pixelCoordinate) {
-        unsigned int val = 0;
-
-        unsigned char* r = &((unsigned char*)&val)[0];
-        unsigned char* g = &((unsigned char*)&val)[1];
-        unsigned char* b = &((unsigned char*)&val)[2];
-        unsigned char* a = &((unsigned char*)&val)[3];
-
+    glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate) {
         //Ray ray;
 
         //for (int i = 0; i < maxBounces; ++i) {
@@ -61,18 +54,9 @@ namespace Rutile {
         // The cameras position is already in world space, and so it does not need to be transformed
         ray.origin = App::camera.position;
 
-        glm::vec3 pixelColor = FireRayIntoScene(ray);
+        const glm::vec3 pixelColor = FireRayIntoScene(ray);
 
-        pixelColor.r = glm::clamp(pixelColor.r, 0.0f, 1.0f);
-        pixelColor.g = glm::clamp(pixelColor.g, 0.0f, 1.0f);
-        pixelColor.b = glm::clamp(pixelColor.b, 0.0f, 1.0f);
-
-        *r = static_cast<unsigned char>(pixelColor.r * 255.0f);
-        *g = static_cast<unsigned char>(pixelColor.g * 255.0f);
-        *b = static_cast<unsigned char>(pixelColor.b * 255.0f);
-        *a = 255;
-
-        return val;
+        return glm::vec4{ pixelColor, 1.0f };
     }
 
     void RenderSection(Section* section) {
@@ -293,6 +277,8 @@ namespace Rutile {
 
         CalculateSections();
 
+        ResetAccumulatedPixelData();
+
         return window;
     }
 
@@ -305,8 +291,7 @@ namespace Rutile {
     }
 
     void CPURayTracing::Render() {
-        std::vector<unsigned int> presentationPixels;
-        presentationPixels.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+        ++m_FrameCount;
 
         // Pixel Rendering
         const auto pixelRenderStart = std::chrono::steady_clock::now();
@@ -324,13 +309,27 @@ namespace Rutile {
         // Section combining
         const auto sectionCombinationStart = std::chrono::steady_clock::now();
 
+        std::vector<glm::vec4> combinedSectionData;
+        combinedSectionData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+
         for (auto& section : m_Sections) {
-            std::memcpy(presentationPixels.data() + section.startIndex, section.pixels.data(), section.length * sizeof(unsigned int));
+            std::memcpy(combinedSectionData.data() + section.startIndex, section.pixels.data(), section.length * sizeof(glm::vec4));
+        }
+
+        std::vector<glm::vec4> imageData;
+        imageData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+
+        size_t i = 0;
+        for (const auto& pixel : combinedSectionData) {
+            m_AccumulatedPixelData[i] += pixel;
+
+            imageData[i] = m_AccumulatedPixelData[i] / (float)m_FrameCount;
+            ++i;
         }
 
         m_SectionCombinationTime = std::chrono::steady_clock::now() - sectionCombinationStart;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, presentationPixels.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, imageData.data());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -342,12 +341,16 @@ namespace Rutile {
         glUseProgram(m_ShaderProgram);
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+        m_OldCamera = App::camera;
     }
 
     void CPURayTracing::WindowResizeEvent() {
         CalculateSections();
 
         glViewport(0, 0, App::screenWidth, App::screenHeight);
+
+        ResetAccumulatedPixelData();
     }
 
     void CPURayTracing::CalculateSections() {
@@ -396,5 +399,23 @@ namespace Rutile {
         if (ImGui::DragInt("Section Count", &m_SectionCount, 0.01f, 1, 100)) {
             CalculateSections();
         }
+    }
+
+    void CPURayTracing::CameraUpdateEvent() {
+        ResetAccumulatedPixelData();
+    }
+
+    void CPURayTracing::SignalObjectMaterialUpdate(ObjectIndex i) {
+        ResetAccumulatedPixelData();
+    }
+
+    void CPURayTracing::SignalObjectTransformUpdate(ObjectIndex i) {
+        ResetAccumulatedPixelData();
+    }
+
+    void CPURayTracing::ResetAccumulatedPixelData() {
+        m_AccumulatedPixelData.clear();
+        m_AccumulatedPixelData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+        m_FrameCount = 0;
     }
 }

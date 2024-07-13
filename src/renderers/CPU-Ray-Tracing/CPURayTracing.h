@@ -6,6 +6,8 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "rendering/Camera.h"
+
 #include "utility/ThreadPool.h"
 
 namespace Rutile {
@@ -13,10 +15,10 @@ namespace Rutile {
         size_t startIndex;
         size_t length;
 
-        std::vector<unsigned int> pixels;
+        std::vector<glm::vec4> pixels;
     };
 
-    unsigned int RenderPixel(glm::u32vec2 pixelCoordinate);
+    glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate);
     void RenderSection(Section* section);
 
     struct Ray {
@@ -41,7 +43,17 @@ namespace Rutile {
         void ProvideTimingStatistics() override;
         void ProvideLocalRendererSettings() override;
 
+        void CameraUpdateEvent() override;
+        void SignalObjectMaterialUpdate(ObjectIndex i) override;
+        void SignalObjectTransformUpdate(ObjectIndex i) override;
+
     private:
+        void ResetAccumulatedPixelData();
+
+        std::vector<glm::vec4> m_AccumulatedPixelData;
+        size_t m_FrameCount{ 0 };
+        Camera m_OldCamera;
+
         std::unique_ptr<RayTracingThreadPool> m_ThreadPool;
 
         int m_SectionCount{ 16 };
