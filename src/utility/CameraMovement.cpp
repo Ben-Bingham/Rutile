@@ -3,25 +3,32 @@
 
 namespace Rutile {
     void MoveCamera() {
+        bool somethingHasChanged = false;
         const float dt = static_cast<float>(App::timingData.frameTime.count());
         const float velocity = App::camera.speed * dt;
 
         if (glfwGetKey(App::window, GLFW_KEY_W) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position += App::camera.frontVector * velocity;
         }
         if (glfwGetKey(App::window, GLFW_KEY_S) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position -= App::camera.frontVector * velocity;
         }
         if (glfwGetKey(App::window, GLFW_KEY_D) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position += App::camera.rightVector * velocity;
         }
         if (glfwGetKey(App::window, GLFW_KEY_A) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position -= App::camera.rightVector * velocity;
         }
         if (glfwGetKey(App::window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position += App::camera.upVector * velocity;
         }
         if (glfwGetKey(App::window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            somethingHasChanged = true;
             App::camera.position -= App::camera.upVector * velocity;
         }
 
@@ -39,8 +46,8 @@ namespace Rutile {
         }
 
         if (App::mouseDown) {
-            float xDelta = (float)App::mousePosition.x - (float)App::lastMousePosition.x;
-            float yDelta = (float)App::lastMousePosition.y - (float)App::mousePosition.y; // reversed since y-coordinates go from bottom to top
+            const float xDelta = (float)App::mousePosition.x - (float)App::lastMousePosition.x;
+            const float yDelta = (float)App::lastMousePosition.y - (float)App::mousePosition.y; // reversed since y-coordinates go from bottom to top
 
             App::camera.yaw += xDelta * App::camera.lookSensitivity;
             App::camera.pitch += yDelta * App::camera.lookSensitivity;
@@ -51,6 +58,8 @@ namespace Rutile {
             else if (App::camera.pitch < -89.9f) {
                 App::camera.pitch = -89.9f;
             }
+
+            somethingHasChanged = true;
         }
 
         if (App::mouseDown || App::updateCameraVectors) {
@@ -65,8 +74,12 @@ namespace Rutile {
             App::lastMousePosition.y = App::mousePosition.y;
 
             App::updateCameraVectors = false;
+
+            somethingHasChanged = true;
         }
 
-        App::renderer->CameraUpdateEvent();
+        if (somethingHasChanged) {
+            App::renderer->CameraUpdateEvent();
+        }
     }
 }

@@ -6,6 +6,7 @@
 
 #include "Settings/App.h"
 
+#include "utility/Random.h"
 #include "utility/ThreadPool.h"
 
 namespace Rutile {
@@ -35,6 +36,19 @@ namespace Rutile {
         //}
 
         glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)App::screenWidth, (float)pixelCoordinate.y / (float)App::screenHeight };
+
+        const float normalizedPixelWidth = 1.0f / (float)App::screenWidth;
+        const float normalizedPixelHeight = 1.0f / (float)App::screenHeight;
+
+        normalizedPixelCoordinate.x += normalizedPixelWidth / 2.0f;
+        normalizedPixelCoordinate.y += normalizedPixelHeight / 2.0f;
+
+        const float widthJitter = (RandomFloat() - 0.5f) * normalizedPixelWidth;
+        const float heightJitter = (RandomFloat() - 0.5f) * normalizedPixelHeight;
+
+        normalizedPixelCoordinate.x += widthJitter;
+        normalizedPixelCoordinate.y += heightJitter;
+
         Ray ray;
 
         const glm::mat4 cameraProjection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
@@ -341,8 +355,6 @@ namespace Rutile {
         glUseProgram(m_ShaderProgram);
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-        m_OldCamera = App::camera;
     }
 
     void CPURayTracing::WindowResizeEvent() {
@@ -350,6 +362,10 @@ namespace Rutile {
 
         glViewport(0, 0, App::screenWidth, App::screenHeight);
 
+        ResetAccumulatedPixelData();
+    }
+
+    void CPURayTracing::SignalNewScene() {
         ResetAccumulatedPixelData();
     }
 

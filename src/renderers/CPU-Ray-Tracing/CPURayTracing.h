@@ -38,6 +38,7 @@ namespace Rutile {
 
         // Events
         void WindowResizeEvent() override;
+        void SignalNewScene() override;
 
         // GUI
         void ProvideTimingStatistics() override;
@@ -52,7 +53,6 @@ namespace Rutile {
 
         std::vector<glm::vec4> m_AccumulatedPixelData;
         size_t m_FrameCount{ 0 };
-        Camera m_OldCamera;
 
         std::unique_ptr<RayTracingThreadPool> m_ThreadPool;
 

@@ -14,18 +14,5 @@ namespace Rutile {
         float lookSensitivity = 0.25f;
 
         glm::mat4 View() const;
-
-        friend bool operator==(const Camera& lhs, const Camera& rhs) {
-            return lhs.position == rhs.position
-                && lhs.frontVector == rhs.frontVector
-                && lhs.upVector == rhs.upVector
-                && lhs.rightVector == rhs.rightVector
-                && lhs.speed == rhs.speed
-                && lhs.yaw == rhs.yaw
-                && lhs.pitch == rhs.pitch
-                && lhs.lookSensitivity == rhs.lookSensitivity;
-        }
-
-        friend bool operator!=(const Camera& lhs, const Camera& rhs) { return !(lhs == rhs); }
     };
 }
