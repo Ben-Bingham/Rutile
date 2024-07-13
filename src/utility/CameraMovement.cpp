@@ -74,8 +74,6 @@ namespace Rutile {
             App::lastMousePosition.y = App::mousePosition.y;
 
             App::updateCameraVectors = false;
-
-            somethingHasChanged = true;
         }
 
         if (somethingHasChanged) {
