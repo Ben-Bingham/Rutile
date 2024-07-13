@@ -37,9 +37,7 @@ namespace Rutile {
                 "Hello Triangle",
                 "Original Scene",
                 "Shadow map Testing Scene",
-                "Multi Shadow map Testing Scene",
                 "Omnidirectional Shadow map Testing Scene",
-                "General Scene",
                 "Double Point Light Test Scene",
                 "All Spheres"
             }, 

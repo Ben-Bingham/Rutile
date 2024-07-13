@@ -6,9 +6,7 @@ namespace Rutile {
         TRIANGLE_SCENE,
         ORIGINAL_SCENE,
         SHADOW_MAP_TESTING_SCENE,
-        MULTI_SHADOW_CASTER_SHADOW_MAP_TESTING_SCENE,
         OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE,
-        GENERAL_SCENE,
         DOUBLE_POINT_LIGHT_TEST_SCENE,
         ALL_SPHERES
     };
@@ -25,9 +23,7 @@ namespace Rutile {
         static Scene GetTriangleScene();
         static Scene GetOriginalScene();
         static Scene GetShadowMapTestingScene();
-        //static Scene GetMultiLightShadowMapTestingScene();
-        //static Scene GetOmnidirectionalShadowMapTestingScene();
-        //static Scene GetGeneralScene();
+        static Scene GetOmnidirectionalShadowMapTestingScene();
         static Scene GetDoublePointLightTestScene();
         static Scene GetAllSpheresScene();
     };
