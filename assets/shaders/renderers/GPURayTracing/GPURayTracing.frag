@@ -53,7 +53,7 @@ vec3 FireRayIntoScene(Ray ray) {
 
         vec3 co = spherePos - o;
         float a = dot(d, d);
-        float b = 2.0 * dot(d, co);
+        float b = -2.0 * dot(d, co);
         float c = dot(co, co) - (r * r);
 
         float discriminant = (b * b) - (4.0f * a * c);
@@ -63,7 +63,6 @@ vec3 FireRayIntoScene(Ray ray) {
             break;
         }
     }
-
 
     if (hitSomething) {
         return vec3(0.0, 1.0, 0.0);

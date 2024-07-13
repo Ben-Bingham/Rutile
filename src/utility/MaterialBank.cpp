@@ -25,6 +25,14 @@ namespace Rutile {
         return nullptr;
     }
 
+    Solid* MaterialBank::GetSolid(MaterialIndex i) {
+        return &m_SolidMaterials[i];
+    }
+
+    Phong* MaterialBank::GetPhong(MaterialIndex i) {
+        return &m_PhongMaterials[i];
+    }
+
     std::string MaterialBank::GetName(MaterialIndex i) {
         return m_Names[i];
     }

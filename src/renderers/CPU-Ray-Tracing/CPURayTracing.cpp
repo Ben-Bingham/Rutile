@@ -95,8 +95,10 @@ namespace Rutile {
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
         bool hitSomething = false;
+        float closestDistance = std::numeric_limits<float>::max();
+        Object* hitObject = nullptr;
 
-        for (const auto& object : App::scene.objects) {
+        for (auto& object : App::scene.objects) {
             const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
             const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
@@ -104,20 +106,38 @@ namespace Rutile {
 
             glm::vec3 co = spherePos - o;
             const float a = dot(d, d);
-            const float b = 2.0f * glm::dot(d, co);
+            const float b = -2.0f * glm::dot(d, co);
             const float c = dot(co, co) - (r * r);
 
             const float discriminant = (b * b) - (4.0f * a * c);
 
-            if (discriminant >= 0.0f) {
+            if (discriminant < 0.0f) { // No intersection
+                continue;
+            }
+
+            const float sqrtDiscriminant = glm::sqrt(discriminant);
+
+            // Because we subtract the discriminant, this root will always be smaller than the other one
+            float t = (-b - sqrtDiscriminant) / (2.0f * a);
+
+            if (t < 0.0f) {
+                t = (-b + sqrtDiscriminant) / (2.0f * a);
+                if (t < 0.0f) {
+                    continue;
+                }
+            }
+
+            // At this point, no matter what t will be the closest hit for this object
+
+            if (t < closestDistance) {
+                closestDistance = t;
                 hitSomething = true;
-                break;
+                hitObject = &object;
             }
         }
 
-
         if (hitSomething) {
-            return glm::vec3{ 0.0f, 1.0f, 0.0f };
+            return App::materialBank.GetSolid(hitObject->material)->color;
         }
 
         return App::settings.backgroundColor;

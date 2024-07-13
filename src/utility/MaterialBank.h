@@ -13,6 +13,9 @@ namespace Rutile {
 
 		Material* operator[](MaterialIndex i);
 
+		Solid* GetSolid(MaterialIndex i);
+		Phong* GetPhong(MaterialIndex i);
+
 		std::string GetName(MaterialIndex i);
 
 	private:

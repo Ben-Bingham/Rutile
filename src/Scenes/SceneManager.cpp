@@ -441,13 +441,18 @@ namespace Rutile {
 
         Phong phong1 = GetPhong(solid1);
 
+        Solid solid2{ };
+        solid2.color = { 1.0f, 1.0f, 0.0f };
+
+        Phong phong2 = GetPhong(solid2);
+
         Transform ball1{ };
         ball1.position = { 0.0f, 0.0f, -1.0f };
         MaterialIndex mat1 = sceneFactory.Add("Ball 1", Primitive::SPHERE, ball1, "Material 1", solid1, phong1);
 
         Transform ball2{ };
         ball2.position = { 1.0f, 0.0f, -1.0f };
-        sceneFactory.Add("Ball 2", Primitive::SPHERE, ball2, mat1);
+        MaterialIndex mat2 = sceneFactory.Add("Ball 2", Primitive::SPHERE, ball2, "Material 2", solid2, phong2);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
