@@ -1,4 +1,5 @@
 #include "GPURayTracing.h"
+#include "imgui.h"
 #include <iostream>
 
 #include "renderers/OpenGl/utility/GLDebug.h"
@@ -175,6 +176,10 @@ namespace Rutile {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
 
+    void GPURayTracing::SignalNewScene() {
+        ResetAccumulatedPixelData();
+    }
+
     void GPURayTracing::WindowResizeEvent() {
         glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
         glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
@@ -202,6 +207,8 @@ namespace Rutile {
     void GPURayTracing::SignalObjectTransformUpdate(ObjectIndex i) {
         ResetAccumulatedPixelData();
     }
+
+    void GPURayTracing::ProvideLocalRendererSettings() { }
 
     void GPURayTracing::ResetAccumulatedPixelData() {
         m_FrameCount = 0;

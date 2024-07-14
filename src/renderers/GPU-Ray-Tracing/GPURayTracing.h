@@ -16,12 +16,17 @@ namespace Rutile {
         void Cleanup(GLFWwindow* window) override;
         void Render() override;
 
+        void SignalNewScene() override;
+
         // Events
         void WindowResizeEvent() override;
 
         void CameraUpdateEvent() override;
         void SignalObjectMaterialUpdate(ObjectIndex i) override;
         void SignalObjectTransformUpdate(ObjectIndex i) override;
+
+        // ImGui
+        void ProvideLocalRendererSettings() override;
 
     private:
         void ResetAccumulatedPixelData();

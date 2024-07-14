@@ -15,6 +15,8 @@ struct Material {
     vec3 color;
 };
 
+uniform float s;
+
 const float PI = 3.14159265359;
 
 uniform float miliTime;
@@ -57,7 +59,11 @@ vec3 RandomVec3InUnitSphere(float seed);
 vec3 RandomUnitVec3(float seed); // Returns a normalized vec3 on the surface of the unit sphere
 vec3 RandomVec3InHemisphere(float seed, vec3 normal);
 
+vec2 randomState;
+
 void main() {
+    randomState = normalizedPixelPosition.xy * miliTime;
+
     vec2 normalizedPixelCoordinate = normalizedPixelPosition;
 
     float normalizedPixelWidth = 1.0 / float(screenWidth);
@@ -95,71 +101,82 @@ vec3 FireRayIntoScene(Ray ray) {
     float r = 1.0; // Sphere radius in local space
     vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
-    bool hitSomething = false;
-    float closestDistance = MAX_FLOAT;
-    int hitObjectIndex;
-    vec3 normal;
+    float pixelColorMultiplier = 1.0;
 
-    for (int i = 0; i < objectCount; ++i) {
-        vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-        vec3 d = (objects[i].invModel * vec4(ray.direction.xyz, 0.0)).xyz;
+    for (int i = 0; i < 2; ++i) {
+        bool hitSomething = false;
+        float closestDistance = MAX_FLOAT;
+        int hitObjectIndex;
+        vec3 hitNormal;
+        vec3 hitPosition;
 
-        vec3 co = spherePos - o;
-        float a = dot(d, d);
-        float b = -2.0 * dot(d, co);
-        float c = dot(co, co) - (r * r);
+        for (int i = 0; i < objectCount; ++i) {
+            vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
+            vec3 d = (objects[i].invModel * vec4(ray.direction.xyz, 0.0)).xyz;
 
-        float discriminant = (b * b) - (4.0f * a * c);
+            vec3 co = spherePos - o;
+            float a = dot(d, d);
+            float b = -2.0 * dot(d, co);
+            float c = dot(co, co) - (r * r);
 
-        if (discriminant < 0.0) {
-            continue;
-        }
+            float discriminant = (b * b) - (4.0f * a * c);
 
-        float sqrtDiscriminant = sqrt(discriminant);
-
-        // Because we subtract the discriminant, this root will always be smaller than the other one
-        float t = (-b - sqrtDiscriminant) / (2.0 * a);
-
-        if (t < 0.0) {
-            t = (-b + sqrtDiscriminant) / (2.0 * a);
-            if (t < 0.0) {
+            if (discriminant < 0.0) {
                 continue;
+            }
+
+            float sqrtDiscriminant = sqrt(discriminant);
+
+            // Because we subtract the discriminant, this root will always be smaller than the other one
+            float t = (-b - sqrtDiscriminant) / (2.0 * a);
+
+            if (t <= 0.001 || t >= MAX_FLOAT) {
+                t = (-b + sqrtDiscriminant) / (2.0 * a);
+                if (t <= 0.001 || t >= MAX_FLOAT) {
+                    continue;
+                }
+            }
+
+            // At this point, no matter what t will be the closest hit for this object
+
+            if (t < closestDistance) {
+                closestDistance = t;
+                hitSomething = true;
+                hitObjectIndex = i;
+
+                vec3 hitPointLocalSpace = o + t * d;
+
+                hitNormal = normalize(hitPointLocalSpace - spherePos);
+
+                // Transform normal back to world space
+                vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * hitNormal;
+                hitNormal = normalize(normalWorldSpace);
+
+                hitPosition = (objects[i].model * vec4(hitPointLocalSpace, 1.0)).xyz;
+
             }
         }
 
-        // At this point, no matter what t will be the closest hit for this object
+        if (hitSomething) {
+            pixelColorMultiplier *= 0.5;
 
-        if (t < closestDistance) {
-            closestDistance = t;
-            hitSomething = true;
-            hitObjectIndex = i;
-
-            vec3 hitPointLocalSpace = o + t * d;
-
-            normal = normalize(hitPointLocalSpace - spherePos);
-
-            // Transform normal back to world space
-            vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * normal;
-            normal = normalize(normalWorldSpace);
+            ray.origin = hitPosition;
+            ray.direction = RandomVec3InHemisphere(1.434 * i * 0.91324, hitNormal);
+        } else {
+            break;
         }
     }
 
-    if (hitSomething) {
-        return materialBank[objects[hitObjectIndex].materialIndex].color;
-    }
-
-    return backgroundColor;
+    return backgroundColor * pixelColorMultiplier;
 }
 
 const float PHI = 1.61803398874989484820459; 
 
 float RandomFloat(float seed) {
-    float s = fract(miliTime + 0.1 * seed);
-
-    float x = normalizedPixelPosition.x * screenWidth;
-    float y = normalizedPixelPosition.y * screenHeight;
-
-    return fract(tan(distance(vec2(x, y) * PHI, vec2(x, y)) * s) * x);
+    randomState.x = fract(sin(dot(randomState.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    randomState.y = fract(sin(dot(randomState.xy, vec2(12.9898, 78.233))) * 43758.5453);;
+    
+    return randomState.x;
 }
 
 float RandomFloat(float seed, float low, float high) {
@@ -181,14 +198,14 @@ vec3 RandomVec3InUnitSphere(float seed) {
 	float phi = 2.0 * PI * randomVector.x;
 	float cosTheta = 2.0 * randomVector.y - 1.0;
 	float u = randomVector.z;
-
+    
 	float theta = acos(cosTheta);
 	float r = pow(u, 1.0 / 3.0);
-
+    
 	float x = r * sin(theta) * cos(phi);
 	float y = r * sin(theta) * sin(phi);
 	float z = r * cos(theta);
-
+    
 	return vec3(x, y, z);
 }
 

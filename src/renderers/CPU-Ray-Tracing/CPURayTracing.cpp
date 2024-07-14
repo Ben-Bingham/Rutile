@@ -126,8 +126,6 @@ namespace Rutile {
             }
 
             if (hitSomething) {
-                //return hitNormal;
-
                 pixelColorMultiplier *= 0.5f;
 
                 ray.origin = hitPosition;
