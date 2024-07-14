@@ -2,6 +2,7 @@
 #include <random>
 
 #include <glm/ext/quaternion_geometric.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 namespace Rutile {
     float RandomFloat() {
@@ -23,12 +24,21 @@ namespace Rutile {
     }
 
     glm::vec3 RandomVec3InUnitSphere() {
-        while (true) {
-            glm::vec3 trial = RandomVec3(-1.0f, 1.0f);
-            if (glm::length(trial) < 1.0f) {
-                return trial;
-            }
-        }
+        // This function was taken from:
+        //https://github.com/riccardoprosdocimi/real-time-ray-tracer/blob/master/shaders/frag.glsl
+        const glm::vec3 randomVector = RandomVec3();
+        const float phi = 2.0f * glm::pi<float>() * randomVector.x;
+        const float cosTheta = 2.0f * randomVector.y - 1.0f;
+        const float u = randomVector.z;
+        
+        const float theta = acos(cosTheta);
+        const float r = pow(u, 1.0f / 3.0f);
+        
+        const float x = r * sin(theta) * cos(phi);
+        const float y = r * sin(theta) * sin(phi);
+        const float z = r * cos(theta);
+        
+        return { x, y, z };
     }
 
     glm::vec3 RandomUnitVec3() {
