@@ -111,14 +111,9 @@ namespace Rutile {
     void GPURayTracing::Render() {
         ++m_FrameCount;
 
-        std::cout << m_FrameCount << std::endl;
-
         // Render into accumulation framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
         glViewport(0, 0, App::screenWidth, App::screenHeight);
-
-        //glClearColor(App::settings.backgroundColor.b, App::settings.backgroundColor.g, App::settings.backgroundColor.b, 1.0f);
-        //glClear(GL_COLOR_BUFFER_BIT);
 
         m_RayTracingShader->Bind();
 
