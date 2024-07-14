@@ -35,11 +35,11 @@ uniform vec3 cameraPosition;
 
 uniform vec3 backgroundColor;
 
-const int MAX_OBJECTS = 50;
+const int MAX_OBJECTS = 100;
 uniform Object objects[MAX_OBJECTS];
 uniform int objectCount;
 
-const int MAX_MATERIALS = 50;
+const int MAX_MATERIALS = 100;
 uniform Material materialBank[MAX_MATERIALS];
 
 const float MAX_FLOAT = 3.402823466e+38F;
@@ -97,7 +97,7 @@ void main() {
     vec4 target = invProjection * vec4(clipSpacePixelPosition.xy, 1.0, 1.0);
 
     Ray ray;
-    ray.direction = vec3(invView * vec4(normalize(vec3(target) / target.w), 0));
+    ray.direction = normalize(vec3(invView * vec4(normalize(vec3(target) / target.w), 0)));
     ray.origin = cameraPosition;
 
     vec3 pixelColor = FireRayIntoScene(ray);
@@ -118,7 +118,7 @@ vec3 FireRayIntoScene(Ray ray) {
 
     vec3 pixelColor = vec3(1.0, 1.0, 1.0);
 
-    for (int i = 0; i < maxBounces; ++i) {
+    for (int j = 0; j < maxBounces; ++j) {
         bool hitSomething = false;
         float closestDistance = MAX_FLOAT;
         int hitObjectIndex;
@@ -126,15 +126,20 @@ vec3 FireRayIntoScene(Ray ray) {
         vec3 hitPosition;
 
         for (int i = 0; i < objectCount; ++i) {
+            // Transform the ray into the local space of the object
             vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-            vec3 d = (objects[i].invModel * vec4(ray.direction.xyz, 0.0)).xyz;
 
+            vec3 d = (objects[i].invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
+            //vec3 d = transpose(inverse(mat3(objects[i].invModel))) * ray.direction.xyz;
+            d = normalize(d);
+
+            // Intersection test
             vec3 co = spherePos - o;
             float a = dot(d, d);
             float b = -2.0 * dot(d, co);
             float c = dot(co, co) - (r * r);
 
-            float discriminant = (b * b) - (4.0f * a * c);
+            float discriminant = (b * b) - (4.0 * a * c);
 
             if (discriminant < 0.0) {
                 continue;
@@ -145,6 +150,8 @@ vec3 FireRayIntoScene(Ray ray) {
             // Because we subtract the discriminant, this root will always be smaller than the other one
             float t = (-b - sqrtDiscriminant) / (2.0 * a);
 
+            // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
+            // but they cannot be compared to the t values of other objects
             if (t <= 0.001 || t >= MAX_FLOAT) {
                 t = (-b + sqrtDiscriminant) / (2.0 * a);
                 if (t <= 0.001 || t >= MAX_FLOAT) {
@@ -152,10 +159,16 @@ vec3 FireRayIntoScene(Ray ray) {
                 }
             }
 
-            // At this point, no matter what t will be the closest hit for this object
+            // At this point, no matter what t will be the closest hit for THIS object
 
-            if (t < closestDistance) {
-                closestDistance = t;
+            // Here we calculate the WORLD SPACE distance between the hit point and the ray for THIS object,
+            // this can than be compared against other objects
+            vec3 hitPointWorldSpace = (objects[i].model * vec4(o + t * normalize(d), 1.0)).xyz;
+
+            float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
+
+            if (lengthAlongRayWorldSpace < closestDistance) {
+                closestDistance = lengthAlongRayWorldSpace;
                 hitSomething = true;
                 hitObjectIndex = i;
 
@@ -168,7 +181,6 @@ vec3 FireRayIntoScene(Ray ray) {
                 hitNormal = normalize(normalWorldSpace);
 
                 hitPosition = (objects[i].model * vec4(hitPointLocalSpace, 1.0)).xyz;
-
             }
         }
 
@@ -176,7 +188,7 @@ vec3 FireRayIntoScene(Ray ray) {
             pixelColor *= materialBank[objects[hitObjectIndex].materialIndex].color;
 
             ray.origin = hitPosition;
-            ray.direction = hitNormal + RandomUnitVec3(1.434 * i);
+            ray.direction = normalize(hitNormal + RandomUnitVec3(1.434 * j));
         } else {
             break;
         }
