@@ -15,6 +15,8 @@ struct Material {
     vec3 color;
 };
 
+const float PI = 3.14159265359;
+
 uniform float miliTime;
 
 uniform int screenWidth;
@@ -44,12 +46,20 @@ uniform sampler2D accumulationBuffer;
 
 vec3 FireRayIntoScene(Ray ray);
 
-// Keep seed fractional, and ruffly in [0, 10]
+// Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
+float RandomFloat(float seed, float low, float high); // Generates a number in the range [min, max)
+
+vec3 RandomVec3(float seed);
+vec3 RandomVec3(float seed, float low, float high);
+
+vec3 RandomVec3InUnitSphere(float seed);
+vec3 RandomUnitVec3(float seed); // Returns a normalized vec3 on the surface of the unit sphere
+vec3 RandomVec3InHemisphere(float seed, vec3 normal);
 
 void main() {
-    //outFragColor = vec4(normalizedPixelPosition.xy, 0.0, 1.0);
-    //return;
+    outFragColor = vec4(RandomVec3InUnitSphere(0.414).xyz, 1.0);
+    return;
 
     vec2 normalizedPixelCoordinate = normalizedPixelPosition;
 
@@ -85,7 +95,7 @@ void main() {
 }
 
 vec3 FireRayIntoScene(Ray ray) {
-    float r = 1.0f; // Sphere radius in local space
+    float r = 1.0; // Sphere radius in local space
     vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
     bool hitSomething = false;
@@ -153,4 +163,48 @@ float RandomFloat(float seed) {
     float y = normalizedPixelPosition.y * screenHeight;
 
     return fract(tan(distance(vec2(x, y) * PHI, vec2(x, y)) * s) * x);
+}
+
+float RandomFloat(float seed, float low, float high) {
+    return low + (high - low) * RandomFloat(seed);
+}
+
+vec3 RandomVec3(float seed) {
+    return vec3(RandomFloat(seed * 1.14634233), RandomFloat(seed * 0.931454), RandomFloat(seed * 1.04521));
+}
+
+vec3 RandomVec3(float seed, float low, float high) {
+    return vec3(RandomFloat(seed * 1.92459083, low, high), RandomFloat(seed * 0.93298474, low, high), RandomFloat(seed * 1.248902, low, high));
+}
+
+vec3 RandomVec3InUnitSphere(float seed) {
+    // This function was taken from:
+    //https://github.com/riccardoprosdocimi/real-time-ray-tracer/blob/master/shaders/frag.glsl
+	vec3 randomVector = RandomVec3(seed);
+	float phi = 2.0 * PI * randomVector.x;
+	float cosTheta = 2.0 * randomVector.y - 1.0;
+	float u = randomVector.z;
+
+	float theta = acos(cosTheta);
+	float r = pow(u, 1.0 / 3.0);
+
+	float x = r * sin(theta) * cos(phi);
+	float y = r * sin(theta) * sin(phi);
+	float z = r * cos(theta);
+
+	return vec3(x, y, z);
+}
+
+vec3 RandomUnitVec3(float seed) {
+    return normalize(RandomVec3InUnitSphere(seed));
+}
+
+vec3 RandomVec3InHemisphere(float seed, vec3 normal) {
+    vec3 unitSphere = RandomUnitVec3(seed);
+    if (dot(unitSphere, normal) > 0.0) { // In the same hemisphere as the normal
+        return unitSphere;
+    }
+    else {
+        return -unitSphere;
+    }
 }

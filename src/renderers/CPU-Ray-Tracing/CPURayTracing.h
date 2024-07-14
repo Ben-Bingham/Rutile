@@ -52,7 +52,7 @@ namespace Rutile {
         void ResetAccumulatedPixelData();
 
         std::vector<glm::vec4> m_AccumulatedPixelData;
-        size_t m_FrameCount{ 0 };
+        int m_FrameCount{ 0 };
 
         std::unique_ptr<RayTracingThreadPool> m_ThreadPool;
 

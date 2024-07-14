@@ -26,7 +26,7 @@ namespace Rutile {
     private:
         void ResetAccumulatedPixelData();
 
-        size_t m_FrameCount{ 0 };
+        int m_FrameCount{ 0 };
 
         unsigned int m_AccumulationFrameBuffer{ 0 };
         unsigned int m_AccumulationTexture{ 0 };
