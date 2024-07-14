@@ -63,6 +63,17 @@ vec3 RandomVec3InHemisphere(float seed, vec3 normal);
 
 vec2 randomState;
 
+float LinearToGamma(float component) {
+    if (component > 0.0f) {
+        return sqrt(component);
+    }
+    return 0.0f;
+}
+
+vec3 LinearToGamma(vec3 color) {
+    return vec3(LinearToGamma(color.r), LinearToGamma(color.g), LinearToGamma(color.b));
+}
+
 void main() {
     randomState = normalizedPixelPosition.xy * miliTime;
 
@@ -90,6 +101,8 @@ void main() {
     ray.origin = cameraPosition;
 
     vec3 pixelColor = FireRayIntoScene(ray);
+
+    pixelColor = LinearToGamma(pixelColor);
 
     // Writing to accumulation buffer
     vec3 accumulationColor = texture(accumulationBuffer, normalizedPixelPosition).rgb;
