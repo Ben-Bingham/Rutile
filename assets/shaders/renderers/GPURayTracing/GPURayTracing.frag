@@ -116,7 +116,7 @@ vec3 FireRayIntoScene(Ray ray) {
     float r = 1.0; // Sphere radius in local space
     vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
-    float pixelColorMultiplier = 1.0;
+    vec3 pixelColor = vec3(1.0, 1.0, 1.0);
 
     for (int i = 0; i < maxBounces; ++i) {
         bool hitSomething = false;
@@ -173,7 +173,7 @@ vec3 FireRayIntoScene(Ray ray) {
         }
 
         if (hitSomething) {
-            pixelColorMultiplier *= 0.5;
+            pixelColor *= materialBank[objects[hitObjectIndex].materialIndex].color;
 
             ray.origin = hitPosition;
             ray.direction = hitNormal + RandomUnitVec3(1.434 * i);
@@ -182,7 +182,7 @@ vec3 FireRayIntoScene(Ray ray) {
         }
     }
 
-    return backgroundColor * pixelColorMultiplier;
+    return backgroundColor * pixelColor;
 }
 
 const float PHI = 1.61803398874989484820459; 
