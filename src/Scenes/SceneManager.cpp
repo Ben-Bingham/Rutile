@@ -6,6 +6,8 @@
 
 #include "Settings/App.h"
 
+#include "utility/Random.h"
+
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {
         switch (scene) {
@@ -19,11 +21,9 @@ namespace Rutile {
             case SceneType::ORIGINAL_SCENE: {
                 return GetOriginalScene();
             }
-            
             case SceneType::SHADOW_MAP_TESTING_SCENE: {
                 return GetShadowMapTestingScene();
             }
-            
             case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
                 return GetOmnidirectionalShadowMapTestingScene();
             }
@@ -32,6 +32,9 @@ namespace Rutile {
             }
             case SceneType::ALL_SPHERES: {
                 return GetAllSpheresScene();
+            }
+            case SceneType::SPHERES_ON_SPHERES: {
+                return GetSpheresOnSpheresScene();
             }
         }
     }
@@ -457,6 +460,35 @@ namespace Rutile {
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetSpheresOnSpheresScene() {
+        SceneFactory sceneFactory;
+
+        Solid solid1{ };
+        solid1.color = { 245.0f / 255.0f, 66.0f / 255.0f, 203.0f / 255.0f };
+
+        Phong phong1 = GetPhong(solid1);
+
+        Transform mainBall{ };
+        mainBall.scale = { 3.0f, 3.0f, 3.0f };
+        sceneFactory.Add("Main Ball", Primitive::SPHERE, mainBall, "Main Ball Material", solid1, phong1);
+
+        for (int i = 0; i < 99; ++i) {
+            Solid solid{ };
+            solid.color = RandomVec3();
+
+            Phong phong = GetPhong(solid);
+
+            Transform transform{ };
+            transform.position = RandomUnitVec3() * 4.5f;
+            float radius = RandomFloat(0.7f, 1.3f);
+            transform.scale = { radius, radius, radius };
+
+            sceneFactory.Add("Ball " + std::to_string(i), Primitive::SPHERE, transform, "Material " + std::to_string(i), solid, phong);
+        }
 
         return sceneFactory.GetScene();
     }

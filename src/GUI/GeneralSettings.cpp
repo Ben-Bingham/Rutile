@@ -39,7 +39,8 @@ namespace Rutile {
                 "Shadow map Testing Scene",
                 "Omnidirectional Shadow map Testing Scene",
                 "Double Point Light Test Scene",
-                "All Spheres"
+                "All Spheres",
+                "Spheres on Spheres"
             }, 
             (int*)&App::currentSceneType, 
             &Renderer::SignalNewScene

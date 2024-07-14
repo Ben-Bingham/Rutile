@@ -8,7 +8,8 @@ namespace Rutile {
         SHADOW_MAP_TESTING_SCENE,
         OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE,
         DOUBLE_POINT_LIGHT_TEST_SCENE,
-        ALL_SPHERES
+        ALL_SPHERES,
+        SPHERES_ON_SPHERES
     };
 
     // The scene manager simply gives you a scene, and gives a home to all of the objects inside that scene.
@@ -26,5 +27,6 @@ namespace Rutile {
         static Scene GetOmnidirectionalShadowMapTestingScene();
         static Scene GetDoublePointLightTestScene();
         static Scene GetAllSpheresScene();
+        static Scene GetSpheresOnSpheresScene();
     };
 }
