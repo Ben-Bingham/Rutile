@@ -81,7 +81,7 @@ namespace Rutile {
         constexpr float r = 1.0f; // Sphere radius in local space
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
-        float pixelColorMultiplier = 1.0f;
+        glm::vec3 pixelColor{ 1.0f, 1.0f, 1.0f };
 
         for (int i = 0; i < App::settings.maxBounces; ++i) {
             bool hitSomething = false;
@@ -139,7 +139,7 @@ namespace Rutile {
             }
 
             if (hitSomething) {
-                pixelColorMultiplier *= 0.5f;
+                pixelColor *= App::materialBank.GetSolid(hitObject->material)->color;
 
                 ray.origin = hitPosition;
                 ray.direction = hitNormal + RandomUnitVec3();
@@ -148,7 +148,7 @@ namespace Rutile {
             }
         }
 
-        return App::settings.backgroundColor * pixelColorMultiplier;
+        return App::settings.backgroundColor * pixelColor;
     }
 
     const char* vertexShaderSource = \
