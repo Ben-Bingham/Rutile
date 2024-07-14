@@ -50,7 +50,7 @@ namespace Rutile {
         const glm::vec4 target = inverseProjection * glm::vec4(normalizedPixelCoordinate.x, normalizedPixelCoordinate.y, 1, 1);
 
         // Finally we bring the ray target from view space into world space
-        ray.direction = glm::vec3(inverseView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0));
+        ray.direction = glm::normalize(glm::vec3{ inverseView * glm::vec4{ glm::normalize(glm::vec3{ target } / target.w), 0 } });
 
         // The cameras position is already in world space, and so it does not need to be transformed
         ray.origin = App::camera.position;
@@ -94,7 +94,10 @@ namespace Rutile {
                 const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
                 const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
-                const glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f };
+
+                glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f }; // TODO pick one
+                //glm::vec3 d = glm::transpose(inverse(glm::mat3(invModel))) * ray.direction;
+                d = normalize(d);
 
                 glm::vec3 co = spherePos - o;
                 const float a = dot(d, d);
@@ -121,8 +124,12 @@ namespace Rutile {
 
                 // At this point, no matter what t will be the closest hit for this object
 
-                if (t < closestDistance) {
-                    closestDistance = t;
+                glm::vec3 hitPointWorldSpace = App::transformBank[object.transform].matrix * glm::vec4{ o + t * normalize(d), 1.0 };
+
+                float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
+
+                if (lengthAlongRayWorldSpace < closestDistance) {
+                    closestDistance = lengthAlongRayWorldSpace;
                     hitSomething = true;
                     hitObject = &object;
 
@@ -142,7 +149,7 @@ namespace Rutile {
                 pixelColor *= App::materialBank.GetSolid(hitObject->material)->color;
 
                 ray.origin = hitPosition;
-                ray.direction = hitNormal + RandomUnitVec3();
+                ray.direction = glm::normalize(hitNormal + RandomUnitVec3());
             } else {
                 break;
             }
