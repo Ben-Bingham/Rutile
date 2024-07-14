@@ -15,6 +15,11 @@ struct Material {
     vec3 color;
 };
 
+uniform float miliTime;
+
+uniform int screenWidth;
+uniform int screenHeight;
+
 out vec4 outFragColor;
 
 in vec2 normalizedPixelPosition;
@@ -35,11 +40,33 @@ uniform Material materialBank[MAX_MATERIALS];
 
 const float MAX_FLOAT = 3.402823466e+38F;
 
+uniform sampler2D accumulationBuffer;
+
 vec3 FireRayIntoScene(Ray ray);
 
+// Keep seed fractional, and ruffly in [0, 10]
+float RandomFloat(float seed);
+
 void main() {
+    //outFragColor = vec4(normalizedPixelPosition.xy, 0.0, 1.0);
+    //return;
+
+    vec2 normalizedPixelCoordinate = normalizedPixelPosition;
+
+    float normalizedPixelWidth = 1.0 / float(screenWidth);
+    float normalizedPixelHeight = 1.0 / float(screenHeight);
+
+    normalizedPixelCoordinate.x += normalizedPixelWidth / 2.0;
+    normalizedPixelCoordinate.y += normalizedPixelHeight / 2.0;
+
+    float widthJitter = (RandomFloat(2.5436) - 0.5) * normalizedPixelWidth;
+    float heightJitter = (RandomFloat(3.135) - 0.5) * normalizedPixelHeight;
+
+    normalizedPixelCoordinate.x += widthJitter;
+    normalizedPixelCoordinate.y += heightJitter;
+
     // Camera
-	vec2 clipSpacePixelPosition = (normalizedPixelPosition * 2.0) - 1.0;
+	vec2 clipSpacePixelPosition = (normalizedPixelCoordinate * 2.0) - 1.0;
 
     vec4 target = invProjection * vec4(clipSpacePixelPosition.xy, 1.0, 1.0);
 
@@ -49,7 +76,12 @@ void main() {
 
     vec3 pixelColor = FireRayIntoScene(ray);
 
-    outFragColor = vec4(pixelColor.xyz, 1.0);
+    // Writing to accumulation buffer
+    vec3 accumulationColor = texture(accumulationBuffer, normalizedPixelPosition).rgb;
+
+    accumulationColor += pixelColor;
+
+    outFragColor = vec4(accumulationColor.xyz, 1.0);
 }
 
 vec3 FireRayIntoScene(Ray ray) {
@@ -110,4 +142,15 @@ vec3 FireRayIntoScene(Ray ray) {
     }
 
     return backgroundColor;
+}
+
+const float PHI = 1.61803398874989484820459; 
+
+float RandomFloat(float seed) {
+    float s = fract(miliTime + 0.1 * seed);
+
+    float x = normalizedPixelPosition.x * screenWidth;
+    float y = normalizedPixelPosition.y * screenHeight;
+
+    return fract(tan(distance(vec2(x, y) * PHI, vec2(x, y)) * s) * x);
 }

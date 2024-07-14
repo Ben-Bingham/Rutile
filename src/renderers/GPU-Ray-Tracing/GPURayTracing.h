@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <memory>
 
 #include "renderers/Renderer.h"
@@ -18,8 +19,23 @@ namespace Rutile {
         // Events
         void WindowResizeEvent() override;
 
+        void CameraUpdateEvent() override;
+        void SignalObjectMaterialUpdate(ObjectIndex i) override;
+        void SignalObjectTransformUpdate(ObjectIndex i) override;
+
     private:
+        void ResetAccumulatedPixelData();
+
+        size_t m_FrameCount{ 0 };
+
+        unsigned int m_AccumulationFrameBuffer{ 0 };
+        unsigned int m_AccumulationTexture{ 0 };
+        unsigned int m_AccumulationRBO{ 0 };
+
+        std::chrono::time_point<std::chrono::steady_clock> m_RendererLoadTime;
+
         std::unique_ptr<Shader> m_RayTracingShader;
+        std::unique_ptr<Shader> m_RenderingShader;
 
         unsigned int m_VAO{ 0 };
         unsigned int m_VBO{ 0 };
