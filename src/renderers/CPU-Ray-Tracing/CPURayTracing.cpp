@@ -10,6 +10,17 @@
 #include "utility/ThreadPool.h"
 
 namespace Rutile {
+    float LinearToGamma(float component) {
+        if (component > 0.0f) {
+            return sqrt(component);
+        }
+        return 0.0f;
+    }
+
+    glm::vec3 LinearToGamma(glm::vec3 color) {
+        return glm::vec3{ LinearToGamma(color.r), LinearToGamma(color.g), LinearToGamma(color.b) };
+    }
+
     glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate) {
         glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)App::screenWidth, (float)pixelCoordinate.y / (float)App::screenHeight };
 
@@ -44,7 +55,9 @@ namespace Rutile {
         // The cameras position is already in world space, and so it does not need to be transformed
         ray.origin = App::camera.position;
 
-        const glm::vec3 pixelColor = FireRayIntoScene(ray);
+        glm::vec3 pixelColor = FireRayIntoScene(ray);
+
+        pixelColor = LinearToGamma(pixelColor);
 
         return glm::vec4{ pixelColor, 1.0f };
     }
