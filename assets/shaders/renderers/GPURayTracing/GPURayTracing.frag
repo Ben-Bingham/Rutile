@@ -58,9 +58,6 @@ vec3 RandomUnitVec3(float seed); // Returns a normalized vec3 on the surface of 
 vec3 RandomVec3InHemisphere(float seed, vec3 normal);
 
 void main() {
-    outFragColor = vec4(RandomVec3InUnitSphere(0.414).xyz, 1.0);
-    return;
-
     vec2 normalizedPixelCoordinate = normalizedPixelPosition;
 
     float normalizedPixelWidth = 1.0 / float(screenWidth);
