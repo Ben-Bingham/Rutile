@@ -163,7 +163,7 @@ vec3 FireRayIntoScene(Ray ray) {
             pixelColorMultiplier *= 0.5;
 
             ray.origin = hitPosition;
-            ray.direction = RandomVec3InHemisphere(1.434 * i * 0.91324, hitNormal);
+            ray.direction = hitNormal + RandomUnitVec3(1.434 * i);
         } else {
             break;
         }

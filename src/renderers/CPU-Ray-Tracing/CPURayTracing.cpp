@@ -129,7 +129,7 @@ namespace Rutile {
                 pixelColorMultiplier *= 0.5f;
 
                 ray.origin = hitPosition;
-                ray.direction = RandomVec3InHemisphere(hitNormal);
+                ray.direction = hitNormal + RandomUnitVec3();
             } else {
                 break;
             }
