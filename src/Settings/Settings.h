@@ -56,6 +56,9 @@ namespace Rutile {
 
         OmnidirectionalShadowMapDiskRadiusMode omnidirectionalShadowMapDiskRadiusMode = OmnidirectionalShadowMapDiskRadiusMode::DYNAMIC;
         float omnidirectionalShadowMapDiskRadius = 0.05f;
+
+        // Ray-Tracing
+        int maxBounces = 5;
     };
 
     Settings DefaultSettings();

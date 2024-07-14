@@ -43,6 +43,7 @@ namespace Rutile {
         virtual void SignalGeneralShadowMapUpdate()         { }
         virtual void SignalDirectionalShadowMapUpdate()     { }
         virtual void SignalOmnidirectionalShadowMapUpdate() { }
+        virtual void SignalRayTracingSettingsChange()       { }
 
         // Material settings updates
         virtual void SignalMaterialTypeUpdate() { }

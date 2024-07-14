@@ -96,6 +96,9 @@ namespace Rutile {
 
         ResetAccumulatedPixelData();
 
+        m_RayTracingShader->Bind();
+        m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
+
         return window;
     }
 
@@ -178,6 +181,11 @@ namespace Rutile {
 
     void GPURayTracing::SignalNewScene() {
         ResetAccumulatedPixelData();
+    }
+
+    void GPURayTracing::SignalRayTracingSettingsChange() {
+        m_RayTracingShader->Bind();
+        m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
     }
 
     void GPURayTracing::WindowResizeEvent() {

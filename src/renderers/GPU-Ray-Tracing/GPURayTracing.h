@@ -18,6 +18,8 @@ namespace Rutile {
 
         void SignalNewScene() override;
 
+        void SignalRayTracingSettingsChange() override;
+
         // Events
         void WindowResizeEvent() override;
 

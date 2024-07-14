@@ -46,6 +46,8 @@ const float MAX_FLOAT = 3.402823466e+38F;
 
 uniform sampler2D accumulationBuffer;
 
+uniform int maxBounces;
+
 vec3 FireRayIntoScene(Ray ray);
 
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
@@ -103,7 +105,7 @@ vec3 FireRayIntoScene(Ray ray) {
 
     float pixelColorMultiplier = 1.0;
 
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < maxBounces; ++i) {
         bool hitSomething = false;
         float closestDistance = MAX_FLOAT;
         int hitObjectIndex;

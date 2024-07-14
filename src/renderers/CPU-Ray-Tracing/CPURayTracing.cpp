@@ -70,7 +70,7 @@ namespace Rutile {
 
         float pixelColorMultiplier = 1.0f;
 
-        for (int i = 0; i < 5; ++i) {
+        for (int i = 0; i < App::settings.maxBounces; ++i) {
             bool hitSomething = false;
             float closestDistance = std::numeric_limits<float>::max();
             Object* hitObject = nullptr;
