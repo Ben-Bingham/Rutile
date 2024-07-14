@@ -26,7 +26,7 @@ namespace Rutile {
         glm::vec3 direction;
     };
 
-    glm::vec3 FireRayIntoScene(const Ray& ray);
+    glm::vec3 FireRayIntoScene(Ray ray);
 
     class CPURayTracing : public Renderer {
     public:

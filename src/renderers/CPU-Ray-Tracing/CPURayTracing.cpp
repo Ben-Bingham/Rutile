@@ -11,30 +11,6 @@
 
 namespace Rutile {
     glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate) {
-        //Ray ray;
-
-        //for (int i = 0; i < maxBounces; ++i) {
-        //    float closestDistance;
-        //    Object closestObject;
-        //    for (const auto& object : App::scene.objects) {
-        //        glm::mat4 inverseMvp = ...;
-
-        //        tempRayPos = inverseMvp * ray.pos;
-        //        tempRayDir = inverseMvp * ray.dir;
-
-        //        if (ray hits) {
-        //            float distance = ...;
-        //            closestDistance = min(closestDistance, distance);
-        //            if (closestDistance == distance) {
-        //                closestObject = object;
-        //            }
-        //        }
-        //    }
-
-        //    Material = ...;
-        //    BoundceRay();
-        //}
-
         glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)App::screenWidth, (float)pixelCoordinate.y / (float)App::screenHeight };
 
         const float normalizedPixelWidth = 1.0f / (float)App::screenWidth;
@@ -88,66 +64,80 @@ namespace Rutile {
         }
     }
 
-    glm::vec3 FireRayIntoScene(const Ray& ray) {
+    glm::vec3 FireRayIntoScene(Ray ray) {
         constexpr float r = 1.0f; // Sphere radius in local space
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
-        bool hitSomething = false;
-        float closestDistance = std::numeric_limits<float>::max();
-        Object* hitObject = nullptr;
-        glm::vec3 normal{ };
+        float pixelColorMultiplier = 1.0f;
 
-        for (auto& object : App::scene.objects) {
-            const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
+        for (int i = 0; i < 5; ++i) {
+            bool hitSomething = false;
+            float closestDistance = std::numeric_limits<float>::max();
+            Object* hitObject = nullptr;
+            glm::vec3 hitNormal{ };
+            glm::vec3 hitPosition{ };
 
-            const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
-            const glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f };
+            for (auto& object : App::scene.objects) {
+                const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
 
-            glm::vec3 co = spherePos - o;
-            const float a = dot(d, d);
-            const float b = -2.0f * glm::dot(d, co);
-            const float c = dot(co, co) - (r * r);
+                const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
+                const glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f };
 
-            const float discriminant = (b * b) - (4.0f * a * c);
+                glm::vec3 co = spherePos - o;
+                const float a = dot(d, d);
+                const float b = -2.0f * glm::dot(d, co);
+                const float c = dot(co, co) - (r * r);
 
-            if (discriminant < 0.0f) { // No intersection
-                continue;
-            }
+                const float discriminant = (b * b) - (4.0f * a * c);
 
-            const float sqrtDiscriminant = glm::sqrt(discriminant);
-
-            // Because we subtract the discriminant, this root will always be smaller than the other one
-            float t = (-b - sqrtDiscriminant) / (2.0f * a);
-
-            if (t < 0.0f) {
-                t = (-b + sqrtDiscriminant) / (2.0f * a);
-                if (t < 0.0f) {
+                if (discriminant < 0.0f) { // No intersection
                     continue;
+                }
+
+                const float sqrtDiscriminant = glm::sqrt(discriminant);
+
+                // Because we subtract the discriminant, this root will always be smaller than the other one
+                float t = (-b - sqrtDiscriminant) / (2.0f * a);
+
+                if (t <= 0.001f || t >= std::numeric_limits<float>::max()) {
+                    t = (-b + sqrtDiscriminant) / (2.0f * a);
+                    if (t <= 0.001f || t >= std::numeric_limits<float>::max()) {
+                        continue;
+                    }
+                }
+
+                // At this point, no matter what t will be the closest hit for this object
+
+                if (t < closestDistance) {
+                    closestDistance = t;
+                    hitSomething = true;
+                    hitObject = &object;
+
+                    glm::vec3 hitPointLocalSpace = o + t * d;
+
+                    hitNormal = glm::normalize(hitPointLocalSpace - spherePos);
+
+                    // Transform normal back to world space
+                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * hitNormal;
+                    hitNormal = glm::normalize(normalWorldSpace);
+
+                    hitPosition = App::transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
                 }
             }
 
-            // At this point, no matter what t will be the closest hit for this object
+            if (hitSomething) {
+                //return hitNormal;
 
-            if (t < closestDistance) {
-                closestDistance = t;
-                hitSomething = true;
-                hitObject = &object;
+                pixelColorMultiplier *= 0.5f;
 
-                glm::vec3 hitPointLocalSpace = o + t * d;
-
-                normal = glm::normalize(hitPointLocalSpace - spherePos);
-
-                // Transform normal back to world space
-                glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * normal;
-                normal = glm::normalize(normalWorldSpace);
+                ray.origin = hitPosition;
+                ray.direction = RandomVec3InHemisphere(hitNormal);
+            } else {
+                break;
             }
         }
 
-        if (hitSomething) {
-            return App::materialBank.GetSolid(hitObject->material)->color;
-        }
-
-        return App::settings.backgroundColor;
+        return App::settings.backgroundColor * pixelColorMultiplier;
     }
 
     const char* vertexShaderSource = \

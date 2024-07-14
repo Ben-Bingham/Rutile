@@ -451,8 +451,8 @@ namespace Rutile {
         MaterialIndex mat1 = sceneFactory.Add("Ball 1", Primitive::SPHERE, ball1, "Material 1", solid1, phong1);
 
         Transform ball2{ };
-        ball2.position = { 0.0f, -1001.0f, -1.0f };
-        ball2.scale = { 1000.0f, 1000.0f, 1000.0f };
+        ball2.position = { 0.0f, -251.0f, -1.0f };
+        ball2.scale = { 250.0f, 250.0f, 250.0f };
         MaterialIndex mat2 = sceneFactory.Add("Ball 2", Primitive::SPHERE, ball2, "Material 2", solid2, phong2);
 
         DirectionalLight dirLight{ };
