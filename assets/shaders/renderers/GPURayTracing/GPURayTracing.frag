@@ -15,6 +15,13 @@ struct Material {
     vec3 color;
 };
 
+struct HitInfo {
+    vec3 normal;
+    float closestDistance;
+    vec3 hitPosition;
+    int hitObjectIndex;
+};
+
 uniform float s;
 
 const float PI = 3.14159265359;
@@ -120,10 +127,8 @@ vec3 FireRayIntoScene(Ray ray) {
 
     for (int j = 0; j < maxBounces; ++j) {
         bool hitSomething = false;
-        float closestDistance = MAX_FLOAT;
-        int hitObjectIndex;
-        vec3 hitNormal;
-        vec3 hitPosition;
+        HitInfo hitInfo;
+        hitInfo.closestDistance = MAX_FLOAT;
 
         for (int i = 0; i < objectCount; ++i) {
             // Transform the ray into the local space of the object
@@ -167,28 +172,28 @@ vec3 FireRayIntoScene(Ray ray) {
 
             float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
-            if (lengthAlongRayWorldSpace < closestDistance) {
-                closestDistance = lengthAlongRayWorldSpace;
+            if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
+                hitInfo.closestDistance = lengthAlongRayWorldSpace;
                 hitSomething = true;
-                hitObjectIndex = i;
+                hitInfo.hitObjectIndex = i;
 
                 vec3 hitPointLocalSpace = o + t * d;
 
-                hitNormal = normalize(hitPointLocalSpace - spherePos);
+                hitInfo.normal = normalize(hitPointLocalSpace - spherePos);
 
                 // Transform normal back to world space
-                vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * hitNormal;
-                hitNormal = normalize(normalWorldSpace);
+                vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * hitInfo.normal;
+                hitInfo.normal = normalize(normalWorldSpace);
 
-                hitPosition = (objects[i].model * vec4(hitPointLocalSpace, 1.0)).xyz;
+                hitInfo.hitPosition = (objects[i].model * vec4(hitPointLocalSpace, 1.0)).xyz;
             }
         }
 
         if (hitSomething) {
-            pixelColor *= materialBank[objects[hitObjectIndex].materialIndex].color;
+            pixelColor *= materialBank[objects[hitInfo.hitObjectIndex].materialIndex].color;
 
-            ray.origin = hitPosition;
-            ray.direction = normalize(hitNormal + RandomUnitVec3(1.434 * j));
+            ray.origin = hitInfo.hitPosition;
+            ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * j));
         } else {
             break;
         }
