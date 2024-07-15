@@ -85,10 +85,7 @@ namespace Rutile {
 
         for (int i = 0; i < App::settings.maxBounces; ++i) {
             bool hitSomething = false;
-            float closestDistance = std::numeric_limits<float>::max();
-            Object* hitObject = nullptr;
-            glm::vec3 hitNormal{ };
-            glm::vec3 hitPosition{ };
+            HitInfo hitInfo;
 
             for (auto& object : App::scene.objects) {
                 const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
@@ -128,28 +125,28 @@ namespace Rutile {
 
                 float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
-                if (lengthAlongRayWorldSpace < closestDistance) {
-                    closestDistance = lengthAlongRayWorldSpace;
+                if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
+                    hitInfo.closestDistance = lengthAlongRayWorldSpace;
                     hitSomething = true;
-                    hitObject = &object;
+                    hitInfo.hitObject = &object;
 
                     glm::vec3 hitPointLocalSpace = o + t * d;
 
-                    hitNormal = glm::normalize(hitPointLocalSpace - spherePos);
+                    hitInfo.normal = glm::normalize(hitPointLocalSpace - spherePos);
 
                     // Transform normal back to world space
-                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * hitNormal;
-                    hitNormal = glm::normalize(normalWorldSpace);
+                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * hitInfo.normal;
+                    hitInfo.normal = glm::normalize(normalWorldSpace);
 
-                    hitPosition = App::transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
+                    hitInfo.position = App::transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
                 }
             }
 
             if (hitSomething) {
-                pixelColor *= App::materialBank.GetSolid(hitObject->material)->color;
+                pixelColor *= App::materialBank.GetSolid(hitInfo.hitObject->material)->color;
 
-                ray.origin = hitPosition;
-                ray.direction = glm::normalize(hitNormal + RandomUnitVec3());
+                ray.origin = hitInfo.position;
+                ray.direction = glm::normalize(hitInfo.normal + RandomUnitVec3());
             } else {
                 break;
             }

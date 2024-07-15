@@ -26,6 +26,13 @@ namespace Rutile {
         glm::vec3 direction;
     };
 
+    struct HitInfo {
+        glm::vec3 normal;
+        Object* hitObject{ nullptr };
+        float closestDistance{ std::numeric_limits<float>::max() };
+        glm::vec3 position;
+    };
+
     glm::vec3 FireRayIntoScene(Ray ray);
 
     class CPURayTracing : public Renderer {
