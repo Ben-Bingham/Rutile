@@ -102,6 +102,8 @@ namespace Rutile {
         return window;
     }
 
+    void GPURayTracing::Notify(Event* event) {}
+
     void GPURayTracing::Cleanup(GLFWwindow* window) {
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);

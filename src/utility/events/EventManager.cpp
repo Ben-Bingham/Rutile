@@ -1,4 +1,5 @@
-#include "EventManager.h" {
+#include "EventManager.h"
+#include <iostream>
 
 namespace Rutile {
     void EventManager::AddListener(EventListener* listener) {
@@ -6,15 +7,22 @@ namespace Rutile {
     }
 
     void EventManager::RemoveListener(EventListener* listener) {
+        bool found = false;
         int i = 0;
         for (auto listen : m_EventListeners) {
             if (listen == listener) {
+                found = true;
                 break;
             }
             ++i;
         }
 
-        m_EventListeners.erase(m_EventListeners.begin() + i);
+        if (found) {
+            m_EventListeners.erase(m_EventListeners.begin() + i);
+        }
+        else {
+            int a = 1;
+        }
     }
 
     void EventManager::Notify(Event* event) {
@@ -26,6 +34,10 @@ namespace Rutile {
             for (Event* event : m_Events) {
                 listener->Notify(event);
             }
+        }
+
+        for (const auto& event : m_Events) {
+            delete event;
         }
 
         m_Events.clear();

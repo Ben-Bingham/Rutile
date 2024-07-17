@@ -5,15 +5,17 @@
 
 #include "Scenes/Scene.h"
 
+#include "utility/events/EventListener.h"
+
 namespace Rutile {
-	class Renderer {
+	class Renderer : public EventListener {
 	public:
 		Renderer() = default;
         Renderer(const Renderer& other) = default;
         Renderer(Renderer&& other) noexcept = default;
         Renderer& operator=(const Renderer& other) = default;
         Renderer& operator=(Renderer&& other) noexcept = default;
-        virtual ~Renderer() = default;
+        virtual ~Renderer() override = default;
 
         // Necessities
         virtual GLFWwindow* Init() = 0;

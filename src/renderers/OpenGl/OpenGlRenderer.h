@@ -25,6 +25,8 @@ namespace Rutile {
 
         void Render() override;
 
+        void Notify(Event* event) override;
+
     private:
         void RenderOmnidirectionalShadowMaps();
 

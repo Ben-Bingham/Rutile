@@ -43,6 +43,8 @@ namespace Rutile {
         void Cleanup(GLFWwindow* window) override;
         void Render() override;
 
+        void Notify(Event* event) override;
+
         // Events
         void WindowResizeEvent() override;
         void SignalNewScene() override;

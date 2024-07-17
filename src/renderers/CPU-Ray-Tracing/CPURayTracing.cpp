@@ -194,6 +194,8 @@ namespace Rutile {
         0, 2, 3
     };
 
+    void CPURayTracing::Notify(Event* event) {}
+
     GLFWwindow* CPURayTracing::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
         GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
