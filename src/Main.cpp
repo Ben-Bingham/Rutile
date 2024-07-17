@@ -70,6 +70,7 @@ int main() {
         auto frameStartTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
+        App::eventManager.Distribute();
 
         MoveCamera();
 

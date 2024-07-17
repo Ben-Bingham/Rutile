@@ -17,6 +17,7 @@
 #include "Scenes/SceneManager.h"
 
 #include "utility/TimingData.h"
+#include "utility/events/EventManager.h"
 
 namespace Rutile {
     struct App {
@@ -53,5 +54,7 @@ namespace Rutile {
         inline static glm::ivec2 lastMousePosition = mousePosition;
 
         inline static TimingData timingData{ };
+
+        inline static EventManager eventManager;
     };
 }
