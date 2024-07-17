@@ -23,8 +23,6 @@ namespace Rutile {
         void Notify(Event* event) override;
 
         // Events
-        void WindowResizeEvent() override;
-
         void CameraUpdateEvent() override;
         void SignalObjectMaterialUpdate(ObjectIndex i) override;
         void SignalObjectTransformUpdate(ObjectIndex i) override;

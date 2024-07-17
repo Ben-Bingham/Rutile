@@ -8,6 +8,7 @@
 
 #include "utility/Random.h"
 #include "utility/ThreadPool.h"
+#include "utility/events/Events.h"
 
 namespace Rutile {
     float LinearToGamma(float component) {
@@ -194,7 +195,16 @@ namespace Rutile {
         0, 2, 3
     };
 
-    void CPURayTracing::Notify(Event* event) {}
+    void CPURayTracing::Notify(Event* event) {
+        WindowResize* windowResizeEvent = dynamic_cast<WindowResize*>(event);
+        if (windowResizeEvent != nullptr) { 
+            CalculateSections();
+
+            glViewport(0, 0, App::screenWidth, App::screenHeight);
+
+            ResetAccumulatedPixelData();
+        }
+    }
 
     GLFWwindow* CPURayTracing::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -362,14 +372,6 @@ namespace Rutile {
         glUseProgram(m_ShaderProgram);
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-    }
-
-    void CPURayTracing::WindowResizeEvent() {
-        CalculateSections();
-
-        glViewport(0, 0, App::screenWidth, App::screenHeight);
-
-        ResetAccumulatedPixelData();
     }
 
     void CPURayTracing::SignalNewScene() {

@@ -24,7 +24,6 @@ namespace Rutile {
         virtual void Render() = 0;
 
         // Events
-        virtual void WindowResizeEvent() { }
         virtual void CameraUpdateEvent() { }
 
         virtual void ProjectionMatrixUpdate() { }

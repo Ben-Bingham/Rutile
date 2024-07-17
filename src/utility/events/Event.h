@@ -1,8 +1,7 @@
 #pragma once
 
 namespace Rutile {
-    class Event {
-    public:
+    struct Event {
         Event() = default;
         Event(const Event& other) = default;
         Event(Event&& other) noexcept = default;

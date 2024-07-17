@@ -6,6 +6,8 @@
 
 #include "Settings/App.h"
 
+#include "utility/events/Events.h"
+
 namespace Rutile {
     GLFWwindow* GPURayTracing::Init() {
         m_RendererLoadTime = std::chrono::steady_clock::now();
@@ -102,7 +104,24 @@ namespace Rutile {
         return window;
     }
 
-    void GPURayTracing::Notify(Event* event) {}
+    void GPURayTracing::Notify(Event* event) {
+        WindowResize* windowResizeEvent = dynamic_cast<WindowResize*>(event);
+        if (windowResizeEvent != nullptr) {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
+            glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_AccumulationTexture, 0);
+
+            glBindRenderbuffer(GL_RENDERBUFFER, m_AccumulationRBO);
+
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, App::screenWidth, App::screenHeight);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_AccumulationRBO);
+
+            ResetAccumulatedPixelData();
+        }
+    }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
         glDeleteVertexArrays(1, &m_VAO);
@@ -188,22 +207,6 @@ namespace Rutile {
     void GPURayTracing::SignalRayTracingSettingsChange() {
         m_RayTracingShader->Bind();
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
-    }
-
-    void GPURayTracing::WindowResizeEvent() {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
-        glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_AccumulationTexture, 0);
-
-        glBindRenderbuffer(GL_RENDERBUFFER, m_AccumulationRBO);
-
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, App::screenWidth, App::screenHeight);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_AccumulationRBO);
-
-        ResetAccumulatedPixelData();
     }
 
     void GPURayTracing::CameraUpdateEvent() {

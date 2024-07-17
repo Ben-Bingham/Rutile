@@ -14,6 +14,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+#include "utility/events/Events.h"
+
 namespace Rutile {
     GLFWwindow* OpenGlRenderer::Init() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -160,7 +162,12 @@ namespace Rutile {
         return window;
     }
 
-    void OpenGlRenderer::Notify(Event* event) { }
+    void OpenGlRenderer::Notify(Event* event) {
+        WindowResize* windowResizeEvent = dynamic_cast<WindowResize*>(event);
+        if (windowResizeEvent != nullptr) {
+            ProjectionMatrixUpdate();
+        }
+    }
 
     void OpenGlRenderer::Cleanup(GLFWwindow* window) {
         glDisable(GL_CULL_FACE);
@@ -883,10 +890,6 @@ namespace Rutile {
 
             ImGui::TreePop();
         }
-    }
-
-    void OpenGlRenderer::WindowResizeEvent() {
-        ProjectionMatrixUpdate();
     }
 
     void OpenGlRenderer::VisualizeCubeMap(LightIndex lightIndex) {

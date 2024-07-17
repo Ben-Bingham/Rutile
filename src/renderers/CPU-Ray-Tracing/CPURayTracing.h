@@ -46,7 +46,6 @@ namespace Rutile {
         void Notify(Event* event) override;
 
         // Events
-        void WindowResizeEvent() override;
         void SignalNewScene() override;
 
         // GUI

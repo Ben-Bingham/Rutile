@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "events/Events.h"
+
 #include "renderers/Renderer.h"
 
 void glfwErrorCallback(int error, const char* description) {
@@ -17,7 +19,10 @@ namespace Rutile {
         App::screenHeight = h;
 
         if (App::renderer) {
-            App::renderer->WindowResizeEvent();
+            WindowResize* event = new WindowResize{};
+            event->newWidth = w;
+            event->newHeight = h;
+            App::eventManager.Notify(event);
         }
     }
 
