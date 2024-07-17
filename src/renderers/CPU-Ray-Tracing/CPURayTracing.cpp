@@ -196,8 +196,7 @@ namespace Rutile {
     };
 
     void CPURayTracing::Notify(Event* event) {
-        WindowResize* windowResizeEvent = dynamic_cast<WindowResize*>(event);
-        if (windowResizeEvent != nullptr) { 
+        if (EVENT_IS(event, WindowResize)) {
             CalculateSections();
 
             glViewport(0, 0, App::screenWidth, App::screenHeight);

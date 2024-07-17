@@ -105,8 +105,7 @@ namespace Rutile {
     }
 
     void GPURayTracing::Notify(Event* event) {
-        WindowResize* windowResizeEvent = dynamic_cast<WindowResize*>(event);
-        if (windowResizeEvent != nullptr) {
+        if (EVENT_IS(event, WindowResize)) {
             glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
             glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
 
