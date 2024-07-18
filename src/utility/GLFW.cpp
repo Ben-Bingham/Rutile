@@ -19,10 +19,7 @@ namespace Rutile {
         App::screenHeight = h;
 
         if (App::renderer) {
-            WindowResize* event = new WindowResize{};
-            event->newWidth = w;
-            event->newHeight = h;
-            App::eventManager.Notify(event);
+            App::eventManager.Notify(new WindowResize{ });
         }
     }
 

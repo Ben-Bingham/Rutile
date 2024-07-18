@@ -2,8 +2,5 @@
 #include "Event.h"
 
 namespace Rutile {
-    struct WindowResize : Event {
-        int newWidth;
-        int newHeight;
-    };
+    struct WindowResize : Event { };
 }
