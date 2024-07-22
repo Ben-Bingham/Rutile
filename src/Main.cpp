@@ -17,6 +17,7 @@
 #include "Scenes/SceneManager.h"
 
 #include "utility/CameraMovement.h"
+#include "utility/events/Events.h"
 
 using namespace Rutile;
 
@@ -42,7 +43,7 @@ void CreateCurrentRenderer(RendererType type) {
         App::transformBank[object.transform].CalculateMatrix();
     }
 
-    App::renderer->SignalNewScene();
+    App::renderer->LoadScene();
     App::renderer->SignalSettingsUpdate();
     App::renderer->ProjectionMatrixUpdate();
 
@@ -98,7 +99,7 @@ int main() {
                     App::transformBank[object.transform].CalculateMatrix();
                 }
 
-                App::renderer->SignalNewScene();
+                App::renderer->LoadScene();
             }
 
             App::lastSceneType = App::currentSceneType;

@@ -1,4 +1,7 @@
 #include "CameraMovement.h"
+
+#include "events/Events.h"
+
 #include "Settings/App.h"
 
 namespace Rutile {
@@ -77,7 +80,7 @@ namespace Rutile {
         }
 
         if (somethingHasChanged) {
-            App::renderer->CameraUpdateEvent();
+            App::eventManager.Notify(new CameraUpdate{ });
         }
     }
 }

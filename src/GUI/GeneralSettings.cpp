@@ -4,14 +4,15 @@
 
 #include "Settings/App.h"
 
+#include "utility/events/Events.h"
+
 namespace Rutile {
     void GeneralSettings() {
         // Select renderer
         RadioButtons(
             "Select Renderer", 
             { "OpenGl", "CPU Ray-Tracing", "GPU Ray-Tracing" },
-            (int*)&App::currentRendererType,
-            nullptr
+            (int*)&App::currentRendererType
         );
 
         if (ImGui::Button("Restart Renderer")) {
@@ -24,8 +25,8 @@ namespace Rutile {
         RadioButtons(
             "Select Material Type", 
             { "Solid", "Phong" }, 
-            (int*)&App::settings.materialType, 
-            &Renderer::SignalMaterialTypeUpdate
+            (int*)&App::settings.materialType,
+            [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
         );
 
         ImGui::Separator();
@@ -43,7 +44,7 @@ namespace Rutile {
                 "Spheres on Spheres"
             }, 
             (int*)&App::currentSceneType, 
-            &Renderer::SignalNewScene
+            [] { App::renderer->LoadScene(); }
         );
     }
 }

@@ -5,6 +5,8 @@
 
 #include "Settings/App.h"
 
+#include "utility/events/Events.h"
+
 namespace Rutile {
     void SceneObjects() {
         if (ImGui::TreeNode("Objects")) {
@@ -17,23 +19,23 @@ namespace Rutile {
 
                     Transform& transform = App::transformBank[object.transform];
 
-                    if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), glm::value_ptr(transform.position), 0.01f)) { App::renderer->SignalObjectTransformUpdate(i); App::transformBank[object.transform].CalculateMatrix(); }
-                    if (ImGui::DragFloat3(("Scale##"       + std::to_string(i)).c_str(), glm::value_ptr(transform.scale),    0.01f)) { App::renderer->SignalObjectTransformUpdate(i); App::transformBank[object.transform].CalculateMatrix(); }
-                    if (ImGui::DragFloat4(("Rotation##"    + std::to_string(i)).c_str(), glm::value_ptr(transform.rotation), 0.01f)) { App::renderer->SignalObjectTransformUpdate(i); App::transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), glm::value_ptr(transform.position), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat3(("Scale##"       + std::to_string(i)).c_str(), glm::value_ptr(transform.scale),    0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat4(("Rotation##"    + std::to_string(i)).c_str(), glm::value_ptr(transform.rotation), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
 
                     ImGui::Text("Material");
                     switch (App::settings.materialType) {
                         case MaterialType::SOLID: {
-                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Solid*>(App::materialBank[object.material])->color))) { App::renderer->SignalObjectMaterialUpdate(i); }
+                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Solid*>(App::materialBank[object.material])->color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
                         } 
                         case MaterialType::PHONG: {
-                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->ambient)))  { App::renderer->SignalObjectMaterialUpdate(i); }
-                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->diffuse)))  { App::renderer->SignalObjectMaterialUpdate(i); }
-                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->specular))) { App::renderer->SignalObjectMaterialUpdate(i); }
+                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->ambient)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->diffuse)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->specular))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
-                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &dynamic_cast<Phong*>(App::materialBank[object.material])->shininess))               { App::renderer->SignalObjectMaterialUpdate(i); }
+                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &dynamic_cast<Phong*>(App::materialBank[object.material])->shininess))               { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
                         }

@@ -45,16 +45,11 @@ namespace Rutile {
 
         void Notify(Event* event) override;
 
-        // Events
-        void SignalNewScene() override;
+        void LoadScene() override;
 
         // GUI
         void ProvideTimingStatistics() override;
         void ProvideLocalRendererSettings() override;
-
-        void CameraUpdateEvent() override;
-        void SignalObjectMaterialUpdate(ObjectIndex i) override;
-        void SignalObjectTransformUpdate(ObjectIndex i) override;
 
     private:
         void ResetAccumulatedPixelData();

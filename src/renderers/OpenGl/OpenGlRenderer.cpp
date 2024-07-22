@@ -731,7 +731,7 @@ namespace Rutile {
         m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
     }
 
-    void OpenGlRenderer::SignalNewScene() {
+    void OpenGlRenderer::LoadScene() {
         // Lights
 
         // Cleanup old Point Lights

@@ -25,6 +25,9 @@ namespace Rutile {
 
         void Render() override;
 
+        void LoadScene() override;
+
+
         void Notify(Event* event) override;
 
     private:
@@ -40,13 +43,13 @@ namespace Rutile {
         // Events
         void ProjectionMatrixUpdate() override;
 
-        void SignalNewScene() override;
 
         void ProvideLightVisualization(LightIndex lightIndex) override;
 
         void ProvideCSMVisualization() override;
 
     private:
+
         glm::mat4 m_Projection { 1.0f };
 
         // Shaders

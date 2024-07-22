@@ -23,17 +23,11 @@ namespace Rutile {
 
         virtual void Render() = 0;
 
-        // Events
-        virtual void CameraUpdateEvent() { }
+        virtual void LoadScene() = 0;
 
         virtual void ProjectionMatrixUpdate() { }
 
-        // Scene updates
-        virtual void SignalNewScene() { }
-
         virtual void SignalObjectGeometryUpdate(ObjectIndex i)  { }
-        virtual void SignalObjectMaterialUpdate(ObjectIndex i)  { }
-        virtual void SignalObjectTransformUpdate(ObjectIndex i) { }
 
         virtual void SignalDirectionalLightUpdate() { }
         virtual void SignalPointLightUpdate(LightIndex i) { }
@@ -47,8 +41,6 @@ namespace Rutile {
         virtual void SignalRayTracingSettingsChange()       { }
 
         // Material settings updates
-        virtual void SignalMaterialTypeUpdate() { }
-
         virtual void SignalSolidMaterialUpdate() { }
         virtual void SignalPhongMaterialUpdate() { }
 

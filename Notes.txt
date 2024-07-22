@@ -63,3 +63,6 @@ Scene object:
 		But that same bank stores multiple versions of the same materials, one for each material rank.
 		ie: if the solid rank is active, than the materialIndex 0 would point to a specific material that has just a color,
 		but when the the PBR rank is active, the 0th material will now be a collection of textures required for PBR rendering
+
+
+Modify ObjectMaterialUpdate and ObjectTransformUpdate to store the index of the material or transform that is modified within the transform or material bank

@@ -120,6 +120,12 @@ namespace Rutile {
 
             ResetAccumulatedPixelData();
         }
+        if (EVENT_IS(event, CameraUpdate)          || 
+            EVENT_IS(event, ObjectTransformUpdate) || 
+            EVENT_IS(event, ObjectMaterialUpdate)) {
+
+            ResetAccumulatedPixelData();
+        }
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
@@ -199,25 +205,13 @@ namespace Rutile {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
 
-    void GPURayTracing::SignalNewScene() {
+    void GPURayTracing::LoadScene() {
         ResetAccumulatedPixelData();
     }
 
     void GPURayTracing::SignalRayTracingSettingsChange() {
         m_RayTracingShader->Bind();
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
-    }
-
-    void GPURayTracing::CameraUpdateEvent() {
-        ResetAccumulatedPixelData();
-    }
-
-    void GPURayTracing::SignalObjectMaterialUpdate(ObjectIndex i) {
-        ResetAccumulatedPixelData();
-    }
-
-    void GPURayTracing::SignalObjectTransformUpdate(ObjectIndex i) {
-        ResetAccumulatedPixelData();
     }
 
     void GPURayTracing::ProvideLocalRendererSettings() { }

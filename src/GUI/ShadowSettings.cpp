@@ -4,6 +4,8 @@
 
 #include "Settings/App.h"
 
+#include "utility/events/Events.h"
+
 namespace Rutile {
     void ShadowSettings() {
         // Directional
@@ -16,7 +18,7 @@ namespace Rutile {
         if (App::settings.directionalShadows) {
             ImGui::Separator();
 
-            RadioButtons("Bias mode", { "None##biasMode", "Static##biasMode", "Dynamic##biasMode" }, (int*)&App::settings.shadowMapBiasMode, &Renderer::SignalDirectionalShadowMapUpdate);
+            RadioButtons("Bias mode", { "None##biasMode", "Static##biasMode", "Dynamic##biasMode" }, (int*)&App::settings.shadowMapBiasMode, [] { App::eventManager.Notify(new DirectionalShadowMapUpdate{ }); });
 
             if (App::settings.shadowMapBiasMode == ShadowMapBiasMode::STATIC) {
                 if (ImGui::DragFloat("Bias##dir", &App::settings.directionalShadowMapBias, 0.0001f)) { App::renderer->SignalDirectionalShadowMapUpdate(); }
@@ -28,7 +30,7 @@ namespace Rutile {
 
             ImGui::Separator();
 
-            RadioButtons("Culled Face During Directional Shadow map Rendering", { "Front##dir", "Back##dir" }, (int*)&App::settings.culledFaceDuringDirectionalShadowMapping, &Renderer::SignalDirectionalShadowMapUpdate);
+            RadioButtons("Culled Face During Directional Shadow map Rendering", { "Front##dir", "Back##dir" }, (int*)&App::settings.culledFaceDuringDirectionalShadowMapping, [] { App::eventManager.Notify(new DirectionalShadowMapUpdate{ }); });
 
             ImGui::Separator();
 
@@ -63,16 +65,16 @@ namespace Rutile {
 
             ImGui::Separator();
 
-            RadioButtons("Culled Face During Omnidirectional Shadow map Rendering", { "Front##omni", "Back##omni" }, (int*)&App::settings.culledFaceDuringOmnidirectionalShadowMapping, &Renderer::SignalOmnidirectionalShadowMapUpdate);
+            RadioButtons("Culled Face During Omnidirectional Shadow map Rendering", { "Front##omni", "Back##omni" }, (int*)&App::settings.culledFaceDuringOmnidirectionalShadowMapping, [] { App::eventManager.Notify(new OmnidirectionalShadowMapUpdate{ }); });
 
             ImGui::Separator();
 
-            RadioButtons("Omnidirectional Shadow maps PCF mode", { "No PCF##omni", "Fixed Sample Count", "Fixed Sample Directions" }, (int*)&App::settings.omnidirectionalShadowMapPCFMode, &Renderer::SignalOmnidirectionalShadowMapUpdate);
+            RadioButtons("Omnidirectional Shadow maps PCF mode", { "No PCF##omni", "Fixed Sample Count", "Fixed Sample Directions" }, (int*)&App::settings.omnidirectionalShadowMapPCFMode, [] { App::eventManager.Notify(new OmnidirectionalShadowMapUpdate{ }); });
 
             if (App::settings.omnidirectionalShadowMapPCFMode == OmnidirectionalShadowMapPCFMode::FIXED_SAMPLE_COUNT) {
                 if (ImGui::DragInt("Sample Count", &App::settings.omnidirectionalShadowMapSampleCount, 0.01f)) { App::renderer->SignalOmnidirectionalShadowMapUpdate(); }
             } else if (App::settings.omnidirectionalShadowMapPCFMode == OmnidirectionalShadowMapPCFMode::FIXED_SAMPLE_DIRECTIONS) {
-                RadioButtons("Disk Radius mode", { "Static##omni", "Vary with Distance" }, (int*)&App::settings.omnidirectionalShadowMapDiskRadiusMode, &Renderer::SignalOmnidirectionalShadowMapUpdate);
+                RadioButtons("Disk Radius mode", { "Static##omni", "Vary with Distance" }, (int*)&App::settings.omnidirectionalShadowMapDiskRadiusMode, [] { App::eventManager.Notify(new OmnidirectionalShadowMapUpdate{ }); });
 
                 if (App::settings.omnidirectionalShadowMapDiskRadiusMode == OmnidirectionalShadowMapDiskRadiusMode::STATIC) {
                     if (ImGui::DragFloat("Disk Radius", &App::settings.omnidirectionalShadowMapDiskRadius, 0.001f)) { App::renderer->SignalOmnidirectionalShadowMapUpdate(); }

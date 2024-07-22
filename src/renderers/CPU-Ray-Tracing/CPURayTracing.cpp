@@ -203,6 +203,12 @@ namespace Rutile {
 
             ResetAccumulatedPixelData();
         }
+        if (EVENT_IS(event, CameraUpdate)          || 
+            EVENT_IS(event, ObjectTransformUpdate) || 
+            EVENT_IS(event, ObjectMaterialUpdate)) {
+
+            ResetAccumulatedPixelData();
+        }
     }
 
     GLFWwindow* CPURayTracing::Init() {
@@ -373,7 +379,7 @@ namespace Rutile {
         glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
     }
 
-    void CPURayTracing::SignalNewScene() {
+    void CPURayTracing::LoadScene() {
         ResetAccumulatedPixelData();
     }
 
@@ -423,18 +429,6 @@ namespace Rutile {
         if (ImGui::DragInt("Section Count", &m_SectionCount, 0.01f, 1, 100)) {
             CalculateSections();
         }
-    }
-
-    void CPURayTracing::CameraUpdateEvent() {
-        ResetAccumulatedPixelData();
-    }
-
-    void CPURayTracing::SignalObjectMaterialUpdate(ObjectIndex i) {
-        ResetAccumulatedPixelData();
-    }
-
-    void CPURayTracing::SignalObjectTransformUpdate(ObjectIndex i) {
-        ResetAccumulatedPixelData();
     }
 
     void CPURayTracing::ResetAccumulatedPixelData() {

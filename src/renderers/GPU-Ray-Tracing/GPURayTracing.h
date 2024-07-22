@@ -16,16 +16,11 @@ namespace Rutile {
         void Cleanup(GLFWwindow* window) override;
         void Render() override;
 
-        void SignalNewScene() override;
+        void LoadScene() override;
 
         void SignalRayTracingSettingsChange() override;
 
         void Notify(Event* event) override;
-
-        // Events
-        void CameraUpdateEvent() override;
-        void SignalObjectMaterialUpdate(ObjectIndex i) override;
-        void SignalObjectTransformUpdate(ObjectIndex i) override;
 
         // ImGui
         void ProvideLocalRendererSettings() override;
