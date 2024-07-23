@@ -1,7 +1,7 @@
 #pragma once
-#include "utility/GeometryBank.h"
-#include "utility/MaterialBank.h"
-#include "utility/TransformBank.h"
+#include <string>
+
+#include "utility/RenderingBanks.h"
 
 namespace Rutile {
     struct Object {

@@ -473,15 +473,15 @@ namespace Rutile {
 
             Transform& transform = App::transformBank[object.transform];
 
+            Material mat = App::materialBank[object.material];
+
             switch (App::settings.materialType) {
                 case MaterialType::SOLID: {
                     shaderProgram = m_SolidShader.get();
                     shaderProgram->Bind();
 
-                    Solid* solid = dynamic_cast<Solid*>(App::materialBank[object.material]);
-
                     // Material
-                    shaderProgram->SetVec4("color", glm::vec4{ solid->color, 1.0f });
+                    shaderProgram->SetVec4("color", glm::vec4{ mat.solid.color, 1.0f });
 
                     break;
                 }
@@ -489,14 +489,12 @@ namespace Rutile {
                     shaderProgram = m_PhongShader.get();
                     shaderProgram->Bind();
 
-                    Phong* phong = dynamic_cast<Phong*>(App::materialBank[object.material]);
-
                     // Material
-                    shaderProgram->SetVec3("phong.ambient", phong->ambient);
-                    shaderProgram->SetVec3("phong.diffuse", phong->diffuse);
-                    shaderProgram->SetVec3("phong.specular", phong->specular);
+                    shaderProgram->SetVec3("phong.ambient", mat.phong.ambient);
+                    shaderProgram->SetVec3("phong.diffuse", mat.phong.diffuse);
+                    shaderProgram->SetVec3("phong.specular", mat.phong.specular);
 
-                    shaderProgram->SetFloat("phong.shininess", phong->shininess);
+                    shaderProgram->SetFloat("phong.shininess", mat.phong.shininess);
 
                     // Lighting
                     shaderProgram->SetMat4("model", transform.matrix);

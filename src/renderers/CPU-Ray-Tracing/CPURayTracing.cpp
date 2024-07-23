@@ -144,7 +144,7 @@ namespace Rutile {
             }
 
             if (hitSomething) {
-                pixelColor *= App::materialBank.GetSolid(hitInfo.hitObject->material)->color;
+                pixelColor *= App::materialBank[hitInfo.hitObject->material].solid.color;
 
                 ray.origin = hitInfo.position;
                 ray.direction = glm::normalize(hitInfo.normal + RandomUnitVec3());

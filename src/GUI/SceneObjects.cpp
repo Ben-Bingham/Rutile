@@ -3,6 +3,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "rendering/Transform.h"
+
 #include "Settings/App.h"
 
 #include "utility/events/Events.h"
@@ -13,7 +15,7 @@ namespace Rutile {
             int i = 0;
             for (auto object : App::scene.objects) {
                 if (ImGui::TreeNode((object.name + "##SceneObjects" + std::to_string(i)).c_str())) {
-                    ImGui::Text(("Geometry: " + App::geometryBank.GetName(i)).c_str());
+                    ImGui::Text(("Geometry: " + App::geometryBank[i].name).c_str());
 
                     ImGui::Text("Transform");
 
@@ -26,16 +28,16 @@ namespace Rutile {
                     ImGui::Text("Material");
                     switch (App::settings.materialType) {
                         case MaterialType::SOLID: {
-                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Solid*>(App::materialBank[object.material])->color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
-                        } 
+                        }
                         case MaterialType::PHONG: {
-                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->ambient)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
-                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->diffuse)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
-                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(dynamic_cast<Phong*>(App::materialBank[object.material])->specular))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.ambient)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.diffuse)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.specular))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
-                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &dynamic_cast<Phong*>(App::materialBank[object.material])->shininess))               { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].phong.shininess))               { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
                         }

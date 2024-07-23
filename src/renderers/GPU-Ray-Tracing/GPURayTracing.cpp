@@ -163,7 +163,7 @@ namespace Rutile {
         m_RayTracingShader->SetVec3("backgroundColor", App::settings.backgroundColor);
 
         for (size_t i = 0; i < App::materialBank.Size(); ++i) {
-            m_RayTracingShader->SetVec3("materialBank[" + std::to_string(i) + "].color", App::materialBank.GetSolid(i)->color);
+            m_RayTracingShader->SetVec3("materialBank[" + std::to_string(i) + "].color", App::materialBank[i].solid.color);
         }
 
         int i = 0;

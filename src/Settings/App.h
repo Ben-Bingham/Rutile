@@ -16,6 +16,7 @@
 
 #include "Scenes/SceneManager.h"
 
+#include "utility/RenderingBanks.h"
 #include "utility/TimingData.h"
 #include "utility/events/EventManager.h"
 
