@@ -11,8 +11,15 @@ struct Object {
     int materialIndex;
 };
 
+const int DIFFUSE_TYPE = 0;
+const int MIRROR_TYPE = 1;
+
 struct Material {
     vec3 color;
+
+    int type;
+
+    float fuzz;
 };
 
 struct HitInfo {
@@ -79,6 +86,11 @@ float LinearToGamma(float component) {
 
 vec3 LinearToGamma(vec3 color) {
     return vec3(LinearToGamma(color.r), LinearToGamma(color.g), LinearToGamma(color.b));
+}
+
+bool NearZero(vec3 vec) {
+    float epsilon = 1e-8;
+    return (abs(vec.x) < epsilon) && (abs(vec.y) < epsilon) && (abs(vec.z) < epsilon);
 }
 
 void main() {
@@ -190,10 +202,24 @@ vec3 FireRayIntoScene(Ray ray) {
         }
 
         if (hitSomething) {
-            pixelColor *= materialBank[objects[hitInfo.hitObjectIndex].materialIndex].color;
-
             ray.origin = hitInfo.hitPosition;
-            ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * j));
+
+            Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
+
+            if (mat.type == DIFFUSE_TYPE) {
+                ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * j));
+
+                if (NearZero(ray.direction)) {
+                    ray.direction = hitInfo.normal;
+                }
+
+                pixelColor *= mat.color;
+            } else if (mat.type == MIRROR_TYPE) {
+                ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
+                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * j) * vec3(mat.fuzz, mat.fuzz, mat.fuzz))));
+
+                pixelColor *= mat.color;
+            }
         } else {
             break;
         }

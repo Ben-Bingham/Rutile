@@ -164,6 +164,8 @@ namespace Rutile {
 
         for (size_t i = 0; i < App::materialBank.Size(); ++i) {
             m_RayTracingShader->SetVec3("materialBank[" + std::to_string(i) + "].color", App::materialBank[i].solid.color);
+            m_RayTracingShader->SetInt( "materialBank[" + std::to_string(i) + "].type",  (int)App::materialBank[i].type);
+            m_RayTracingShader->SetFloat("materialBank[" + std::to_string(i) + "].fuzz", (int)App::materialBank[i].fuzz);
         }
 
         int i = 0;

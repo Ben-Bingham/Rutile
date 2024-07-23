@@ -22,5 +22,12 @@ namespace Rutile {
             glm::vec3 specular;
             float shininess;
         } phong;
+
+        enum class Type {
+            DIFFUSE,
+            MIRROR
+        } type{ Type::DIFFUSE };
+
+        float fuzz;
     };
 }
