@@ -1,9 +1,12 @@
 #pragma once
-#include "Scenes/Scene.h"
+#include "RenderingAPI/Light.h"
+#include "RenderingAPI/Material.h"
+#include "RenderingAPI/RenderingBanks.h"
+#include "RenderingAPI/Scene.h"
+#include "RenderingAPI/Transform.h"
 
-#include "utility/GeometryFactory.h"
-#include "utility/MaterialFactory.h"
-#include "utility/RenderingBanks.h"
+#include "Utility/GeometryFactory.h"
+#include "Utility/MaterialFactory.h"
 
 namespace Rutile {
 	class SceneFactory {

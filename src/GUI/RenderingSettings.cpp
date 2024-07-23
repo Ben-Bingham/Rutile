@@ -6,7 +6,7 @@
 
 #include "Settings/App.h"
 
-#include "utility/events/Events.h"
+#include "Utility/events/Events.h"
 
 namespace Rutile {
     void RenderingSettings() {

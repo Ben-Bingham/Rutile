@@ -6,9 +6,9 @@
 
 #include "Settings/App.h"
 
-#include "utility/MaterialFactory.h"
-#include "utility/GeometryFactory.h"
-#include "utility/Random.h"
+#include "Utility/MaterialFactory.h"
+#include "Utility/GeometryFactory.h"
+#include "Utility/Random.h"
 
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {

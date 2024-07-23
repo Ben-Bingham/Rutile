@@ -1,10 +1,9 @@
 #pragma once
-
-#include "Bank.h"
-
 #include "Geometry.h"
-#include "rendering/Material.h"
-#include "rendering/Transform.h"
+#include "Transform.h"
+#include "Material.h"
+
+#include "Utility/Bank.h"
 
 namespace Rutile {
     using GeometryIndex = size_t;

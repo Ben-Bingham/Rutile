@@ -1,7 +1,6 @@
 #pragma once
+#include "RenderingBanks.h"
 #include <string>
-
-#include "utility/RenderingBanks.h"
 
 namespace Rutile {
     struct Object {

@@ -14,10 +14,8 @@
 #include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
 #include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
 
-#include "Scenes/SceneManager.h"
-
-#include "utility/CameraMovement.h"
-#include "utility/events/Events.h"
+#include "Utility/CameraMovement.h"
+#include "Utility/events/Events.h"
 
 using namespace Rutile;
 

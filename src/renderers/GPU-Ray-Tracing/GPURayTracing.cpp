@@ -2,11 +2,11 @@
 #include "imgui.h"
 #include <iostream>
 
-#include "renderers/OpenGl/utility/GLDebug.h"
+#include "renderers/OpenGl/Utility/GLDebug.h"
 
 #include "Settings/App.h"
 
-#include "utility/events/Events.h"
+#include "Utility/events/Events.h"
 
 namespace Rutile {
     GLFWwindow* GPURayTracing::Init() {

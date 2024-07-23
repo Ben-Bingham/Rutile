@@ -7,7 +7,9 @@ namespace Rutile {
         int i = 0;
         for (auto optionName : optionNames) {
             if (ImGui::RadioButton(optionName.c_str(), setting, i)) {
-                func();
+                if (func != nullptr) {
+                    func();
+                }
             }
 
             ++i;

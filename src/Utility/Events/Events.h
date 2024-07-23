@@ -1,7 +1,6 @@
 #pragma once
 #include "Event.h"
-
-#include "Scenes/Scene.h"
+#include "RenderingAPI/Scene.h"
 
 namespace Rutile {
     struct WindowResize : Event { };

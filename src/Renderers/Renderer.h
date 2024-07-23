@@ -3,9 +3,9 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "Scenes/Scene.h"
+#include "RenderingAPI/Scene.h"
 
-#include "utility/events/EventListener.h"
+#include "Utility/events/EventListener.h"
 
 namespace Rutile {
 	class Renderer : public EventListener {

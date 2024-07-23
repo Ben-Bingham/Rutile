@@ -1,5 +1,5 @@
 #pragma once
-#include "Geometry.h"
+#include "RenderingAPI/Geometry.h"
 
 namespace Rutile {
     class GeometryFactory {

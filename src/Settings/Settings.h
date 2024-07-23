@@ -3,7 +3,7 @@
 #include "SettingsEnums.h"
 #include <chrono>
 
-#include "rendering/Material.h"
+#include "RenderingAPI/Material.h"
 
 namespace Rutile {
     struct Settings {

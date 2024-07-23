@@ -3,11 +3,11 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "rendering/Transform.h"
+#include "RenderingAPI/Transform.h"
 
 #include "Settings/App.h"
 
-#include "utility/events/Events.h"
+#include "Utility/events/Events.h"
 
 namespace Rutile {
     void SceneObjects() {

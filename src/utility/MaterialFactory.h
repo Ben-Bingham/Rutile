@@ -1,5 +1,5 @@
 #pragma once
-#include "rendering/Material.h"
+#include "RenderingAPI/Material.h"
 
 namespace Rutile {
 	class MaterialFactory {

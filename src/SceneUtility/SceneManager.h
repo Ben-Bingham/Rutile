@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene.h"
+#include "RenderingAPI/Scene.h"
 
 namespace Rutile {
     enum class SceneType {

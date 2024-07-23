@@ -2,13 +2,13 @@
 #include "imgui.h"
 #include <iostream>
 
-#include "renderers/OpenGl/utility/GLDebug.h"
+#include "renderers/OpenGl/Utility/GLDebug.h"
 
 #include "Settings/App.h"
 
-#include "utility/Random.h"
-#include "utility/ThreadPool.h"
-#include "utility/events/Events.h"
+#include "Utility/Random.h"
+#include "Utility/ThreadPool.h"
+#include "Utility/events/Events.h"
 
 namespace Rutile {
     float LinearToGamma(float component) {

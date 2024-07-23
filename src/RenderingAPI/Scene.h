@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "rendering/Light.h"
-#include "rendering/Object.h"
+#include "Light.h"
+#include "Object.h"
 
 namespace Rutile {
     using ObjectIndex = size_t;

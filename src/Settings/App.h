@@ -6,19 +6,18 @@
 
 #include "glm/glm.hpp"
 
-#include "Scenes/Scene.h"
-#include "utility/ImGuiInstance.h"
-#include "utility/GLFW.h"
+#include "Utility/ImGuiInstance.h"
+#include "Utility/GLFW.h"
 
 #include "renderers/Renderer.h"
 
-#include "rendering/Camera.h"
+#include "RenderingAPI/Camera.h"
+#include "RenderingAPI/RenderingBanks.h"
 
-#include "Scenes/SceneManager.h"
+#include "SceneUtility/SceneManager.h"
 
-#include "utility/RenderingBanks.h"
-#include "utility/TimingData.h"
-#include "utility/events/EventManager.h"
+#include "Utility/TimingData.h"
+#include "Utility/events/EventManager.h"
 
 namespace Rutile {
     struct App {

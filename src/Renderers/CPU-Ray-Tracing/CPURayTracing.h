@@ -6,9 +6,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "rendering/Camera.h"
-
-#include "utility/ThreadPool.h"
+#include "Utility/ThreadPool.h"
 
 namespace Rutile {
     struct Section {
