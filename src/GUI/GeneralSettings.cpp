@@ -22,12 +22,22 @@ namespace Rutile {
         ImGui::Separator();
 
         // Select material type
-        RadioButtons(
-            "Select Material Type", 
-            { "Solid", "Phong" }, 
-            (int*)&App::settings.materialType,
-            [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
-        );
+        if (App::currentRendererType == RendererType::OPENGL) {
+            RadioButtons(
+                "Select Material Type",
+                { "Solid", "Phong" },
+                (int*)&App::settings.materialType,
+                [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
+            );
+        } else {
+            App::settings.materialType = MaterialType::RAY_TRACING;
+            RadioButtons(
+                "Select Material Type",
+                { "Ray Tracing" },
+                (int*)&App::settings.materialType,
+                [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
+            );
+        }
 
         ImGui::Separator();
 

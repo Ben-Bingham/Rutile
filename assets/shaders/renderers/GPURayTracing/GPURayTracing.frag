@@ -216,9 +216,14 @@ vec3 FireRayIntoScene(Ray ray) {
                 pixelColor *= mat.color;
             } else if (mat.type == MIRROR_TYPE) {
                 ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
-                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * j) * vec3(mat.fuzz, mat.fuzz, mat.fuzz))));
+                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * j) * vec3(mat.fuzz))));
 
-                pixelColor *= mat.color;
+                if (dot(ray.direction, hitInfo.normal) > 0) {
+                    pixelColor *= mat.color;
+                }
+                else {
+                    pixelColor *= vec3(0.0, 0.0, 0.0);
+                }
             }
         } else {
             break;

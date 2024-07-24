@@ -6,7 +6,8 @@
 namespace Rutile {
     enum class MaterialType {
         SOLID,
-        PHONG
+        PHONG,
+        RAY_TRACING
     };
 
     struct Material {

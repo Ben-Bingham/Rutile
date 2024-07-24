@@ -12,6 +12,8 @@ namespace Rutile {
 
         void Distribute(); // TODO need to control who can call this
 
+        bool Empty();
+
     private:
         std::vector<EventListener*> m_EventListeners;
 
