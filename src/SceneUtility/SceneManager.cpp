@@ -377,19 +377,27 @@ namespace Rutile {
         metal.fuzz = 1.0f;
         metal.type = Material::Type::MIRROR;
 
+        Material dielectric = MaterialFactory::Construct(MaterialFactory::Color::BLUE);
+        dielectric.type = Material::Type::DIELECTRIC;
+        dielectric.indexOfRefraction = 1.5f;
+
         Material floorMat = MaterialFactory::Construct({ 0.0f, 1.0f, 0.0f });
 
         Transform ball1{ };
-        ball1.position = { 0.0f, 0.0f, -1.0f };
+        ball1.position = { 0.0f, 0.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Diffuse Ball");
 
         Transform ball2{ };
-        ball2.position = { 1.0f, 0.0f, 1.0f };
+        ball2.position = { 0.0f, 0.0f, -2.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mirrorMat, "Mirror Ball 1");
 
         Transform ball3{ };
-        ball3.position = { -1.0f, 0.0f, 1.0f };
+        ball3.position = { 2.0f, 0.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, metal, "Mirror Ball 2");
+
+        Transform ball4{ };
+        ball4.position = { -2.0f, 0.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball4, dielectric, "Dielectric Ball");
 
         Transform floor{ };
         floor.position = { 0.0f, -251.0f, -1.0f };

@@ -44,9 +44,9 @@ namespace Rutile {
                         }
                         case MaterialType::RAY_TRACING: {
                             RadioButtons(
-                                "Type##materialRay",
-                                { "Diffuse", "Mirror" },
-                                (int*)& App::materialBank[object.material].type,
+                                "Type",
+                                { "Diffuse", "Mirror", "Dielectric" },
+                                (int*)&App::materialBank[object.material].type,
                                 [i] {
                                     App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i });
                                 }
@@ -54,7 +54,13 @@ namespace Rutile {
 
                             if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
-                            if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (App::materialBank[object.material].type == Material::Type::MIRROR) {
+                                if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            }
+
+                            if (App::materialBank[object.material].type == Material::Type::DIELECTRIC) {
+                                if (ImGui::DragFloat(("Index of Refraction##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].indexOfRefraction, 0.01f, 0.0f, 1000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            }
 
                             break;
                         }

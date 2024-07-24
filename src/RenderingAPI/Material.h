@@ -26,9 +26,12 @@ namespace Rutile {
 
         enum class Type {
             DIFFUSE,
-            MIRROR
+            MIRROR,
+            DIELECTRIC
         } type{ Type::DIFFUSE };
 
         float fuzz;
+
+        float indexOfRefraction;
     };
 }
