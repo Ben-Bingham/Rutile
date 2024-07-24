@@ -38,6 +38,9 @@ namespace Rutile {
             case SceneType::SPHERES_ON_SPHERES: {
                 return GetSpheresOnSpheresScene();
             }
+            case SceneType::HOLLOW_GLASS_SPHERE: {
+                return GetHollowGlassSphereScene();
+            }
         }
     }
 
@@ -428,6 +431,41 @@ namespace Rutile {
             transform.scale = { radius, radius, radius };
             sceneFactory.Add(GeometryFactory::Primitive::SPHERE, transform, mat, "Ball " + std::to_string(i));
         }
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetHollowGlassSphereScene() {
+        SceneFactory sceneFactory{ };
+
+        Material mat1 = MaterialFactory::Construct(MaterialFactory::Color::RED);
+        Material floorMat = MaterialFactory::Construct(MaterialFactory::Color::GREEN);
+
+        Material glass = MaterialFactory::Construct(MaterialFactory::Color::WHITE);
+        glass.type = Material::Type::DIELECTRIC;
+        glass.indexOfRefraction = 1.5f;
+
+        Material airBubble = MaterialFactory::Construct(MaterialFactory::Color::WHITE);
+        airBubble.type = Material::Type::DIELECTRIC;
+        airBubble.indexOfRefraction = 1.0f / 1.5f;
+
+        Transform ball1{ };
+        ball1.position = { 0.0f, 0.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Diffuse Ball");
+
+        Transform glassTransform{ };
+        glassTransform.position = { -2.0f, 0.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, glassTransform, glass, "Glass Ball");
+
+        Transform airBubbleTransform{ };
+        airBubbleTransform.position = { -2.0f, 0.0f, 0.0f };
+        airBubbleTransform.scale = { 0.8f, 0.8f, 0.8f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, airBubbleTransform, airBubble, "Air Bubble");
+
+        Transform floor{ };
+        floor.position = { 0.0f, -251.0f, -1.0f };
+        floor.scale = { 250.0f, 250.0f, 250.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat, "Floor");
 
         return sceneFactory.GetScene();
     }

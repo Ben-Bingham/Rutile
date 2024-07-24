@@ -51,7 +51,8 @@ namespace Rutile {
                 "Omnidirectional Shadow map Testing Scene",
                 "Double Point Light Test Scene",
                 "All Spheres",
-                "Spheres on Spheres"
+                "Spheres on Spheres",
+                "Hollow Glass Sphere"
             }, 
             (int*)&App::currentSceneType, 
             [] { App::renderer->LoadScene(); }
