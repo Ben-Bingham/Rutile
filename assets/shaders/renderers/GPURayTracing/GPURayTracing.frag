@@ -155,7 +155,12 @@ vec3 FireRayIntoScene(Ray ray) {
 
     vec3 pixelColor = vec3(1.0, 1.0, 1.0);
 
-    for (int j = 0; j < maxBounces; ++j) {
+    int bounces = 0;
+    while (true) {
+        if (bounces >= maxBounces) {
+            return vec3(0.0, 0.0, 0.0);
+        }
+        
         bool hitSomething = false;
         HitInfo hitInfo;
         hitInfo.closestDistance = MAX_FLOAT;
@@ -187,9 +192,9 @@ vec3 FireRayIntoScene(Ray ray) {
 
             // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
             // but they cannot be compared to the t values of other objects
-            if (t <= 0.001 || t >= MAX_FLOAT) {
+            if (t <= 0.00001 || t >= MAX_FLOAT) {
                 t = (-b + sqrtDiscriminant) / (2.0 * a);
-                if (t <= 0.001 || t >= MAX_FLOAT) {
+                if (t <= 0.00001 || t >= MAX_FLOAT) {
                     continue;
                 }
             }
@@ -232,7 +237,7 @@ vec3 FireRayIntoScene(Ray ray) {
             LocalMat mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
 
             if (mat.type == DIFFUSE_TYPE) {
-                ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * j));
+                ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * bounces));
 
                 if (NearZero(ray.direction)) {
                     ray.direction = hitInfo.normal;
@@ -241,7 +246,7 @@ vec3 FireRayIntoScene(Ray ray) {
                 pixelColor *= vec3(mat.color.rgb);
             } else if (mat.type == MIRROR_TYPE) {
                 ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
-                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * j) * vec3(mat.fuzz))));
+                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * bounces) * vec3(mat.fuzz))));
 
                 if (dot(ray.direction, hitInfo.normal) > 0) {
                     pixelColor *= vec3(mat.color.rgb);
@@ -268,6 +273,8 @@ vec3 FireRayIntoScene(Ray ray) {
         } else {
             break;
         }
+
+        ++bounces;
     }
 
     return backgroundColor * pixelColor;
