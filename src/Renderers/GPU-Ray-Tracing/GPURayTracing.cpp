@@ -96,15 +96,37 @@ namespace Rutile {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        ResetAccumulatedPixelData();
-
         m_RayTracingShader->Bind();
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
+
+        // Material Bank
+        glGenBuffers(1, &m_MaterialBankSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MaterialBankSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_MaterialBankSSBO);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        // Objects
+        glGenBuffers(1, &m_ObjectSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_ObjectSSBO);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        UploadObjectAndMaterialBuffers();
+        ResetAccumulatedPixelData();
 
         return window;
     }
 
     void GPURayTracing::Notify(Event* event) {
+        if (EVENT_IS(event, ObjectTransformUpdate) ||
+            EVENT_IS(event, ObjectMaterialUpdate)) {
+
+            UploadObjectAndMaterialBuffers();
+        }
         if (EVENT_IS(event, WindowResize)) {
             glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
             glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
@@ -129,6 +151,9 @@ namespace Rutile {
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
+        glDeleteBuffers(1, &m_ObjectSSBO);
+        glDeleteBuffers(1, &m_MaterialBankSSBO);
+
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);
         glDeleteBuffers(1, &m_EBO);
@@ -162,24 +187,6 @@ namespace Rutile {
 
         m_RayTracingShader->SetVec3("backgroundColor", App::settings.backgroundColor);
 
-        for (size_t i = 0; i < App::materialBank.Size(); ++i) {
-            m_RayTracingShader->SetVec3( "materialBank[" + std::to_string(i) + "].color",             App::materialBank[i].solid.color);
-            m_RayTracingShader->SetInt(  "materialBank[" + std::to_string(i) + "].type",              (int)App::materialBank[i].type);
-            m_RayTracingShader->SetFloat("materialBank[" + std::to_string(i) + "].fuzz",              App::materialBank[i].fuzz);
-            m_RayTracingShader->SetFloat("materialBank[" + std::to_string(i) + "].indexOfRefraction", App::materialBank[i].indexOfRefraction);
-        }
-
-        int i = 0;
-        for (const auto& object : App::scene.objects) {
-            const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
-
-            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].model",         App::transformBank[object.transform].matrix);
-            m_RayTracingShader->SetMat4("objects[" + std::to_string(i) + "].invModel",      invModel);
-            m_RayTracingShader->SetInt ("objects[" + std::to_string(i) + "].materialIndex", (int)object.material);
-
-            ++i;
-        }
-
         m_RayTracingShader->SetInt("objectCount", (int)App::scene.objects.size());
 
         glActiveTexture(GL_TEXTURE0);
@@ -210,6 +217,7 @@ namespace Rutile {
 
     void GPURayTracing::LoadScene() {
         ResetAccumulatedPixelData();
+        UploadObjectAndMaterialBuffers();
     }
 
     void GPURayTracing::SignalRayTracingSettingsChange() {
@@ -229,5 +237,48 @@ namespace Rutile {
         clearData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, clearData.data());
+    }
+
+    struct LocalMaterial {
+        int type;
+        float fuzz;
+        float indexOfRefraction;
+        alignas(16) glm::vec4 color;
+    };
+
+    struct LocalObject {
+        glm::mat4 model;
+        glm::mat4 invModel;
+        alignas(16) int materialIndex;
+    };
+
+    void GPURayTracing::UploadObjectAndMaterialBuffers() {
+        std::vector<LocalMaterial> localMats{ };
+        for (size_t i = 0; i < App::materialBank.Size(); ++i) {
+            LocalMaterial mat{ };
+            mat.type = (int)App::materialBank[i].type;
+            mat.fuzz = App::materialBank[i].fuzz;
+            mat.indexOfRefraction = App::materialBank[i].indexOfRefraction;
+            mat.color = glm::vec4{ App::materialBank[i].solid.color, 1.0 };
+
+            localMats.emplace_back(LocalMaterial{ mat });
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MaterialBankSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        std::vector<LocalObject> localObjects{ };
+        for (auto object : App::scene.objects) {
+            localObjects.push_back(LocalObject{
+                App::transformBank[object.transform].matrix,
+                glm::inverse(App::transformBank[object.transform].matrix),
+                (int)object.material
+            });
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjects.size() * sizeof(LocalObject)), localObjects.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
 }

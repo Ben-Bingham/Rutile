@@ -27,6 +27,7 @@ namespace Rutile {
 
     private:
         void ResetAccumulatedPixelData();
+        void UploadObjectAndMaterialBuffers();
 
         int m_FrameCount{ 0 };
 
@@ -42,5 +43,8 @@ namespace Rutile {
         unsigned int m_VAO{ 0 };
         unsigned int m_VBO{ 0 };
         unsigned int m_EBO{ 0 };
+
+        unsigned int m_MaterialBankSSBO;
+        unsigned int m_ObjectSSBO;
     };
 }

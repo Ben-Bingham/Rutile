@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 // Lots of code translated from Ray Tracing In One Weekend:
 // https://raytracing.github.io/books/RayTracingInOneWeekend.html
@@ -8,25 +8,42 @@ struct Ray {
 	vec3 direction;
 };
 
+const int DIFFUSE_TYPE = 0;
+const int MIRROR_TYPE = 1;
+const int DIELECTRIC_TYPE = 2;
+
+struct Material {
+    int type;
+
+    float fuzz;
+
+    float indexOfRefraction;
+
+    vec3 color;
+};
+
 struct Object {
     mat4 model;
     mat4 invModel;
     int materialIndex;
 };
 
-const int DIFFUSE_TYPE = 0;
-const int MIRROR_TYPE = 1;
-const int DIELECTRIC_TYPE = 2;
-
-struct Material {
-    vec3 color;
-
+struct LocalMat {
     int type;
-
     float fuzz;
-
     float indexOfRefraction;
+    vec4 color;
 };
+
+layout(std430, binding = 0) readonly buffer materialBuffer {
+    LocalMat materialBank[];
+};
+
+layout(std430, binding = 1) readonly buffer objectBuffer {
+    Object objects[];
+};
+
+uniform int objectCount;
 
 struct HitInfo {
     vec3 normal;
@@ -36,8 +53,6 @@ struct HitInfo {
 
     bool frontFace;
 };
-
-uniform float s;
 
 const float PI = 3.14159265359;
 
@@ -56,13 +71,6 @@ uniform mat4 invProjection;
 uniform vec3 cameraPosition;
 
 uniform vec3 backgroundColor;
-
-const int MAX_OBJECTS = 100;
-uniform Object objects[MAX_OBJECTS];
-uniform int objectCount;
-
-const int MAX_MATERIALS = 100;
-uniform Material materialBank[MAX_MATERIALS];
 
 const float MAX_FLOAT = 3.402823466e+38F;
 
@@ -138,7 +146,7 @@ void main() {
 
     accumulationColor += pixelColor;
 
-    outFragColor = vec4(accumulationColor.xyz, 1.0);
+    outFragColor = vec4(accumulationColor.rgb, 1.0);
 }
 
 vec3 FireRayIntoScene(Ray ray) {
@@ -221,7 +229,7 @@ vec3 FireRayIntoScene(Ray ray) {
         if (hitSomething) {
             ray.origin = hitInfo.hitPosition;
 
-            Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
+            LocalMat mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
 
             if (mat.type == DIFFUSE_TYPE) {
                 ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * j));
@@ -230,13 +238,13 @@ vec3 FireRayIntoScene(Ray ray) {
                     ray.direction = hitInfo.normal;
                 }
 
-                pixelColor *= mat.color;
+                pixelColor *= vec3(mat.color.rgb);
             } else if (mat.type == MIRROR_TYPE) {
                 ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
                 ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * j) * vec3(mat.fuzz))));
 
                 if (dot(ray.direction, hitInfo.normal) > 0) {
-                    pixelColor *= mat.color;
+                    pixelColor *= vec3(mat.color.rgb);
                 }
                 else {
                     pixelColor *= vec3(0.0, 0.0, 0.0);
