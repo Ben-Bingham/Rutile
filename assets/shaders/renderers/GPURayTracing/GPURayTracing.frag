@@ -14,11 +14,8 @@ const int DIELECTRIC_TYPE = 2;
 
 struct Material {
     int type;
-
     float fuzz;
-
     float indexOfRefraction;
-
     vec3 color;
 };
 
@@ -28,15 +25,8 @@ struct Object {
     int materialIndex;
 };
 
-struct LocalMat {
-    int type;
-    float fuzz;
-    float indexOfRefraction;
-    vec4 color;
-};
-
 layout(std430, binding = 0) readonly buffer materialBuffer {
-    LocalMat materialBank[];
+    Material materialBank[];
 };
 
 layout(std430, binding = 1) readonly buffer objectBuffer {
@@ -46,6 +36,8 @@ layout(std430, binding = 1) readonly buffer objectBuffer {
 uniform int objectCount;
 
 struct HitInfo {
+    bool hitSomething;
+
     vec3 normal;
     float closestDistance;
     vec3 hitPosition;
@@ -79,6 +71,10 @@ uniform sampler2D accumulationBuffer;
 uniform int maxBounces;
 
 vec3 FireRayIntoScene(Ray ray);
+
+// Scene hitting functions
+HitInfo HitScene(Ray ray);
+HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
 
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
@@ -150,9 +146,6 @@ void main() {
 }
 
 vec3 FireRayIntoScene(Ray ray) {
-    float r = 1.0; // Sphere radius in local space
-    vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
-
     vec3 pixelColor = vec3(1.0, 1.0, 1.0);
 
     int bounces = 0;
@@ -161,80 +154,12 @@ vec3 FireRayIntoScene(Ray ray) {
             return vec3(0.0, 0.0, 0.0);
         }
         
-        bool hitSomething = false;
-        HitInfo hitInfo;
-        hitInfo.closestDistance = MAX_FLOAT;
+        HitInfo hitInfo = HitScene(ray);
 
-        for (int i = 0; i < objectCount; ++i) {
-            // Transform the ray into the local space of the object
-            vec3 o = (objects[i].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-
-            vec3 d = (objects[i].invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-            //vec3 d = transpose(inverse(mat3(objects[i].invModel))) * ray.direction.xyz;
-            d = normalize(d);
-
-            // Intersection test
-            vec3 co = spherePos - o;
-            float a = dot(d, d);
-            float b = -2.0 * dot(d, co);
-            float c = dot(co, co) - (r * r);
-
-            float discriminant = (b * b) - (4.0 * a * c);
-
-            if (discriminant < 0.0) {
-                continue;
-            }
-
-            float sqrtDiscriminant = sqrt(discriminant);
-
-            // Because we subtract the discriminant, this root will always be smaller than the other one
-            float t = (-b - sqrtDiscriminant) / (2.0 * a);
-
-            // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
-            // but they cannot be compared to the t values of other objects
-            if (t <= 0.00001 || t >= MAX_FLOAT) {
-                t = (-b + sqrtDiscriminant) / (2.0 * a);
-                if (t <= 0.00001 || t >= MAX_FLOAT) {
-                    continue;
-                }
-            }
-
-            // At this point, no matter what t will be the closest hit for THIS object
-
-            // Here we calculate the WORLD SPACE distance between the hit point and the ray for THIS object,
-            // this can than be compared against other objects
-            vec3 hitPointWorldSpace = (objects[i].model * vec4(o + t * normalize(d), 1.0)).xyz;
-
-            float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
-
-            if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-                hitInfo.closestDistance = lengthAlongRayWorldSpace;
-                hitSomething = true;
-                hitInfo.hitObjectIndex = i;
-
-                vec3 hitPointLocalSpace = o + t * d;
-
-                hitInfo.normal = normalize(hitPointLocalSpace - spherePos);
-
-                vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;
-                hitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
-
-                if (!hitInfo.frontFace) {
-                    hitInfo.normal = -hitInfo.normal;
-                }
-
-                // Transform normal back to world space
-                vec3 normalWorldSpace = transpose(inverse(mat3(objects[i].model))) * hitInfo.normal;
-                hitInfo.normal = normalize(normalWorldSpace);
-
-                hitInfo.hitPosition = (objects[i].model * vec4(hitPointLocalSpace, 1.0)).xyz;
-            }
-        }
-
-        if (hitSomething) {
+        if (hitInfo.hitSomething) { // Then scatter the ray
             ray.origin = hitInfo.hitPosition;
 
-            LocalMat mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
+            Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
 
             if (mat.type == DIFFUSE_TYPE) {
                 ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * bounces));
@@ -278,6 +203,97 @@ vec3 FireRayIntoScene(Ray ray) {
     }
 
     return backgroundColor * pixelColor;
+}
+
+HitInfo HitScene(Ray ray) {
+    HitInfo hitInfo;
+    hitInfo.hitSomething = false;
+    hitInfo.closestDistance = MAX_FLOAT;
+
+    for (int i = 0; i < objectCount; ++i) {
+        // if (object is a sphere) {
+            hitInfo = HitSphere(ray, i, hitInfo);
+        // } else if (object is triangle) {
+            //hitInfo = HitTriangle(ray, objects[i], hitInfo);
+        //}
+    }
+
+    return hitInfo;
+}
+
+HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
+    float r = 1.0; // Sphere radius in local space
+    vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
+
+    Object object = objects[objectIndex];
+
+    HitInfo outHitInfo = currentHitInfo;
+
+    // Transform the ray into the local space of the object
+    vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
+
+    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
+    //vec3 d = transpose(inverse(mat3(objects[i].invModel))) * ray.direction.xyz;
+    d = normalize(d);
+
+    // Intersection test
+    vec3 co = spherePos - o;
+    float a = dot(d, d);
+    float b = -2.0 * dot(d, co);
+    float c = dot(co, co) - (r * r);
+
+    float discriminant = (b * b) - (4.0 * a * c);
+
+    if (discriminant < 0.0) {
+        return outHitInfo;
+    }
+
+    float sqrtDiscriminant = sqrt(discriminant);
+
+    // Because we subtract the discriminant, this root will always be smaller than the other one
+    float t = (-b - sqrtDiscriminant) / (2.0 * a);
+
+    // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
+    // but they cannot be compared to the t values of other objects
+    if (t <= 0.00001 || t >= MAX_FLOAT) {
+        t = (-b + sqrtDiscriminant) / (2.0 * a);
+        if (t <= 0.00001 || t >= MAX_FLOAT) {
+            return outHitInfo;
+        }
+    }
+
+    // At this point, no matter what t will be the closest hit for THIS object
+
+    // Here we calculate the WORLD SPACE distance between the hit point and the ray for THIS object,
+    // this can than be compared against other objects
+    vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
+
+    float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
+
+    if (lengthAlongRayWorldSpace < currentHitInfo.closestDistance) {
+        outHitInfo.closestDistance = lengthAlongRayWorldSpace;
+        outHitInfo.hitSomething = true;
+        outHitInfo.hitObjectIndex = objectIndex;
+
+        vec3 hitPointLocalSpace = o + t * d;
+
+        outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);
+
+        vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;
+        outHitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
+
+        if (!outHitInfo.frontFace) {
+            outHitInfo.normal = -outHitInfo.normal;
+        }
+
+        // Transform normal back to world space
+        vec3 normalWorldSpace = transpose(inverse(mat3(object.model))) * outHitInfo.normal;
+        outHitInfo.normal = normalize(normalWorldSpace);
+
+        outHitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
+    }
+
+    return outHitInfo;
 }
 
 const float PHI = 1.61803398874989484820459; 
