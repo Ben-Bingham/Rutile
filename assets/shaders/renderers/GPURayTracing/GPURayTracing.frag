@@ -83,6 +83,8 @@ vec3 RandomVec3InUnitSphere(float seed);
 vec3 RandomUnitVec3(float seed); // Returns a normalized vec3 on the surface of the unit sphere
 vec3 RandomVec3InHemisphere(float seed, vec3 normal);
 
+vec3 RandomInUnitDisk(float seed);
+
 vec2 randomState;
 
 float LinearToGamma(float component) {
@@ -313,5 +315,17 @@ vec3 RandomVec3InHemisphere(float seed, vec3 normal) {
     }
     else {
         return -unitSphere;
+    }
+}
+
+vec3 RandomInUnitDisk(float seed) {
+    int i = 0;
+    while (true) {
+        vec3 p = vec3(RandomFloat(0.4234 * i, -1.0, 1.0), RandomFloat(1.590 * i, -1.0, 1.0), 0.0);
+        if (p.x * p.x + p.y * p.y + p.z * p.z < 1.0) {
+            return p;
+        }
+
+        ++i;
     }
 }
