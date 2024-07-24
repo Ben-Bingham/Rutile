@@ -486,8 +486,8 @@ namespace Rutile {
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floorTransform, groundMaterial, "Ground");
 
         int i = 0;
-        for (int a = -3; a < 3; a++) {
-            for (int b = -3; b < 3; b++) {
+        for (int a = -11; a < 11; a++) {
+            for (int b = -11; b < 11; b++) {
                 Transform sphereTransform{ };
                 sphereTransform.position = { a + 0.9f * RandomFloat(), 0.2f, b + 0.9f * RandomFloat() };
                 sphereTransform.scale = { 0.2f, 0.2f, 0.2f };
