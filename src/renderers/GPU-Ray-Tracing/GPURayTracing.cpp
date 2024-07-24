@@ -249,6 +249,10 @@ namespace Rutile {
     struct LocalObject {
         glm::mat4 model;
         glm::mat4 invModel;
+
+        glm::mat4 transposeInverseModel;
+        glm::mat4 transposeInverseInverseModel;
+
         alignas(16) int materialIndex;
     };
 
@@ -273,7 +277,9 @@ namespace Rutile {
             localObjects.push_back(LocalObject{
                 App::transformBank[object.transform].matrix,
                 glm::inverse(App::transformBank[object.transform].matrix),
-                (int)object.material
+                glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix })) },
+                glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix }))) },
+                (int)object.material,
             });
         }
 

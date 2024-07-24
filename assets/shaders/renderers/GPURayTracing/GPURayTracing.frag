@@ -22,6 +22,10 @@ struct Material {
 struct Object {
     mat4 model;
     mat4 invModel;
+
+    mat4 transposeInverseModel;        // transpose(inverse(model));
+    mat4 transposeInverseInverseModel; // transpose(inverse(invModel));
+
     int materialIndex;
 };
 
@@ -233,7 +237,7 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
     //vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-    vec3 d = transpose(inverse(mat3(object.invModel))) * ray.direction.xyz;
+    vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
     d = normalize(d);
 
     // Intersection test
@@ -288,7 +292,7 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
         }
 
         // Transform normal back to world space
-        vec3 normalWorldSpace = transpose(inverse(mat3(object.model))) * outHitInfo.normal;
+        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * outHitInfo.normal;
         outHitInfo.normal = normalize(normalWorldSpace);
 
         outHitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
