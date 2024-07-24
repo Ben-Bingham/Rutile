@@ -222,8 +222,8 @@ HitInfo HitScene(Ray ray) {
 }
 
 HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
-    float r = 1.0; // Sphere radius in local space
-    vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
+    //float r = 1.0; // Sphere radius in local space
+    //vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
     Object object = objects[objectIndex];
 
@@ -232,17 +232,18 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     // Transform the ray into the local space of the object
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
-    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-    //vec3 d = transpose(inverse(mat3(objects[i].invModel))) * ray.direction.xyz;
+    //vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
+    vec3 d = transpose(inverse(mat3(object.invModel))) * ray.direction.xyz;
     d = normalize(d);
 
     // Intersection test
-    vec3 co = spherePos - o;
-    float a = dot(d, d);
-    float b = -2.0 * dot(d, co);
-    float c = dot(co, co) - (r * r);
+    vec3 co = -o; // Should be: vec3 co = spherePos - o;, but spherePos is (0.0, 0.0, 0.0)
 
-    float discriminant = (b * b) - (4.0 * a * c);
+    //float a = 1.0;
+    float h = dot(d, co);
+    float c = dot(co, co) - 1.0; // Should be: float c = dot(co, co) - r * r;, but radius is always 1.0
+    
+    float discriminant = h * h - 1.0 * c;
 
     if (discriminant < 0.0) {
         return outHitInfo;
@@ -251,12 +252,12 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     float sqrtDiscriminant = sqrt(discriminant);
 
     // Because we subtract the discriminant, this root will always be smaller than the other one
-    float t = (-b - sqrtDiscriminant) / (2.0 * a);
+    float t = h - sqrtDiscriminant; // Should be: float t = (h - sqrtDiscriminant) / a;, but a is 1.0
 
     // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
     // but they cannot be compared to the t values of other objects
     if (t <= 0.00001 || t >= MAX_FLOAT) {
-        t = (-b + sqrtDiscriminant) / (2.0 * a);
+        t = h + sqrtDiscriminant; // Should be: t = (h + sqrtDiscriminant) / a;, but a is 1.0
         if (t <= 0.00001 || t >= MAX_FLOAT) {
             return outHitInfo;
         }
@@ -277,9 +278,9 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
 
         vec3 hitPointLocalSpace = o + t * d;
 
-        outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);
+        outHitInfo.normal = normalize(hitPointLocalSpace); // Should be: outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);, but spherePos is (0.0, 0.0, 0.0)
 
-        vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;
+        vec3 outwardNormal = hitPointLocalSpace; // Should be: vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;, but sphere pos is 0 and r is 1
         outHitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
 
         if (!outHitInfo.frontFace) {

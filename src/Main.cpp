@@ -60,12 +60,19 @@ void ShutDownCurrentRenderer() {
 }
 
 int main() {
+    App::timingData.startTime = std::chrono::steady_clock::now();
+
     App::glfw.Init();
 
     CreateCurrentRenderer(App::currentRendererType);
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
+        if (App::frameCount % 500 == 0) { // Take the average over the last 100 frames // TODO this is a horrible way to do this
+            App::frameCount = 0;
+            App::timingData.startTime = std::chrono::steady_clock::now();
+        }
+
         auto frameStartTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
@@ -122,6 +129,8 @@ int main() {
 
         // Timing the frame
         App::timingData.frameTime = std::chrono::steady_clock::now() - frameStartTime;
+
+        ++App::frameCount;
     }
 
     App::imGui.Cleanup();
