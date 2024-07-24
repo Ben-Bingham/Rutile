@@ -12,7 +12,8 @@ namespace Rutile {
 			PINK,
 			CYAN,
 			WHITE,
-			BLACK
+			BLACK,
+			GRAY
 		};
 
 		static Material Construct(const Material::Solid& solid, const std::string& name = "");

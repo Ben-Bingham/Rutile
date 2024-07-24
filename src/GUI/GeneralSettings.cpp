@@ -52,7 +52,8 @@ namespace Rutile {
                 "Double Point Light Test Scene",
                 "All Spheres",
                 "Spheres on Spheres",
-                "Hollow Glass Sphere"
+                "Hollow Glass Sphere",
+                "Ray Tracing In One Weekend"
             }, 
             (int*)&App::currentSceneType, 
             [] { App::renderer->LoadScene(); }

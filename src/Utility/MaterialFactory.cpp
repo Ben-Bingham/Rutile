@@ -68,6 +68,9 @@ namespace Rutile {
         case Color::BLACK:
             c = { 0.0f, 0.0f, 0.0f };
             break;
+        case Color::GRAY:
+            c = { 0.5f, 0.5f, 0.5f };
+            break;
         }
 
         return Construct(c, name);

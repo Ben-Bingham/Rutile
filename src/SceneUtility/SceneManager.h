@@ -10,7 +10,8 @@ namespace Rutile {
         DOUBLE_POINT_LIGHT_TEST_SCENE,
         ALL_SPHERES,
         SPHERES_ON_SPHERES,
-        HOLLOW_GLASS_SPHERE
+        HOLLOW_GLASS_SPHERE,
+        RAY_TRACING_IN_ONE_WEEKEND
     };
 
     class SceneManager {
@@ -26,5 +27,6 @@ namespace Rutile {
         static Scene GetAllSpheresScene();
         static Scene GetSpheresOnSpheresScene();
         static Scene GetHollowGlassSphereScene();
+        static Scene GetRayTracingInOneWeekendScene();
     };
 }

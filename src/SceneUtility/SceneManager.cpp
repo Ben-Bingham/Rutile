@@ -41,6 +41,9 @@ namespace Rutile {
             case SceneType::HOLLOW_GLASS_SPHERE: {
                 return GetHollowGlassSphereScene();
             }
+            case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
+                return GetRayTracingInOneWeekendScene();
+            }
         }
     }
 
@@ -466,6 +469,82 @@ namespace Rutile {
         floor.position = { 0.0f, -251.0f, -1.0f };
         floor.scale = { 250.0f, 250.0f, 250.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat, "Floor");
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetRayTracingInOneWeekendScene() {
+        SceneFactory sceneFactory{ };
+
+        Material groundMaterial = MaterialFactory::Construct(MaterialFactory::Color::GRAY);
+        groundMaterial.type = Material::Type::DIFFUSE;
+
+        Transform floorTransform{ };
+        floorTransform.position = { 0.0f, -1000.0f, 0.0f };
+        floorTransform.scale = { 1000.0f, 1000.0f, 1000.0f };
+
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floorTransform, groundMaterial, "Ground");
+
+        int i = 0;
+        for (int a = -3; a < 3; a++) {
+            for (int b = -3; b < 3; b++) {
+                Transform sphereTransform{ };
+                sphereTransform.position = { a + 0.9f * RandomFloat(), 0.2f, b + 0.9f * RandomFloat() };
+                sphereTransform.scale = { 0.2f, 0.2f, 0.2f };
+
+                float chosenMaterial = RandomFloat();
+                if ((sphereTransform.position - glm::vec3{ 4.0f, 0.2f, 0.0f }).length() > 0.9f) {
+                    Material sphereMaterial{ };
+
+                    if (chosenMaterial < 0.8) {
+                        // diffuse
+                        glm::vec3 color = RandomVec3() * RandomVec3();
+                        sphereMaterial = MaterialFactory::Construct(color);
+                        sphereMaterial.type = Material::Type::DIFFUSE;
+                    }
+                    else if (chosenMaterial < 0.95) {
+                        // metal
+                        glm::vec3 albedo = RandomVec3(0.5f, 1.0f);
+                        float fuzz = RandomFloat(0.0f, 0.5f);
+                        sphereMaterial = MaterialFactory::Construct(albedo);
+                        sphereMaterial.type = Material::Type::MIRROR;
+                        sphereMaterial.fuzz = fuzz;
+                    }
+                    else {
+                        // glass
+                        sphereMaterial = MaterialFactory::Construct(MaterialFactory::Color::WHITE);
+                        sphereMaterial.type = Material::Type::DIELECTRIC;
+                        sphereMaterial.indexOfRefraction = 1.5f;
+                    }
+
+                    sceneFactory.Add(GeometryFactory::Primitive::SPHERE, sphereTransform, sphereMaterial, "Tiny Sphere #" + std::to_string(i));
+                }
+                ++i;
+            }
+        }
+
+        Material mat1 = MaterialFactory::Construct(MaterialFactory::Color::WHITE);
+        mat1.type = Material::Type::DIELECTRIC;
+        mat1.indexOfRefraction = 1.5f;
+
+        Transform ball1{ };
+        ball1.position = { 0.0f, 1.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Ball 1");
+
+        Material mat2 = MaterialFactory::Construct({ 0.4f, 0.2f, 0.1f });
+        mat2.type = Material::Type::DIFFUSE;
+
+        Transform ball2{ };
+        ball2.position = { -4.0f, 1.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mat2, "Ball 2");
+
+        Material mat3 = MaterialFactory::Construct({ 0.7f, 0.6f, 0.5f });
+        mat3.type = Material::Type::MIRROR;
+        mat3.fuzz = 0.0f;
+
+        Transform ball3{ };
+        ball3.position = { 4.0f, 1.0f, 0.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3, "Ball 3");
 
         return sceneFactory.GetScene();
     }
