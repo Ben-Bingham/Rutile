@@ -12,7 +12,24 @@ namespace Rutile {
         RadioButtons(
             "Select Renderer", 
             { "OpenGl", "CPU Ray-Tracing", "GPU Ray-Tracing" },
-            (int*)&App::currentRendererType
+            (int*)&App::currentRendererType,
+            [] {
+                switch(App::currentRendererType) {
+                case RendererType::OPENGL:
+                    App::settings.materialType = MaterialType::PHONG;
+                    break;
+
+                case RendererType::CPU_RAY_TRACING:
+                    App::settings.materialType = MaterialType::RAY_TRACING;
+                    break;
+
+                case RendererType::GPU_RAY_TRACING:
+                    App::settings.materialType = MaterialType::RAY_TRACING;
+                    break;
+                }
+
+                App::eventManager.Notify(new MaterialTypeUpdate{ });
+            }
         );
 
         if (ImGui::Button("Restart Renderer")) {

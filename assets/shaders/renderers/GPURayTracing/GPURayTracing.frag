@@ -236,8 +236,8 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     // Transform the ray into the local space of the object
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
-    //vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-    vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
+    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
+    //vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
     d = normalize(d);
 
     // Intersection test
@@ -260,9 +260,9 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
 
     // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
     // but they cannot be compared to the t values of other objects
-    if (t <= 0.00001 || t >= MAX_FLOAT) {
+    if (t <= 0.001 || t >= MAX_FLOAT) {
         t = h + sqrtDiscriminant; // Should be: t = (h + sqrtDiscriminant) / a;, but a is 1.0
-        if (t <= 0.00001 || t >= MAX_FLOAT) {
+        if (t <= 0.001 || t >= MAX_FLOAT) {
             return outHitInfo;
         }
     }

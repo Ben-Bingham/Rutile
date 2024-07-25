@@ -76,6 +76,7 @@ int main() {
         auto frameStartTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
+        App::eventManager.Distribute();
 
         MoveCamera();
 
@@ -114,9 +115,12 @@ int main() {
 
             auto imGuiStartTime = std::chrono::steady_clock::now();
             MainGuiWindow();
-            App::timingData.imGuiTime = std::chrono::steady_clock::now() - imGuiStartTime;
 
-            App::eventManager.Distribute();
+            if (App::currentRendererType != App::lastRendererType) {
+                continue;
+            }
+
+            App::timingData.imGuiTime = std::chrono::steady_clock::now() - imGuiStartTime;
 
             auto renderStartTime = std::chrono::steady_clock::now();
             App::renderer->Render();

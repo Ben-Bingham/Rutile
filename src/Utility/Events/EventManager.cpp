@@ -27,8 +27,6 @@ namespace Rutile {
 
     void EventManager::Notify(Event* event) {
         m_Events.push_back(event);
-
-        Distribute(); // TODO remove this
     }
 
     void EventManager::Distribute() {
