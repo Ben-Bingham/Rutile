@@ -52,6 +52,8 @@ struct HitInfo {
 
 const float PI = 3.14159265359;
 
+const float MIN_RAY_DISTANCE = 0.00005;
+
 uniform float miliTime;
 
 uniform int screenWidth;
@@ -79,6 +81,7 @@ vec3 FireRayIntoScene(Ray ray);
 // Scene hitting functions
 HitInfo HitScene(Ray ray);
 HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
+HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo);
 
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
@@ -220,9 +223,17 @@ HitInfo HitScene(Ray ray) {
         // } else if (object is triangle) {
             //hitInfo = HitTriangle(ray, objects[i], hitInfo);
         //}
+        //hitInfo = HitTriangle(ray, i, hitInfo);
     }
 
     return hitInfo;
+}
+
+vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
+    bool frontFace = dot(ray.direction, outwardNormal) < 0;
+    vec3 normal = frontFace ? outwardNormal : -outwardNormal;
+
+    return normal;
 }
 
 HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
@@ -260,9 +271,9 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
 
     // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
     // but they cannot be compared to the t values of other objects
-    if (t <= 0.001 || t >= MAX_FLOAT) {
+    if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
         t = h + sqrtDiscriminant; // Should be: t = (h + sqrtDiscriminant) / a;, but a is 1.0
-        if (t <= 0.001 || t >= MAX_FLOAT) {
+        if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
             return outHitInfo;
         }
     }
@@ -296,6 +307,75 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
         outHitInfo.normal = normalize(normalWorldSpace);
 
         outHitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
+    }
+
+    return outHitInfo;
+}
+
+bool IsInterior(float alpha, float beta) {
+    //return alpha > 0 && beta > 0 && alpha + beta < 1;
+    return alpha > 0.0 && alpha < 1.0 && beta > 0.0 && beta < 1.0;
+}
+
+HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo) {
+    Object object = objects[objectIndex];
+
+    // Transform the ray into the local space of the object
+    vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
+
+    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
+    //vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
+    d = normalize(d);
+
+    // Quad definition
+    vec3 Q = vec3(0.0, 0.0, 0.0);
+    vec3 u = vec3(1.0, 0.0, 0.0);
+    vec3 v = vec3(0.0, 1.0, 0.0);
+
+    vec3 n = cross(u, v);
+    vec3 normal = normalize(n);
+    float D = dot(normal, Q);
+    vec3 w = n / dot(n, n);
+
+    // Plane intersection
+    float denom = dot(normal, d);
+    if (abs(denom) < 1e-8) {
+        return hitInfo;
+    }
+
+    float t = (D - dot(normal, o)) / denom;
+
+    if (t < MIN_RAY_DISTANCE) {
+        return hitInfo;
+    }
+
+    // t is the closest point in object space
+
+    vec3 intersection = o + d * t;
+
+    // This check happens in object space
+    vec3 planarHitPoint = intersection - Q;
+    float alpha = dot(w, cross(planarHitPoint, v));
+    float beta = dot(w, cross(u, planarHitPoint));
+
+    if (!IsInterior(alpha, beta)) {
+        return hitInfo;
+    }
+
+    HitInfo outHitInfo;
+
+    vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
+    float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
+
+    if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
+        outHitInfo.closestDistance = lengthAlongRayWorldSpace;
+        outHitInfo.hitSomething = true;
+        outHitInfo.hitObjectIndex = objectIndex;
+
+        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
+        outHitInfo.normal = normalize(getFaceNormal(Ray(o, d), normalWorldSpace));
+
+        outHitInfo.hitPosition = hitPointWorldSpace;
     }
 
     return outHitInfo;
