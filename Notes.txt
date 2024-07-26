@@ -69,3 +69,5 @@ Modify ObjectMaterialUpdate and ObjectTransformUpdate to store the index of the 
 
 Consider having a bank of materials, geometrys, and transforms per scene, and than when we load the scene we just set the apps banks
 to the banks of the scene
+
+apply gamma correction to OpenGl renderer

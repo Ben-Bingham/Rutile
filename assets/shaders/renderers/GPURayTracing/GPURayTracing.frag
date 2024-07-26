@@ -19,6 +19,9 @@ struct Material {
     vec3 color;
 };
 
+const int SPHERE_TYPE = 0;
+const int MESH_TYPE = 1;
+
 struct Object {
     mat4 model;
     mat4 invModel;
@@ -27,6 +30,10 @@ struct Object {
     mat4 transposeInverseInverseModel; // transpose(inverse(invModel));
 
     int materialIndex;
+
+    int geometryType;
+    int meshOffset;
+    int meshSize;
 };
 
 layout(std430, binding = 0) readonly buffer materialBuffer {
@@ -35,6 +42,10 @@ layout(std430, binding = 0) readonly buffer materialBuffer {
 
 layout(std430, binding = 1) readonly buffer objectBuffer {
     Object objects[];
+};
+
+layout(std430, binding = 2) readonly buffer meshBuffer {
+    float meshData[];
 };
 
 uniform int objectCount;
@@ -81,7 +92,9 @@ vec3 FireRayIntoScene(Ray ray);
 // Scene hitting functions
 HitInfo HitScene(Ray ray);
 HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
-HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo);
+
+HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3[3] triangle);
+HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo);
 
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
@@ -218,12 +231,13 @@ HitInfo HitScene(Ray ray) {
     hitInfo.closestDistance = MAX_FLOAT;
 
     for (int i = 0; i < objectCount; ++i) {
-        // if (object is a sphere) {
+        int geoType = objects[i].geometryType;
+
+        if (geoType == SPHERE_TYPE) {
             hitInfo = HitSphere(ray, i, hitInfo);
-        // } else if (object is triangle) {
-            //hitInfo = HitTriangle(ray, objects[i], hitInfo);
-        //}
-        //hitInfo = HitTriangle(ray, i, hitInfo);
+        } else if (geoType == MESH_TYPE) {
+            hitInfo = HitMesh(ray, i, hitInfo);
+        }
     }
 
     return hitInfo;
@@ -313,11 +327,29 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
 }
 
 bool IsInterior(float alpha, float beta) {
-    //return alpha > 0 && beta > 0 && alpha + beta < 1;
-    return alpha > 0.0 && alpha < 1.0 && beta > 0.0 && beta < 1.0;
+    return alpha > 0 && beta > 0 && alpha + beta < 1;
 }
 
-HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo) {
+HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo) {
+    Object object = objects[objectIndex];
+    
+    HitInfo outHitInfo = hitInfo;
+    
+    for (int i = 0; i < object.meshSize; i += 9) {
+
+        vec3 v1 = vec3(meshData[object.meshOffset + i + 0], meshData[object.meshOffset + i + 1], meshData[object.meshOffset + i + 2]);
+        vec3 v2 = vec3(meshData[object.meshOffset + i + 3], meshData[object.meshOffset + i + 4], meshData[object.meshOffset + i + 5]);
+        vec3 v3 = vec3(meshData[object.meshOffset + i + 6], meshData[object.meshOffset + i + 7], meshData[object.meshOffset + i + 8]);
+
+        vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+    
+        outHitInfo = HitTriangle(ray, objectIndex, outHitInfo, triangle);
+    }
+
+    return outHitInfo;
+}
+
+HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3]) {
     Object object = objects[objectIndex];
 
     // Transform the ray into the local space of the object
@@ -328,9 +360,9 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo) {
     d = normalize(d);
 
     // Quad definition
-    vec3 Q = vec3(0.0, 0.0, 0.0);
-    vec3 u = vec3(1.0, 0.0, 0.0);
-    vec3 v = vec3(0.0, 1.0, 0.0);
+    vec3 Q = triangle[0];
+    vec3 u = triangle[1];
+    vec3 v = triangle[2];
 
     vec3 n = cross(u, v);
     vec3 normal = normalize(n);

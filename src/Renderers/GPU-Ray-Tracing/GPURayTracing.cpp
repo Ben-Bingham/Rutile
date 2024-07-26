@@ -115,6 +115,14 @@ namespace Rutile {
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+        // Meshes
+        glGenBuffers(1, &m_MeshSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_MeshSSBO);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
         UploadObjectAndMaterialBuffers();
         ResetAccumulatedPixelData();
 
@@ -151,6 +159,7 @@ namespace Rutile {
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
+        glDeleteBuffers(1, &m_MeshSSBO);
         glDeleteBuffers(1, &m_ObjectSSBO);
         glDeleteBuffers(1, &m_MaterialBankSSBO);
 
@@ -253,7 +262,10 @@ namespace Rutile {
         glm::mat4 transposeInverseModel;
         glm::mat4 transposeInverseInverseModel;
 
-        alignas(16) int materialIndex;
+        int materialIndex;
+        int geometryType;
+        int meshOffset;
+        int meshSize;
     };
 
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
@@ -272,15 +284,52 @@ namespace Rutile {
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        std::vector<LocalObject> localObjects{ };
+        std::vector<float> meshData;
+        std::vector<int> meshOffsets;
+        std::vector<int> meshSizes;
         for (auto object : App::scene.objects) {
+            meshOffsets.push_back((int)meshData.size());
+
+            std::vector<Vertex> vertices = App::geometryBank[object.geometry].vertices;
+            std::vector<Index> indices = App::geometryBank[object.geometry].indices;
+
+            for (auto index : indices) {
+                Vertex vertToAdd = vertices[index];
+
+                meshData.push_back(vertToAdd.position.x);
+                meshData.push_back(vertToAdd.position.y);
+                meshData.push_back(vertToAdd.position.z);
+            }
+
+            meshSizes.push_back((int)indices.size() * 3);
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(meshData.size() * sizeof(float)), meshData.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        std::vector<LocalObject> localObjects{ };
+        int i = 0;
+        for (auto object : App::scene.objects) {
+            int geoType;
+            if (App::geometryBank[object.geometry].name == "Sphere") {
+                geoType = 0;
+            } else {
+                geoType = 1;
+            }
+
             localObjects.push_back(LocalObject{
                 App::transformBank[object.transform].matrix,
                 glm::inverse(App::transformBank[object.transform].matrix),
                 glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix })) },
                 glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix }))) },
                 (int)object.material,
+                geoType,
+                meshOffsets[i],
+                meshSizes[i]
             });
+
+            ++i;
         }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);

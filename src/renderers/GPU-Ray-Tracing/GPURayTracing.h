@@ -44,7 +44,8 @@ namespace Rutile {
         unsigned int m_VBO{ 0 };
         unsigned int m_EBO{ 0 };
 
-        unsigned int m_MaterialBankSSBO;
-        unsigned int m_ObjectSSBO;
+        unsigned int m_MaterialBankSSBO{ 0 };
+        unsigned int m_ObjectSSBO{ 0 };
+        unsigned int m_MeshSSBO{ 0 };
     };
 }
