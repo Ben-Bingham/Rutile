@@ -3,6 +3,8 @@
 #include <array>
 #include <iostream>
 
+#include "Settings/App.h"
+
 namespace Rutile {
     AABB AABBFactory::Construct(const AABB& bbox1, const AABB& bbox2) {
         glm::vec3 newMin{ std::numeric_limits<float>::max() };
@@ -55,7 +57,7 @@ namespace Rutile {
     }
 
     AABB AABBFactory::Construct(const Geometry& geometry, Transform transform) {
-        if (geometry.name == "Spfhere") {
+        if (geometry.name == "Sphere") {
             const glm::vec3 sphereCenter = transform.position;
             const glm::vec3 radius = transform.scale;
 
@@ -117,5 +119,17 @@ namespace Rutile {
         }
 
         return AABB{ min, max };
+    }
+
+    AABB AABBFactory::Construct(const std::vector<Object>& objects) {
+        AABB mainBbox{ };
+
+        for (auto object : objects) {
+            AABB bbox = Construct(App::geometryBank[object.geometry], App::transformBank[object.transform]);
+
+            mainBbox = Construct(mainBbox, bbox);
+        }
+
+        return mainBbox;
     }
 }

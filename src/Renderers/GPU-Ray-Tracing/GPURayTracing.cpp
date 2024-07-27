@@ -7,6 +7,8 @@
 #include "Settings/App.h"
 
 #include "Utility/events/Events.h"
+#include "Utility/RayTracing/BoundingVolumeHierarchy/BVHBank.h"
+#include "Utility/RayTracing/BoundingVolumeHierarchy/BVHFactory.h"
 
 namespace Rutile {
     GLFWwindow* GPURayTracing::Init() {
@@ -338,5 +340,7 @@ namespace Rutile {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjects.size() * sizeof(LocalObject)), localObjects.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        auto [bank, startingIndex] = BVHFactory::Construct(App::scene); // TODO
     }
 }
