@@ -624,6 +624,9 @@ namespace Rutile {
         bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
 
+        App::camera.position = { 2.78f, 2.78f, 13.5f };
+        App::settings.fieldOfView = 40.0f;
+
         return sceneFactory.GetScene();
     }
 }
