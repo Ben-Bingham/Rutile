@@ -218,6 +218,7 @@ namespace Rutile {
         SceneFactory sceneFactory{};
 
         Material mat1 = MaterialFactory::Construct({ 1.0f, 1.0f, 1.0f });
+        mat1.type = Material::Type::EMISSIVE;
 
         Transform lightTransform{};
         lightTransform.position = { 0.0f, 3.0f, -10.0f };
@@ -389,6 +390,9 @@ namespace Rutile {
 
         Material floorMat = MaterialFactory::Construct({ 0.0f, 1.0f, 0.0f });
 
+        Material lightMat = MaterialFactory::Construct(MaterialFactory::Color::WHITE);
+        lightMat.type = Material::Type::EMISSIVE;
+
         Transform ball1{ };
         ball1.position = { 0.0f, 0.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Diffuse Ball");
@@ -409,6 +413,11 @@ namespace Rutile {
         floor.position = { 0.0f, -251.0f, -1.0f };
         floor.scale = { 250.0f, 250.0f, 250.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat, "Floor");
+
+        Transform lightTransform{ };
+        lightTransform.position = { 0.0f, 3.0f, 0.0f };
+        lightTransform.scale = { 2.0f, 0.2f, 2.0f };
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, lightTransform, lightMat, "Light");
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);

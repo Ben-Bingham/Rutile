@@ -11,6 +11,7 @@ struct Ray {
 const int DIFFUSE_TYPE = 0;
 const int MIRROR_TYPE = 1;
 const int DIELECTRIC_TYPE = 2;
+const int EMMISIVE_TYPE = 3;
 
 struct Material {
     int type;
@@ -128,7 +129,7 @@ bool NearZero(vec3 vec) {
 }
 
 void main() {
-    randomState = normalizedPixelPosition.xy * miliTime;
+    randomState = normalizedPixelPosition.xy * miliTime * 3.4135;
 
     vec2 normalizedPixelCoordinate = normalizedPixelPosition;
 
@@ -145,7 +146,7 @@ void main() {
     normalizedPixelCoordinate.y += heightJitter;
 
     // Camera
-	vec2 clipSpacePixelPosition = (normalizedPixelCoordinate * 2.0) - 1.0;
+    vec2 clipSpacePixelPosition = (normalizedPixelCoordinate * 2.0) - 1.0;
 
     vec4 target = invProjection * vec4(clipSpacePixelPosition.xy, 1.0, 1.0);
 
@@ -165,13 +166,22 @@ void main() {
     outFragColor = vec4(accumulationColor.rgb, 1.0);
 }
 
+float reflectance(float cosine, float refractionIndex) {
+    float r0 = (1.0 - refractionIndex) / (1.0 + refractionIndex);
+    r0 = r0 * r0;
+    return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
+}
+
 vec3 FireRayIntoScene(Ray ray) {
-    vec3 pixelColor = vec3(1.0, 1.0, 1.0);
+    vec3 color = vec3(0.0, 0.0, 0.0);
+    vec3 throughput = vec3(1.0, 1.0, 1.0);
 
     int bounces = 0;
     while (true) {
+        vec3 scatterColor = vec3(0.0, 0.0, 0.0);
+
         if (bounces >= maxBounces) {
-            return vec3(0.0, 0.0, 0.0);
+            break;
         }
         
         HitInfo hitInfo = HitScene(ray);
@@ -188,41 +198,49 @@ vec3 FireRayIntoScene(Ray ray) {
                     ray.direction = hitInfo.normal;
                 }
 
-                pixelColor *= vec3(mat.color.rgb);
+                scatterColor = vec3(mat.color.rgb);
             } else if (mat.type == MIRROR_TYPE) {
                 ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
                 ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * bounces) * vec3(mat.fuzz))));
 
                 if (dot(ray.direction, hitInfo.normal) > 0) {
-                    pixelColor *= vec3(mat.color.rgb);
+                    scatterColor = vec3(mat.color.rgb);
                 }
                 else {
-                    pixelColor *= vec3(0.0, 0.0, 0.0);
+                    scatterColor = vec3(0.0, 0.0, 0.0);
                 }
 
             } else if (mat.type == DIELECTRIC_TYPE) {
-                pixelColor *= vec3(1.0, 1.0, 1.0);
+                scatterColor = vec3(1.0, 1.0, 1.0);
                 float ri = hitInfo.frontFace ? (1.0 / mat.indexOfRefraction) : mat.indexOfRefraction;
                 
                 float cosTheta = min(dot(-normalize(ray.direction), hitInfo.normal), 1.0);
                 float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
                 
-                if (ri * sinTheta > 1.0) {
+                bool cannotRefract = ri * sinTheta > 1.0;
+
+                if (cannotRefract || reflectance(cosTheta, ri) > RandomFloat(0.4245 * bounces)) {
                     // Must Reflect
-                    ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
+                    ray.direction = normalize(reflect(normalize(ray.direction), normalize(hitInfo.normal)));
                 } else {
                     // Can Refract
                     ray.direction = normalize(refract(normalize(ray.direction), normalize(hitInfo.normal), ri));
                 }
+            } else if (mat.type == EMMISIVE_TYPE) {
+                color += throughput * vec3(15.0, 15.0, 15.0);
+
             }
-        } else {
+        } else { // Missed everything, stop collecting new color
+            color += backgroundColor * throughput;
             break;
         }
+
+        throughput *= scatterColor;
 
         ++bounces;
     }
 
-    return backgroundColor * pixelColor;
+    return color;
 }
 
 HitInfo HitScene(Ray ray) {

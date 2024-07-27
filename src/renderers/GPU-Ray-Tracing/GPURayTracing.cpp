@@ -244,6 +244,9 @@ namespace Rutile {
 
         std::vector<glm::vec4> clearData{ };
         clearData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+        for (auto& val : clearData) {
+            val = glm::vec4{ 0.0f };
+        }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, clearData.data());
     }
