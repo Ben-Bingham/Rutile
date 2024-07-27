@@ -73,3 +73,5 @@ to the banks of the scene
 apply gamma correction to OpenGl renderer
 
 Add camera to scene
+
+TODO replace Geometry name checks with primitive type checks

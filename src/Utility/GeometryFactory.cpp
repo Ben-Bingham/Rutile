@@ -187,4 +187,65 @@ namespace Rutile {
 
         return geo;
     }
+
+    Geometry GeometryFactory::Construct(const AABB& aabb) {
+        Geometry geo;
+
+        geo.name = "Bounding Box";
+
+        geo.vertices = {
+            //      Position                         Normal                             Uv
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.min.z }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.min.z }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.min.z }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.min.z }, glm::vec3{  0.0f,  0.0f, -1.0f }, glm::vec2{ 0.0f, 1.0f } },
+
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.max.z }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.max.z }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.max.z }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.max.z }, glm::vec3{  0.0f,  0.0f,  1.0f }, glm::vec2{ 0.0f, 1.0f } },
+
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.max.z }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.min.z }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.min.z }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.max.z }, glm::vec3{ -1.0f,  0.0f,  0.0f }, glm::vec2{ 0.0f, 0.0f } },
+
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.max.z }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.min.z }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.min.z }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.max.z }, glm::vec3{  1.0f,  0.0f,  0.0f }, glm::vec2{ 0.0f, 0.0f } },
+
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.min.z }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.min.z }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.min.y, aabb.max.z }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.min.y, aabb.max.z }, glm::vec3{  0.0f, -1.0f,  0.0f }, glm::vec2{ 0.0f, 0.0f } },
+
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.min.z }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.min.z }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{ aabb.max.x, aabb.max.y, aabb.max.z }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec2{ 1.0f, 0.0f } },
+            Vertex{ glm::vec3{ aabb.min.x, aabb.max.y, aabb.max.z }, glm::vec3{  0.0f,  1.0f,  0.0f }, glm::vec2{ 0.0f, 0.0f } },
+        };
+
+        geo.indices = {
+             2,  1,  0,
+             0,  3,  2,
+
+             4,  5,  6,
+             6,  7,  4,
+
+             8,  9, 10,
+            10, 11,  8,
+
+            14, 13, 12,
+            12, 15, 14,
+
+            16, 17, 18,
+            18, 19, 16,
+
+            22, 21, 20,
+            20, 23, 22,
+        };
+
+        return geo;
+    }
 }

@@ -2,13 +2,16 @@
 #include "SceneFactory.h"
 #include <iostream>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/ext/quaternion_trigonometric.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Settings/App.h"
 
 #include "Utility/MaterialFactory.h"
 #include "Utility/GeometryFactory.h"
 #include "Utility/Random.h"
+#include "Utility/RayTracing/AABBFactory.h"
 
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {
@@ -145,7 +148,6 @@ namespace Rutile {
         Transform ball1{ };
         ball1.position = { 2.0f, 0.0f, 0.0f };
         ball1.scale = { 0.5f, 0.5f, 0.5f };
-
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat3, "Ball 1");
 
         return sceneFactory.GetScene();
@@ -557,6 +559,19 @@ namespace Rutile {
         Transform ball3{ };
         ball3.position = { 4.0f, 1.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3, "Ball 3");
+
+        AABB mainBbox{ };
+
+        for (auto object : sceneFactory.GetScene().objects) {
+            if (object.name == "Ground") {
+                continue;
+            }
+            AABB bbox = AABBFactory::Construct(App::geometryBank[object.geometry], App::transformBank[object.transform]);
+
+            mainBbox = AABBFactory::Construct(mainBbox, bbox);
+        }
+
+        sceneFactory.Add(GeometryFactory::Construct(mainBbox), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::WHITE), "Bounding Box");
 
         return sceneFactory.GetScene();
     }
