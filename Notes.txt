@@ -71,3 +71,5 @@ Consider having a bank of materials, geometrys, and transforms per scene, and th
 to the banks of the scene
 
 apply gamma correction to OpenGl renderer
+
+Add camera to scene

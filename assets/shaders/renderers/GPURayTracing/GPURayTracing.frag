@@ -64,7 +64,7 @@ struct HitInfo {
 
 const float PI = 3.14159265359;
 
-const float MIN_RAY_DISTANCE = 0.00005;
+const float MIN_RAY_DISTANCE = 0.00007;
 
 uniform float miliTime;
 

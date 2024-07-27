@@ -44,6 +44,9 @@ namespace Rutile {
             case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
                 return GetRayTracingInOneWeekendScene();
             }
+            case SceneType::CORNELL_BOX: {
+                return GetCornellBoxScene();
+            }
         }
     }
 
@@ -554,6 +557,72 @@ namespace Rutile {
         Transform ball3{ };
         ball3.position = { 4.0f, 1.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3, "Ball 3");
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetCornellBoxScene() {
+        SceneFactory sceneFactory;
+
+        Material red   = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
+        Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
+        Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
+        Material light = MaterialFactory::Construct(glm::vec3{ 20.0f });
+        light.type = Material::Type::EMISSIVE;
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  0.0f,  0.0f },
+            glm::vec3{ 0.0f,  5.55f, 0.0f },
+            glm::vec3{ 5.55f, 5.55f, 0.0f },
+            glm::vec3{ 5.55,  0.0f,  0.0f }
+        ), Transform{}, white, "Back Wall");
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  0.0f, 0.0f  },
+            glm::vec3{ 5.55f, 0.0f, 0.0f  },
+            glm::vec3{ 5.55f, 0.0f, 5.55f },
+            glm::vec3{ 0.0f,  0.0f, 5.55f }
+        ), Transform{}, white, "Floor");
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  5.55f, 0.0f  },
+            glm::vec3{ 0.0f,  5.55f, 5.55f },
+            glm::vec3{ 5.55f, 5.55f, 5.55f },
+            glm::vec3{ 5.55f, 5.55f, 0.0f  }
+        ), Transform{}, white, "Roof");
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 5.55f, 0.0f,  0.0f  },
+            glm::vec3{ 5.55f, 5.55f, 0.0f  },
+            glm::vec3{ 5.55f, 5.55f, 5.55f },
+            glm::vec3{ 5.55f, 0.0f,  5.55f }
+        ), Transform{}, red, "Right Wall");
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f, 0.0f,  0.0f  },
+            glm::vec3{ 0.0f, 0.0f,  5.55f },
+            glm::vec3{ 0.0f, 5.55f, 5.55f },
+            glm::vec3{ 0.0f, 5.55f, 0.0f  }
+        ), Transform{}, green, "Left Wall");
+
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 2.13f, 5.549f, 2.27f },
+            glm::vec3{ 2.13f, 5.549f, 3.32f },
+            glm::vec3{ 3.43f, 5.549f, 3.32f },
+            glm::vec3{ 3.43f, 5.549f, 2.27f }
+        ), Transform{}, light, "Light");
+
+        Transform smallBoxTransform{ };
+        smallBoxTransform.position = { 2.65f + 0.825f, 0.825f, 2.95f + 0.825f };
+        smallBoxTransform.scale = { 1.65f, 1.65f, 1.65f };
+        smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
+
+        Transform bigBoxTransform{ };
+        bigBoxTransform.position = { 1.3f + 0.825f, 1.65f, 0.65f + 0.825f };
+        bigBoxTransform.scale = { 1.65f, 3.3f, 1.65f };
+        bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
 
         return sceneFactory.GetScene();
     }

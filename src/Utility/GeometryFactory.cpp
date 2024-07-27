@@ -157,4 +157,34 @@ namespace Rutile {
 
         return geo;
     }
+
+    Geometry GeometryFactory::ConstructQuad(const glm::vec3& c1, const glm::vec3& c2, const glm::vec3& c3, const glm::vec3& c4) {
+        Geometry geo;
+
+        geo.name = "Square";
+
+        glm::vec3 normal{ };
+
+        const glm::vec3 a = c1 - c2;
+        const glm::vec3 b = c3 - c2;
+
+        normal.x = a.y * b.z - a.z * b.y;
+        normal.y = a.z * b.x - a.x * b.z;
+        normal.z = a.x * b.y - a.y * b.x;
+
+        geo.vertices = {
+            //      Position Normal       Uv
+            Vertex{ c1,      normal, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ c2,      normal, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ c3,      normal, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ c4,      normal, glm::vec2{ 1.0f, 0.0f } },
+        };
+
+        geo.indices = {
+            2, 1, 0,
+            3, 2, 0
+        };
+
+        return geo;
+    }
 }

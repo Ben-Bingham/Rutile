@@ -11,7 +11,8 @@ namespace Rutile {
         ALL_SPHERES,
         SPHERES_ON_SPHERES,
         HOLLOW_GLASS_SPHERE,
-        RAY_TRACING_IN_ONE_WEEKEND
+        RAY_TRACING_IN_ONE_WEEKEND,
+        CORNELL_BOX
     };
 
     class SceneManager {
@@ -28,5 +29,6 @@ namespace Rutile {
         static Scene GetSpheresOnSpheresScene();
         static Scene GetHollowGlassSphereScene();
         static Scene GetRayTracingInOneWeekendScene();
+        static Scene GetCornellBoxScene();
     };
 }
