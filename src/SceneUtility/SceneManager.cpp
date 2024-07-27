@@ -565,9 +565,16 @@ namespace Rutile {
         SceneFactory sceneFactory;
 
         Material red   = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
+        red.phong.shininess = 0.0f;
+
         Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
+        white.phong.shininess = 0.0f;
+
         Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
+        green.phong.shininess = 0.0f;
+
         Material light = MaterialFactory::Construct(glm::vec3{ 20.0f });
+        light.phong.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
@@ -626,6 +633,10 @@ namespace Rutile {
 
         App::camera.position = { 2.78f, 2.78f, 13.5f };
         App::settings.fieldOfView = 40.0f;
+
+        PointLight pointLight;
+        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        sceneFactory.Add(pointLight);
 
         return sceneFactory.GetScene();
     }
