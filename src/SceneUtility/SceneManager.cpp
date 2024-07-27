@@ -417,7 +417,7 @@ namespace Rutile {
         Transform lightTransform{ };
         lightTransform.position = { 0.0f, 3.0f, 0.0f };
         lightTransform.scale = { 2.0f, 0.2f, 2.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, lightTransform, lightMat, "Light");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, lightMat, "Light");
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);

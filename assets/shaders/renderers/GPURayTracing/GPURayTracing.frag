@@ -412,7 +412,7 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3])
         return hitInfo;
     }
 
-    HitInfo outHitInfo;
+    HitInfo outHitInfo = hitInfo;
 
     vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
     float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
