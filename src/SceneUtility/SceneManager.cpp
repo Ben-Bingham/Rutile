@@ -576,7 +576,6 @@ namespace Rutile {
         Material light = MaterialFactory::Construct(glm::vec3{ 100.0f });
         light.phong.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
-        
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f,  0.0f },

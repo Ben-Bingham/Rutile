@@ -97,6 +97,16 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
 HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3[3] triangle);
 HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo);
 
+// Materials
+struct ScatterInfo {
+    Ray ray;
+    vec3 throughput;
+};
+
+ScatterInfo DiffuseScatter   (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo MirrorScatter    (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo DielectricScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
 float RandomFloat(float seed, float low, float high); // Generates a number in the range [min, max)
@@ -172,70 +182,50 @@ float reflectance(float cosine, float refractionIndex) {
     return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
-vec3 FireRayIntoScene(Ray ray) {
+vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
 
+    Ray ray = r;
+
     int bounces = 0;
     while (true) {
-        vec3 scatterColor = vec3(0.0, 0.0, 0.0);
-
         if (bounces >= maxBounces) {
             break;
         }
         
         HitInfo hitInfo = HitScene(ray);
 
-        if (hitInfo.hitSomething) { // Then scatter the ray
-            ray.origin = hitInfo.hitPosition;
+        if (hitInfo.hitSomething) { // Scatter the ray
+            ScatterInfo scatterInfo;
+            scatterInfo.ray = ray;
+            scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
 
             Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
 
             if (mat.type == DIFFUSE_TYPE) {
-                ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * bounces));
-
-                if (NearZero(ray.direction)) {
-                    ray.direction = hitInfo.normal;
-                }
-
-                scatterColor = vec3(mat.color.rgb);
-            } else if (mat.type == MIRROR_TYPE) {
-                ray.direction = normalize(reflect(ray.direction, hitInfo.normal));
-                ray.direction = normalize(ray.direction + ((RandomUnitVec3(0.53424 * bounces) * vec3(mat.fuzz))));
-
-                if (dot(ray.direction, hitInfo.normal) > 0) {
-                    scatterColor = vec3(mat.color.rgb);
-                }
-                else {
-                    scatterColor = vec3(0.0, 0.0, 0.0);
-                }
-
-            } else if (mat.type == DIELECTRIC_TYPE) {
-                scatterColor = vec3(1.0, 1.0, 1.0);
-                float ri = hitInfo.frontFace ? (1.0 / mat.indexOfRefraction) : mat.indexOfRefraction;
-                
-                float cosTheta = min(dot(-normalize(ray.direction), hitInfo.normal), 1.0);
-                float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
-                
-                bool cannotRefract = ri * sinTheta > 1.0;
-
-                if (cannotRefract || reflectance(cosTheta, ri) > RandomFloat(0.4245 * bounces)) {
-                    // Must Reflect
-                    ray.direction = normalize(reflect(normalize(ray.direction), normalize(hitInfo.normal)));
-                } else {
-                    // Can Refract
-                    ray.direction = normalize(refract(normalize(ray.direction), normalize(hitInfo.normal), ri));
-                }
-            } else if (mat.type == EMMISIVE_TYPE) {
-                color += throughput * mat.color;
-
+                scatterInfo = DiffuseScatter(scatterInfo, mat, hitInfo, bounces);
             }
-        } else { // Missed everything, stop collecting new color
+            else if (mat.type == MIRROR_TYPE) {
+                scatterInfo = MirrorScatter(scatterInfo, mat, hitInfo, bounces);
+            } 
+            else if (mat.type == DIELECTRIC_TYPE) {
+                scatterInfo = DielectricScatter(scatterInfo, mat, hitInfo, bounces);
+            }
+            else if (mat.type == EMMISIVE_TYPE) {
+                color += throughput * mat.color;
+                break;
+            }
+
+            scatterInfo.ray.origin = hitInfo.hitPosition;
+
+            ray = scatterInfo.ray;
+            throughput *= scatterInfo.throughput;
+        }
+        else { // Missed everything, stop collecting new color
             color += backgroundColor * throughput;
             break;
         }
-
-        throughput *= scatterColor;
 
         ++bounces;
     }
@@ -429,6 +419,52 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3])
     }
 
     return outHitInfo;
+}
+
+ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
+    scatterInfo.ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * i));
+
+    if (NearZero(scatterInfo.ray.direction)) {
+        scatterInfo.ray.direction = hitInfo.normal;
+    }
+
+    scatterInfo.throughput = vec3(mat.color.rgb);
+
+    return scatterInfo;
+}
+
+ScatterInfo MirrorScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
+    scatterInfo.ray.direction = normalize(reflect(scatterInfo.ray.direction, hitInfo.normal));
+    scatterInfo.ray.direction = normalize(scatterInfo.ray.direction + ((RandomUnitVec3(0.53424 * i) * vec3(mat.fuzz))));
+
+    if (dot(scatterInfo.ray.direction, hitInfo.normal) > 0) {
+        scatterInfo.throughput = vec3(mat.color.rgb);
+    }
+    else {
+        scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
+    }
+
+    return scatterInfo;
+}
+
+ScatterInfo DielectricScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
+    scatterInfo.throughput = vec3(1.0, 1.0, 1.0);
+    float ri = hitInfo.frontFace ? (1.0 / mat.indexOfRefraction) : mat.indexOfRefraction;
+                
+    float cosTheta = min(dot(-normalize(scatterInfo.ray.direction), hitInfo.normal), 1.0);
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+                
+    bool cannotRefract = ri * sinTheta > 1.0;
+
+    if (cannotRefract || reflectance(cosTheta, ri) > RandomFloat(0.4245 * i)) {
+        // Must Reflect
+        scatterInfo.ray.direction = normalize(reflect(normalize(scatterInfo.ray.direction), normalize(hitInfo.normal)));
+    } else {
+        // Can Refract
+        scatterInfo.ray.direction = normalize(refract(normalize(scatterInfo.ray.direction), normalize(hitInfo.normal), ri));
+    }
+
+    return scatterInfo;
 }
 
 const float PHI = 1.61803398874989484820459; 
