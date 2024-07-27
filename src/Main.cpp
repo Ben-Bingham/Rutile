@@ -68,7 +68,7 @@ int main() {
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
-        if (App::frameCount % 500 == 0) { // Take the average over the last 100 frames // TODO this is a horrible way to do this
+        if (App::frameCount % 10 == 0) { // Take the average over the last 100 frames // TODO this is a horrible way to do this
             App::frameCount = 0;
             App::timingData.startTime = std::chrono::steady_clock::now();
         }
