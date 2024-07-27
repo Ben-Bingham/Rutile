@@ -227,7 +227,7 @@ vec3 FireRayIntoScene(Ray ray) {
                     ray.direction = normalize(refract(normalize(ray.direction), normalize(hitInfo.normal), ri));
                 }
             } else if (mat.type == EMMISIVE_TYPE) {
-                color += throughput * vec3(15.0, 15.0, 15.0);
+                color += throughput * mat.color;
 
             }
         } else { // Missed everything, stop collecting new color

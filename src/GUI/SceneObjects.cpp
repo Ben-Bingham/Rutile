@@ -45,14 +45,19 @@ namespace Rutile {
                         case MaterialType::RAY_TRACING: {
                             RadioButtons(
                                 "Type",
-                                { "Diffuse", "Mirror", "Dielectric" },
+                                { "Diffuse", "Mirror", "Dielectric", "Emissive" },
                                 (int*)&App::materialBank[object.material].type,
                                 [i] {
                                     App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i });
                                 }
                             );
 
-                            if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (App::materialBank[object.material].type == Material::Type::EMISSIVE) {
+                                if (ImGui::DragFloat3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color), 0.1f, 0.0f, 1000000000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+
+                            } else {
+                                if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            }
 
                             if (App::materialBank[object.material].type == Material::Type::MIRROR) {
                                 if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
