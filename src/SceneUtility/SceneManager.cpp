@@ -574,45 +574,6 @@ namespace Rutile {
         ball3.position = { 4.0f, 1.0f, 0.0f };
         sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3, "Ball 3");
 
-        auto [bank, startingIndex] = BVHFactory::Construct(sceneFactory.GetScene());
-
-        AABB bbox1 = bank[startingIndex].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox1), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::YELLOW), "Bounding Box 1");
-
-
-        AABB bbox2 = bank[bank[startingIndex].node1].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox2), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::WHITE), "Bounding Box 2");
-
-        AABB bbox3 = bank[bank[startingIndex].node2].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox3), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::GREEN), "Bounding Box 3");
-
-
-        AABB bbox4 = bank[bank[bank[startingIndex].node1].node1].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox4), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::PINK), "Bounding Box 4");
-
-        AABB bbox5 = bank[bank[bank[startingIndex].node1].node2].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox5), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::BLACK), "Bounding Box 5");
-
-
-        AABB bbox6 = bank[bank[bank[startingIndex].node2].node1].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox6), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::BLUE), "Bounding Box 6");
-
-        AABB bbox7 = bank[bank[bank[startingIndex].node2].node2].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox7), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::GRAY), "Bounding Box 7");
-
-        AABB bbox8 = bank[bank[bank[bank[startingIndex].node1].node1].node1].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox8), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::RED), "Bounding Box 8");
-
-        AABB bbox9 = bank[bank[bank[bank[startingIndex].node1].node1].node2].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox9), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::CYAN), "Bounding Box 9");
-
-        AABB bbox10 = bank[bank[bank[bank[startingIndex].node1].node2].node1].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox10), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::YELLOW), "Bounding Box 10");
-
-        AABB bbox11 = bank[bank[bank[bank[startingIndex].node1].node2].node2].bbox;
-        sceneFactory.Add(GeometryFactory::Construct(bbox11), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::WHITE), "Bounding Box 11");
-
-
         return sceneFactory.GetScene();
     }
 
