@@ -6,6 +6,7 @@
 struct Ray {
 	vec3 origin;
 	vec3 direction;
+    vec3 inverseDirection;
 };
 
 const int DIFFUSE_TYPE = 0;
@@ -183,6 +184,7 @@ void main() {
 
     Ray ray;
     ray.direction = normalize(vec3(invView * vec4(normalize(vec3(target) / target.w), 0)));
+    ray.inverseDirection = 1.0 / ray.direction;
     ray.origin = cameraPosition;
 
     vec3 pixelColor = FireRayIntoScene(ray);
@@ -239,6 +241,7 @@ vec3 FireRayIntoScene(Ray r) {
             }
 
             scatterInfo.ray.origin = hitInfo.hitPosition;
+            scatterInfo.ray.inverseDirection = 1.0 / scatterInfo.ray.direction;
 
             ray = scatterInfo.ray;
             throughput *= scatterInfo.throughput;
@@ -260,27 +263,6 @@ vec3 FireRayIntoScene(Ray r) {
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
-
-    //for (int i = 0; i < objectCount; ++i) {
-    //    HitInfo backupHitInfo = hitInfo;
-    //
-    //    int geoType = objects[i].geometryType;
-    //            
-    //    if (geoType == SPHERE_TYPE) {
-    //        if (HitSphere(ray, i, backupHitInfo)) {
-    //            hitInfo = backupHitInfo;
-    //            hitSomething = true;
-    //        }
-    //    } else if (geoType == MESH_TYPE) {
-    //        if (HitMesh(ray, i, backupHitInfo)) {
-    //            hitInfo = backupHitInfo;
-    //            hitSomething = true;
-    //        }
-    //    }
-    //}
-    //
-    //return hitSomething;
-
     
     int stack[32];
     int stackIndex = 1;
@@ -591,7 +573,7 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
         hitInfo.hitObjectIndex = objectIndex;
 
         vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
-        hitInfo.normal = normalize(getFaceNormal(Ray(o, d), normalWorldSpace));
+        hitInfo.normal = normalize(getFaceNormal(Ray(o, d, 1.0 / d), normalWorldSpace));
 
         hitInfo.hitPosition = hitPointWorldSpace;
 
@@ -602,53 +584,21 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 }
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
-    distanceToIntersection = MAX_FLOAT;
+    //vec3 t0Temp = (bbox.minBound - ray.origin) / ray.direction;
+    //vec3 t1Temp = (bbox.maxBound - ray.origin) / ray.direction;
 
-    float tx0Temp = (bbox.minBound.x - ray.origin.x) / ray.direction.x;
-    float tx1Temp = (bbox.maxBound.x - ray.origin.x) / ray.direction.x;
+    vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
+    vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
 
-    float tx0 = min(tx0Temp, tx1Temp);
-    float tx1 = max(tx0Temp, tx1Temp);
+    vec3 t0 = min(t0Temp, t1Temp);
+    vec3 t1 = max(t0Temp, t1Temp);
 
-    float ty0Temp = (bbox.minBound.y - ray.origin.y) / ray.direction.y;
-    float ty1Temp = (bbox.maxBound.y - ray.origin.y) / ray.direction.y;
-
-    float ty0 = min(ty0Temp, ty1Temp);
-    float ty1 = max(ty0Temp, ty1Temp);
-
-    float tz0Temp = (bbox.minBound.z - ray.origin.z) / ray.direction.z;
-    float tz1Temp = (bbox.maxBound.z - ray.origin.z) / ray.direction.z;
-
-    float tz0 = min(tz0Temp, tz1Temp);
-    float tz1 = max(tz0Temp, tz1Temp);
-
-    float tNear = max(tx0, max(ty0, tz0));
-    float tFar = min(tx1, min(ty1, tz1));
+    float tNear = max(t0.x, max(t0.y, t0.z));
+    float tFar = min(t1.x, min(t1.y, t1.z));
 
     distanceToIntersection = tNear;
 
-    bool hit = tFar >= tNear && tFar > 0;
-    return hit;
-	//float dst = hit ? tNear > 0 ? tNear : 0 : MAX_FLOAT;
-    //
-    //if (hit) {
-    //    if (tNear > 0) {
-    //        return tNear;
-    //    } else {
-    //        return 0;
-    //    }
-    //} else {
-    //    return MAX_FLOAT;
-    //}
-
-    //if (t1 < 0.0) {
-    //    return false;
-    //}
-    //
-    //if (t0 < t1) {
-    //    distanceToIntersection = t1;
-    //    return true;
-    //}
+    return tFar >= tNear && tFar > 0;
 }
 
 ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
