@@ -261,29 +261,27 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
 
-    for (int i = 0; i < objectCount; ++i) {
-        HitInfo backupHitInfo = hitInfo;
+    //for (int i = 0; i < objectCount; ++i) {
+    //    HitInfo backupHitInfo = hitInfo;
+    //
+    //    int geoType = objects[i].geometryType;
+    //            
+    //    if (geoType == SPHERE_TYPE) {
+    //        if (HitSphere(ray, i, backupHitInfo)) {
+    //            hitInfo = backupHitInfo;
+    //            hitSomething = true;
+    //        }
+    //    } else if (geoType == MESH_TYPE) {
+    //        if (HitMesh(ray, i, backupHitInfo)) {
+    //            hitInfo = backupHitInfo;
+    //            hitSomething = true;
+    //        }
+    //    }
+    //}
+    //
+    //return hitSomething;
 
-        int geoType = objects[i].geometryType;
-                
-        if (geoType == SPHERE_TYPE) {
-            if (HitSphere(ray, i, backupHitInfo)) {
-                hitInfo = backupHitInfo;
-                hitSomething = true;
-            }
-        } else if (geoType == MESH_TYPE) {
-            if (HitMesh(ray, i, backupHitInfo)) {
-                hitInfo = backupHitInfo;
-                hitSomething = true;
-            }
-        }
-    }
-
-    return hitSomething;
-
-    /*
-    int hitObjectIndex = -1;
-
+    
     int stack[32];
     int stackIndex = 1;
 
@@ -295,39 +293,91 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
 
         BVHNode node = bvhNodes[nodeIndex];
 
-        //float dst;
-
-        //if (HitAABB(ray, node.bbox, dst)) {
         if (node.objectIndex != -1) { // Is a leaf node, has an object
-            hitObjectIndex = node.objectIndex;
-            int geoType = objects[hitObjectIndex].geometryType;
+            HitInfo backupHitInfo = hitInfo;
+
+            int geoType = objects[node.objectIndex].geometryType;
                 
             if (geoType == SPHERE_TYPE) {
-                hitInfo = HitSphere(ray, hitObjectIndex, hitInfo);
+                if (HitSphere(ray, node.objectIndex, backupHitInfo)) {
+                    hitInfo = backupHitInfo;
+                    hitSomething = true;
+                }
             } else if (geoType == MESH_TYPE) {
-                hitInfo = HitMesh(ray, hitObjectIndex, hitInfo);
+                if (HitMesh(ray, node.objectIndex, backupHitInfo)) {
+                    hitInfo = backupHitInfo;
+                    hitSomething = true;
+                }
             }
 
-            //continue;
         } else { // Is a branch node, its children are other nodes
+            bool node1IsCloser = false;
+
+            bool hit1;
+            bool hit2;
+
             float distanceNode1 = MAX_FLOAT;
-            HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1);
+            if (HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1)) {
+                hit1 = true;
+                if (distanceNode1 < hitInfo.closestDistance) {
+                    stack[stackIndex + 1] = node.node1;
+                    ++stackIndex;
+                }
+            }
 
             float distanceNode2 = MAX_FLOAT;
-            HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode2);
+            if (HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2)) {
+                hit2 = true;
+                if (distanceNode2 < hitInfo.closestDistance) {
+                    stack[stackIndex + 1] = node.node2;
+                    ++stackIndex;
+                }
+            }
+
+            //if (hit1 && hit2) {
+            //    if (distanceNode1 < distanceNode2) {
+            //        if (distanceNode1 < hitInfo.closestDistance) {
+            //            stack[stackIndex + 1] = node.node1;
+            //            ++stackIndex;
+            //        }
+            //        if (distanceNode2 < hitInfo.closestDistance) {
+            //            stack[stackIndex + 1] = node.node2;
+            //            ++stackIndex;
+            //        }
+            //    } else {
+            //        if (distanceNode2 < hitInfo.closestDistance) {
+            //            stack[stackIndex + 1] = node.node2;
+            //            ++stackIndex;
+            //        }
+            //        if (distanceNode1 < hitInfo.closestDistance) {
+            //            stack[stackIndex + 1] = node.node1;
+            //            ++stackIndex;
+            //        }
+            //    }
+            //} else if (hit1) {
+            //    if (distanceNode1 < hitInfo.closestDistance) {
+            //        stack[stackIndex + 1] = node.node1;
+            //        ++stackIndex;
+            //    }
+            //} else {
+            //    if (distanceNode2 < hitInfo.closestDistance) {
+            //        stack[stackIndex + 1] = node.node2;
+            //        ++stackIndex;
+            //    }
+            //}
+
+
 
             // We want to look at the closer one first, so we put it on the stack after the further one
             //if (distanceNode2 < distanceNode1) {
 
 
                 //if (distanceNode1 <= hitInfo.closestDistance) {
-                    stack[stackIndex + 1] = node.node1;
-                    ++stackIndex;
+
                 //}
 
                 //if (distanceNode2 <= hitInfo.closestDistance) {
-                    stack[stackIndex + 1] = node.node2;
-                    ++stackIndex;
+
                 //}
 
 
@@ -376,7 +426,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         }
         //}
     }
-    */
+    return hitSomething;
 }
 
 vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
@@ -572,17 +622,33 @@ bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
     float tz0 = min(tz0Temp, tz1Temp);
     float tz1 = max(tz0Temp, tz1Temp);
 
-    float t0 = max(tx0, max(ty0, tz0));
-    float t1 = min(tx1, min(ty1, tz1));
+    float tNear = max(tx0, max(ty0, tz0));
+    float tFar = min(tx1, min(ty1, tz1));
 
-    if (t1 < 0.0) {
-        return false;
-    }
+    distanceToIntersection = tNear;
 
-    if (t0 < t1) {
-        distanceToIntersection = t1;
-        return true;
-    }
+    bool hit = tFar >= tNear && tFar > 0;
+    return hit;
+	//float dst = hit ? tNear > 0 ? tNear : 0 : MAX_FLOAT;
+    //
+    //if (hit) {
+    //    if (tNear > 0) {
+    //        return tNear;
+    //    } else {
+    //        return 0;
+    //    }
+    //} else {
+    //    return MAX_FLOAT;
+    //}
+
+    //if (t1 < 0.0) {
+    //    return false;
+    //}
+    //
+    //if (t0 < t1) {
+    //    distanceToIntersection = t1;
+    //    return true;
+    //}
 }
 
 ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
