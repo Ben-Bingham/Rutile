@@ -10,13 +10,13 @@ namespace Rutile {
     std::pair<BVHBank, BVHIndex> BVHFactory::Construct(const Scene& scene) {
         BVHBank bank{ };
 
-        if (scene.objects.size() == 0) {
+        if (scene.objects.empty()) {
             std::cout << "ERROR: Cannot create a BVH for a scene with on objects" << std::endl;
         }
 
         BVHIndex startingIndex = Construct(scene.objects, bank);
 
-        for (size_t i = 0; i < bank.Size(); ++i) {
+        for (BVHIndex i = 0; i < (BVHIndex)bank.Size(); ++i) {
             bank[i].bbox.AddPadding(0.1f);
         }
 
@@ -28,10 +28,21 @@ namespace Rutile {
         BVHNode node;
 
         node.bbox = AABBFactory::Construct(objects);
+        node.objectIndex = -1;
 
         if (objects.size() == 1) {
             node.node1 = std::numeric_limits<BVHIndex>::max();
             node.node2 = std::numeric_limits<BVHIndex>::max();
+
+            std::vector<Object>::const_iterator it = std::find(objects.begin(), objects.end(), objects[0]);
+            if (it != objects.end()) {
+                for (size_t i = 0; i < App::scene.objects.size(); ++i) {
+                    if (App::scene.objects[i] == *it) {
+                        node.objectIndex = (int)i;
+                        break;
+                    }
+                }
+            }
 
         } else if (objects.size() >= 2) {
             auto [group1, group2] = DivideObjects(objects);
@@ -43,7 +54,7 @@ namespace Rutile {
         return bank.Add(node);
     }
 
-    std::pair<std::vector<Object>, std::vector<Object>> BVHFactory::DivideObjects(const std::vector<Object>& objects) {
+    std::pair<std::vector<Object>, std::vector<Object>> BVHFactory::DivideObjects(const std::vector<Object>& objects) { // TODO
         std::vector<Object> group1;
         std::vector<Object> group2;
 

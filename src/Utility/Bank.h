@@ -10,7 +10,7 @@ namespace Rutile {
         IndexType Add(const BankType& obj) {
             m_BankObjects.push_back(obj);
 
-            return m_BankObjects.size() - 1;
+            return (IndexType)m_BankObjects.size() - (IndexType)1;
         }
 
         BankType& operator[](IndexType i) {

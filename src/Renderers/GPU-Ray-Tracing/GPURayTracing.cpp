@@ -2,6 +2,11 @@
 #include "imgui.h"
 #include <iostream>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <GLFW/glfw3native.h>
+
+#include <glm/gtx/string_cast.hpp>
+
 #include "renderers/OpenGl/Utility/GLDebug.h"
 
 #include "Settings/App.h"
@@ -125,6 +130,14 @@ namespace Rutile {
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+        // BVH
+        glGenBuffers(1, &m_BVHSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BVHSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_BVHSSBO);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
         UploadObjectAndMaterialBuffers();
         ResetAccumulatedPixelData();
 
@@ -136,6 +149,7 @@ namespace Rutile {
             EVENT_IS(event, ObjectMaterialUpdate)) {
 
             UploadObjectAndMaterialBuffers();
+            std::cout << "Update" << std::endl;
         }
         if (EVENT_IS(event, WindowResize)) {
             glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
@@ -161,6 +175,7 @@ namespace Rutile {
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
+        glDeleteBuffers(1, &m_BVHSSBO);
         glDeleteBuffers(1, &m_MeshSSBO);
         glDeleteBuffers(1, &m_ObjectSSBO);
         glDeleteBuffers(1, &m_MaterialBankSSBO);
@@ -273,7 +288,27 @@ namespace Rutile {
         int meshSize;
     };
 
+    struct LocalAABB {
+        glm::vec3 min;
+        float pad1;
+        glm::vec3 max;
+        float pad2;
+    };
+
+    struct LocalBVHNode {
+        LocalAABB bbox;
+
+        BVHIndex node1;
+        BVHIndex node2;
+
+        int objectIndex;
+
+        int pading;
+    };
+
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
+        m_RayTracingShader->Bind();
+
         std::vector<LocalMaterial> localMats{ };
         for (size_t i = 0; i < App::materialBank.Size(); ++i) {
             LocalMaterial mat{ };
@@ -341,6 +376,28 @@ namespace Rutile {
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjects.size() * sizeof(LocalObject)), localObjects.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        auto [bank, startingIndex] = BVHFactory::Construct(App::scene); // TODO
+        auto [bank, startingIndex] = BVHFactory::Construct(App::scene);
+
+        std::vector<LocalBVHNode> localBvhNodes;
+
+        for (BVHIndex i = 0; i < (BVHIndex)bank.Size(); ++i) {
+            localBvhNodes.push_back({
+                {
+                    bank[i].bbox.min,
+                    123.456f,
+                    bank[i].bbox.max,
+                    133.0f
+                },
+                bank[i].node1,
+                bank[i].node2,
+                bank[i].objectIndex
+            });
+        }
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BVHSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localBvhNodes.size() * sizeof(LocalBVHNode)), localBvhNodes.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+        m_RayTracingShader->SetInt("BVHStartIndex", (int)startingIndex);
     }
 }

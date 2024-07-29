@@ -428,19 +428,6 @@ namespace Rutile {
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
 
-        AABB mainBbox{ };
-
-        for (auto object : sceneFactory.GetScene().objects) {
-            if (object.name == "Ground") {
-                continue;
-            }
-            AABB bbox = AABBFactory::Construct(App::geometryBank[object.geometry], App::transformBank[object.transform]);
-
-            mainBbox = AABBFactory::Construct(mainBbox, bbox);
-        }
-
-        sceneFactory.Add(GeometryFactory::Construct(mainBbox), Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::WHITE), "Bounding Box");
-
         return sceneFactory.GetScene();
     }
 

@@ -1,5 +1,5 @@
 #pragma once
 
 namespace Rutile {
-    using BVHIndex = size_t;
+    using BVHIndex = int;
 }

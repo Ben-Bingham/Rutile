@@ -10,5 +10,7 @@ namespace Rutile {
 
         BVHIndex node1;
         BVHIndex node2;
+
+        int objectIndex{ -1 };
     };
 }

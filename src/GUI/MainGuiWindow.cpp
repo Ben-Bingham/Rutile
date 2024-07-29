@@ -22,7 +22,7 @@ namespace Rutile {
                 GeneralSettings();
             }
 
-            if (ImGui::CollapsingHeader("Timing Statistics")) {
+            if (ImGui::CollapsingHeader("Timing Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
                 TimingStatistics();
             }
 

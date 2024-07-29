@@ -37,6 +37,20 @@ struct Object {
     int meshSize;
 };
 
+struct AABB {
+    vec3 minBound;
+    vec3 maxBound;
+};
+
+struct BVHNode {
+    AABB bbox;
+
+    int node1;
+    int node2;
+
+    int objectIndex;
+};
+
 layout(std430, binding = 0) readonly buffer materialBuffer {
     Material materialBank[];
 };
@@ -49,7 +63,13 @@ layout(std430, binding = 2) readonly buffer meshBuffer {
     float meshData[];
 };
 
+layout(std430, binding = 3) readonly buffer BVHBuffer {
+    BVHNode bvhNodes[];
+};
+
 uniform int objectCount;
+
+uniform int BVHStartIndex;
 
 struct HitInfo {
     bool hitSomething;
@@ -83,6 +103,7 @@ uniform vec3 cameraPosition;
 uniform vec3 backgroundColor;
 
 const float MAX_FLOAT = 3.402823466e+38F;
+const int MAX_INT = 2147483647;
 
 uniform sampler2D accumulationBuffer;
 
@@ -96,6 +117,8 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
 
 HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3[3] triangle);
 HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo);
+
+bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection);
 
 // Materials
 struct ScatterInfo {
@@ -233,6 +256,9 @@ vec3 FireRayIntoScene(Ray r) {
     return color;
 }
 
+// Stack concept, and some optimzations taken from:
+// https://github.com/SebLague/Ray-Tracing/tree/main
+
 HitInfo HitScene(Ray ray) {
     HitInfo hitInfo;
     hitInfo.hitSomething = false;
@@ -240,13 +266,110 @@ HitInfo HitScene(Ray ray) {
 
     for (int i = 0; i < objectCount; ++i) {
         int geoType = objects[i].geometryType;
-
+                
         if (geoType == SPHERE_TYPE) {
             hitInfo = HitSphere(ray, i, hitInfo);
         } else if (geoType == MESH_TYPE) {
             hitInfo = HitMesh(ray, i, hitInfo);
         }
     }
+
+    /*
+    int hitObjectIndex = -1;
+
+    int stack[32];
+    int stackIndex = 1;
+
+    stack[stackIndex] = BVHStartIndex;
+
+    while (stackIndex > 0) {
+        int nodeIndex = stack[stackIndex];
+        --stackIndex;
+
+        BVHNode node = bvhNodes[nodeIndex];
+
+        //float dst;
+
+        //if (HitAABB(ray, node.bbox, dst)) {
+        if (node.objectIndex != -1) { // Is a leaf node, has an object
+            hitObjectIndex = node.objectIndex;
+            int geoType = objects[hitObjectIndex].geometryType;
+                
+            if (geoType == SPHERE_TYPE) {
+                hitInfo = HitSphere(ray, hitObjectIndex, hitInfo);
+            } else if (geoType == MESH_TYPE) {
+                hitInfo = HitMesh(ray, hitObjectIndex, hitInfo);
+            }
+
+            //continue;
+        } else { // Is a branch node, its children are other nodes
+            float distanceNode1 = MAX_FLOAT;
+            HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1);
+
+            float distanceNode2 = MAX_FLOAT;
+            HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode2);
+
+            // We want to look at the closer one first, so we put it on the stack after the further one
+            //if (distanceNode2 < distanceNode1) {
+
+
+                //if (distanceNode1 <= hitInfo.closestDistance) {
+                    stack[stackIndex + 1] = node.node1;
+                    ++stackIndex;
+                //}
+
+                //if (distanceNode2 <= hitInfo.closestDistance) {
+                    stack[stackIndex + 1] = node.node2;
+                    ++stackIndex;
+                //}
+
+
+            //} else {
+                //if (distanceNode2 <= hitInfo.closestDistance) {
+                //    stack[stackIndex + 1] = node.node2;
+                //    ++stackIndex;
+                //}
+                //
+                //if (distanceNode1 <= hitInfo.closestDistance) {
+                //    stack[stackIndex + 1] = node.node1;
+                //    ++stackIndex;
+                //}
+            //}
+
+            //int closeNodeIndex = -1;
+            //int farNodeIndex = -1;
+            //
+            //float closeDistance = MAX_FLOAT;
+            //float farDistance = MAX_FLOAT;
+            //
+            //if (distanceNode1 < distanceNode2) {
+            //    closeNodeIndex = node.node1;
+            //    closeDistance = distanceNode1;
+            //
+            //    farNodeIndex = node.node2;
+            //    farDistance = distanceNode2;
+            //} else {
+            //    closeNodeIndex = node.node2;
+            //    closeDistance = distanceNode2;
+            //
+            //    farNodeIndex = node.node2;
+            //    farDistance = distanceNode2;
+            //}
+            //
+            //if (closeDistance < hitInfo.closestDistance) {
+            //    stack[stackIndex + 1] = closeNodeIndex;
+            //    ++stackIndex;
+            //}
+
+            //stack[stackIndex + 1] = node.node2;
+            //++stackIndex;
+            //
+            //stack[stackIndex + 1] = node.node1;
+            //++stackIndex;
+        }
+        //}
+    }
+    */
 
     return hitInfo;
 }
@@ -419,6 +542,40 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3])
     }
 
     return outHitInfo;
+}
+
+bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
+    distanceToIntersection = MAX_FLOAT;
+
+    float tx0Temp = (bbox.minBound.x - ray.origin.x) / ray.direction.x;
+    float tx1Temp = (bbox.maxBound.x - ray.origin.x) / ray.direction.x;
+
+    float tx0 = min(tx0Temp, tx1Temp);
+    float tx1 = max(tx0Temp, tx1Temp);
+
+    float ty0Temp = (bbox.minBound.y - ray.origin.y) / ray.direction.y;
+    float ty1Temp = (bbox.maxBound.y - ray.origin.y) / ray.direction.y;
+
+    float ty0 = min(ty0Temp, ty1Temp);
+    float ty1 = max(ty0Temp, ty1Temp);
+
+    float tz0Temp = (bbox.minBound.z - ray.origin.z) / ray.direction.z;
+    float tz1Temp = (bbox.maxBound.z - ray.origin.z) / ray.direction.z;
+
+    float tz0 = min(tz0Temp, tz1Temp);
+    float tz1 = max(tz0Temp, tz1Temp);
+
+    float t0 = max(tx0, max(ty0, tz0));
+    float t1 = min(tx1, min(ty1, tz1));
+
+    if (t1 < 0.0) {
+        return false;
+    }
+
+    if (t0 < t1) {
+        distanceToIntersection = t1;
+        return true;
+    }
 }
 
 ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
