@@ -72,8 +72,6 @@ uniform int objectCount;
 uniform int BVHStartIndex;
 
 struct HitInfo {
-    bool hitSomething;
-
     vec3 normal;
     float closestDistance;
     vec3 hitPosition;
@@ -112,11 +110,11 @@ uniform int maxBounces;
 vec3 FireRayIntoScene(Ray ray);
 
 // Scene hitting functions
-HitInfo HitScene(Ray ray);
-HitInfo HitSphere(Ray ray, int objectIndex, HitInfo hitInfo);
+bool HitScene(Ray ray, inout HitInfo hitInfo);
+bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo);
 
-HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3[3] triangle);
-HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo);
+bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3[3] triangle);
+bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo);
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection);
 
@@ -216,10 +214,10 @@ vec3 FireRayIntoScene(Ray r) {
         if (bounces >= maxBounces) {
             break;
         }
-        
-        HitInfo hitInfo = HitScene(ray);
 
-        if (hitInfo.hitSomething) { // Scatter the ray
+        HitInfo hitInfo;
+        if (HitScene(ray, hitInfo)) { // Scatter the ray
+            
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
@@ -259,20 +257,29 @@ vec3 FireRayIntoScene(Ray r) {
 // Stack concept, and some optimzations taken from:
 // https://github.com/SebLague/Ray-Tracing/tree/main
 
-HitInfo HitScene(Ray ray) {
-    HitInfo hitInfo;
-    hitInfo.hitSomething = false;
+bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
+    bool hitSomething = false;
 
     for (int i = 0; i < objectCount; ++i) {
+        HitInfo backupHitInfo = hitInfo;
+
         int geoType = objects[i].geometryType;
                 
         if (geoType == SPHERE_TYPE) {
-            hitInfo = HitSphere(ray, i, hitInfo);
+            if (HitSphere(ray, i, backupHitInfo)) {
+                hitInfo = backupHitInfo;
+                hitSomething = true;
+            }
         } else if (geoType == MESH_TYPE) {
-            hitInfo = HitMesh(ray, i, hitInfo);
+            if (HitMesh(ray, i, backupHitInfo)) {
+                hitInfo = backupHitInfo;
+                hitSomething = true;
+            }
         }
     }
+
+    return hitSomething;
 
     /*
     int hitObjectIndex = -1;
@@ -370,8 +377,6 @@ HitInfo HitScene(Ray ray) {
         //}
     }
     */
-
-    return hitInfo;
 }
 
 vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
@@ -381,13 +386,11 @@ vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
     return normal;
 }
 
-HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
+bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo) {
     //float r = 1.0; // Sphere radius in local space
     //vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
     Object object = objects[objectIndex];
-
-    HitInfo outHitInfo = currentHitInfo;
 
     // Transform the ray into the local space of the object
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
@@ -406,7 +409,7 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     float discriminant = h * h - 1.0 * c;
 
     if (discriminant < 0.0) {
-        return outHitInfo;
+        return false;
     }
 
     float sqrtDiscriminant = sqrt(discriminant);
@@ -419,7 +422,7 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
     if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
         t = h + sqrtDiscriminant; // Should be: t = (h + sqrtDiscriminant) / a;, but a is 1.0
         if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
-            return outHitInfo;
+            return false;
         }
     }
 
@@ -431,42 +434,44 @@ HitInfo HitSphere(Ray ray, int objectIndex, HitInfo currentHitInfo) {
 
     float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
-    if (lengthAlongRayWorldSpace < currentHitInfo.closestDistance) {
-        outHitInfo.closestDistance = lengthAlongRayWorldSpace;
-        outHitInfo.hitSomething = true;
-        outHitInfo.hitObjectIndex = objectIndex;
+    if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
+        hitInfo.closestDistance = lengthAlongRayWorldSpace;
+        hitInfo.hitObjectIndex = objectIndex;
 
         vec3 hitPointLocalSpace = o + t * d;
 
-        outHitInfo.normal = normalize(hitPointLocalSpace); // Should be: outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);, but spherePos is (0.0, 0.0, 0.0)
+        hitInfo.normal = normalize(hitPointLocalSpace); // Should be: outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);, but spherePos is (0.0, 0.0, 0.0)
 
         vec3 outwardNormal = hitPointLocalSpace; // Should be: vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;, but sphere pos is 0 and r is 1
-        outHitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
+        hitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
 
-        if (!outHitInfo.frontFace) {
-            outHitInfo.normal = -outHitInfo.normal;
+        if (!hitInfo.frontFace) {
+            hitInfo.normal = -hitInfo.normal;
         }
 
         // Transform normal back to world space
-        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * outHitInfo.normal;
-        outHitInfo.normal = normalize(normalWorldSpace);
+        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * hitInfo.normal;
+        hitInfo.normal = normalize(normalWorldSpace);
 
-        outHitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
+        hitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
+
+        return true;
     }
 
-    return outHitInfo;
+    return false;
 }
 
 bool IsInterior(float alpha, float beta) {
     return alpha > 0 && beta > 0 && alpha + beta < 1;
 }
 
-HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo) {
+bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
     Object object = objects[objectIndex];
     
-    HitInfo outHitInfo = hitInfo;
-    
+    bool hitSomething = false;
+
     for (int i = 0; i < object.meshSize; i += 9) {
+        HitInfo backupHitInfo = hitInfo;
 
         vec3 v1 = vec3(meshData[object.meshOffset + i + 0], meshData[object.meshOffset + i + 1], meshData[object.meshOffset + i + 2]);
         vec3 v2 = vec3(meshData[object.meshOffset + i + 3], meshData[object.meshOffset + i + 4], meshData[object.meshOffset + i + 5]);
@@ -474,13 +479,16 @@ HitInfo HitMesh(Ray ray, int objectIndex, HitInfo hitInfo) {
 
         vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
     
-        outHitInfo = HitTriangle(ray, objectIndex, outHitInfo, triangle);
+        if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
+            hitInfo = backupHitInfo;
+            hitSomething = true;
+        }
     }
 
-    return outHitInfo;
+    return hitSomething;
 }
 
-HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3]) {
+bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[3]) {
     Object object = objects[objectIndex];
 
     // Transform the ray into the local space of the object
@@ -503,13 +511,13 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3])
     // Plane intersection
     float denom = dot(normal, d);
     if (abs(denom) < 1e-8) {
-        return hitInfo;
+        return false;
     }
 
     float t = (D - dot(normal, o)) / denom;
 
     if (t < MIN_RAY_DISTANCE) {
-        return hitInfo;
+        return false;
     }
 
     // t is the closest point in object space
@@ -522,26 +530,25 @@ HitInfo HitTriangle(Ray ray, int objectIndex, HitInfo hitInfo, vec3 triangle[3])
     float beta = dot(w, cross(u, planarHitPoint));
 
     if (!IsInterior(alpha, beta)) {
-        return hitInfo;
+        return false;
     }
-
-    HitInfo outHitInfo = hitInfo;
 
     vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
     float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
     if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-        outHitInfo.closestDistance = lengthAlongRayWorldSpace;
-        outHitInfo.hitSomething = true;
-        outHitInfo.hitObjectIndex = objectIndex;
+        hitInfo.closestDistance = lengthAlongRayWorldSpace;
+        hitInfo.hitObjectIndex = objectIndex;
 
         vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
-        outHitInfo.normal = normalize(getFaceNormal(Ray(o, d), normalWorldSpace));
+        hitInfo.normal = normalize(getFaceNormal(Ray(o, d), normalWorldSpace));
 
-        outHitInfo.hitPosition = hitPointWorldSpace;
+        hitInfo.hitPosition = hitPointWorldSpace;
+
+        return true;
     }
 
-    return outHitInfo;
+    return false;
 }
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
