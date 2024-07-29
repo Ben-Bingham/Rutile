@@ -293,120 +293,41 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             }
 
         } else { // Is a branch node, its children are other nodes
-            bool node1IsCloser = false;
-
-            bool hit1;
-            bool hit2;
-
             float distanceNode1 = MAX_FLOAT;
-            if (HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1)) {
-                hit1 = true;
-                if (distanceNode1 < hitInfo.closestDistance) {
-                    stack[stackIndex + 1] = node.node1;
-                    ++stackIndex;
-                }
-            }
-
+            bool hit1 = HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1);
+            
             float distanceNode2 = MAX_FLOAT;
-            if (HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2)) {
-                hit2 = true;
-                if (distanceNode2 < hitInfo.closestDistance) {
-                    stack[stackIndex + 1] = node.node2;
-                    ++stackIndex;
-                }
+            bool hit2 = HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2);
+
+            // Option 1
+            if (hit1 && distanceNode1 < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = node.node1;
+            }
+            
+            if (hit2 && distanceNode2 < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = node.node2;
             }
 
-            //if (hit1 && hit2) {
-            //    if (distanceNode1 < distanceNode2) {
-            //        if (distanceNode1 < hitInfo.closestDistance) {
-            //            stack[stackIndex + 1] = node.node1;
-            //            ++stackIndex;
-            //        }
-            //        if (distanceNode2 < hitInfo.closestDistance) {
-            //            stack[stackIndex + 1] = node.node2;
-            //            ++stackIndex;
-            //        }
-            //    } else {
-            //        if (distanceNode2 < hitInfo.closestDistance) {
-            //            stack[stackIndex + 1] = node.node2;
-            //            ++stackIndex;
-            //        }
-            //        if (distanceNode1 < hitInfo.closestDistance) {
-            //            stack[stackIndex + 1] = node.node1;
-            //            ++stackIndex;
-            //        }
-            //    }
-            //} else if (hit1) {
-            //    if (distanceNode1 < hitInfo.closestDistance) {
-            //        stack[stackIndex + 1] = node.node1;
-            //        ++stackIndex;
-            //    }
-            //} else {
-            //    if (distanceNode2 < hitInfo.closestDistance) {
-            //        stack[stackIndex + 1] = node.node2;
-            //        ++stackIndex;
-            //    }
-            //}
-
-
-
-            // We want to look at the closer one first, so we put it on the stack after the further one
-            //if (distanceNode2 < distanceNode1) {
-
-
-                //if (distanceNode1 <= hitInfo.closestDistance) {
-
-                //}
-
-                //if (distanceNode2 <= hitInfo.closestDistance) {
-
-                //}
-
-
-            //} else {
-                //if (distanceNode2 <= hitInfo.closestDistance) {
-                //    stack[stackIndex + 1] = node.node2;
-                //    ++stackIndex;
-                //}
-                //
-                //if (distanceNode1 <= hitInfo.closestDistance) {
-                //    stack[stackIndex + 1] = node.node1;
-                //    ++stackIndex;
-                //}
-            //}
-
-            //int closeNodeIndex = -1;
-            //int farNodeIndex = -1;
+            // Option 2
+            //bool nearestIs1 = distanceNode1 < distanceNode2;
             //
-            //float closeDistance = MAX_FLOAT;
-            //float farDistance = MAX_FLOAT;
+            //int closeIndex = nearestIs1 ? node.node1 : node.node2;
+            //int farIndex = nearestIs1 ? node.node2 : node.node1;
             //
-            //if (distanceNode1 < distanceNode2) {
-            //    closeNodeIndex = node.node1;
-            //    closeDistance = distanceNode1;
+            //float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
+            //float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
             //
-            //    farNodeIndex = node.node2;
-            //    farDistance = distanceNode2;
-            //} else {
-            //    closeNodeIndex = node.node2;
-            //    closeDistance = distanceNode2;
+            //bool closeHit = nearestIs1 ? hit1 : hit2;
+            //bool farHit = nearestIs1 ? hit2 : hit1;
             //
-            //    farNodeIndex = node.node2;
-            //    farDistance = distanceNode2;
+            //if (farHit && farDistance < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = farIndex;
             //}
             //
-            //if (closeDistance < hitInfo.closestDistance) {
-            //    stack[stackIndex + 1] = closeNodeIndex;
-            //    ++stackIndex;
+            //if (closeHit && closeDistance < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = closeIndex;
             //}
-
-            //stack[stackIndex + 1] = node.node2;
-            //++stackIndex;
-            //
-            //stack[stackIndex + 1] = node.node1;
-            //++stackIndex;
         }
-        //}
     }
     return hitSomething;
 }
@@ -584,9 +505,6 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 }
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
-    //vec3 t0Temp = (bbox.minBound - ray.origin) / ray.direction;
-    //vec3 t1Temp = (bbox.maxBound - ray.origin) / ray.direction;
-
     vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
     vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
 
