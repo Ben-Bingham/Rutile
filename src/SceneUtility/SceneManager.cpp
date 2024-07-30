@@ -51,6 +51,9 @@ namespace Rutile {
             case SceneType::CORNELL_BOX: {
                 return GetCornellBoxScene();
             }
+            case SceneType::BACKPACK: {
+                return GetBackpackScene();
+            }
         }
     }
 
@@ -640,6 +643,17 @@ namespace Rutile {
         PointLight pointLight;
         pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
         sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetBackpackScene() {
+        SceneFactory sceneFactory;
+
+        sceneFactory.Add("assets\\models\\backpack\\backpack.obj", Transform{ });
+
+        DirectionalLight dirLight{ };
+        sceneFactory.Add(dirLight);
 
         return sceneFactory.GetScene();
     }

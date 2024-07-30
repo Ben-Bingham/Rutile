@@ -71,7 +71,8 @@ namespace Rutile {
                 "Spheres on Spheres",
                 "Hollow Glass Sphere",
                 "Ray Tracing In One Weekend",
-                "Cornell Box"
+                "Cornell Box",
+                "Backpack"
             }, 
             (int*)&App::currentSceneType, 
             [] { App::renderer->LoadScene(); }
