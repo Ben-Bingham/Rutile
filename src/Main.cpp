@@ -38,7 +38,7 @@ void CreateCurrentRenderer(RendererType type) {
     App::window = App::renderer->Init();
 
     for (auto object : App::scene.objects) {
-        App::transformBank[object.transform].CalculateMatrix();
+        App::scene.transformBank[object.transform].CalculateMatrix();
     }
 
     App::renderer->LoadScene();
@@ -101,7 +101,7 @@ int main() {
                 App::scene = SceneManager::GetScene(App::currentSceneType);
 
                 for (auto object : App::scene.objects) {
-                    App::transformBank[object.transform].CalculateMatrix();
+                    App::scene.transformBank[object.transform].CalculateMatrix();
                 }
 
                 App::renderer->LoadScene();

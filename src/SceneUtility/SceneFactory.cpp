@@ -17,7 +17,7 @@
 
 namespace Rutile {
     Scene SceneFactory::GetScene() {
-        return m_CurrentScene;
+        return m_Scene;
     }
 
     void SceneFactory::Add(GeometryIndex geometry, TransformIndex transform, MaterialIndex material, const std::string& name) {
@@ -33,13 +33,13 @@ namespace Rutile {
             obj.name = "Object #" + std::to_string(m_ObjectNamingIndex);
         }
 
-        m_CurrentScene.objects.push_back(obj);
+        m_Scene.objects.push_back(obj);
     }
 
     void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
-        const GeometryIndex geoIndex = App::geometryBank.Add(geometry);
-        const TransformIndex transformIndex = App::transformBank.Add(transform);
-        const MaterialIndex materialIndex = App::materialBank.Add(material);
+        const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
+        const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
+        const MaterialIndex materialIndex = m_Scene.materialBank.Add(material);
 
         Add(geoIndex, transformIndex, materialIndex, name);
     }
@@ -53,7 +53,7 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(const Geometry& geometry, const Transform& transform, MaterialIndex material, const std::string& name) {
-        Add(App::geometryBank.Add(geometry), App::transformBank.Add(transform), material, name);
+        Add(m_Scene.geometryBank.Add(geometry), m_Scene.transformBank.Add(transform), material, name);
     }
 
     void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, MaterialFactory::Color color, const std::string& name) {
@@ -61,16 +61,16 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, MaterialIndex material, const std::string& name) {
-        Add(App::geometryBank.Add(GeometryFactory::Construct(primitive)), App::transformBank.Add(transform), material, name);
+        Add(m_Scene.geometryBank.Add(GeometryFactory::Construct(primitive)), m_Scene.transformBank.Add(transform), material, name);
     }
 
     void SceneFactory::Add(const PointLight& pointLight) {
-        m_CurrentScene.pointLights.push_back(pointLight);
+        m_Scene.pointLights.push_back(pointLight);
     }
 
     void SceneFactory::Add(const DirectionalLight& light) {
-        m_CurrentScene.directionalLight = light;
-        m_CurrentScene.m_EnableDirectionalLight = true;
+        m_Scene.directionalLight = light;
+        m_Scene.m_EnableDirectionalLight = true;
     }
 
     void SceneFactory::Add(const std::string& path, TransformIndex transform) {
@@ -117,7 +117,7 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(const std::string& path, const Transform& transform) {
-        Add(path, App::transformBank.Add(transform));
+        Add(path, m_Scene.transformBank.Add(transform));
     }
 
     void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform) {
@@ -158,8 +158,8 @@ namespace Rutile {
                 }
             }
 
-            const GeometryIndex geoIndex = App::geometryBank.Add(Geometry{ "filler", vertices, indices, Geometry::GeometryType::MODEL }); // TODO change name
-            const MaterialIndex materialIndex = App::materialBank.Add(MaterialFactory::Construct(RandomVec3()));
+            const GeometryIndex geoIndex = m_Scene.geometryBank.Add(Geometry{ "filler", vertices, indices, Geometry::GeometryType::MODEL }); // TODO change name
+            const MaterialIndex materialIndex = m_Scene.materialBank.Add(MaterialFactory::Construct(RandomVec3()));
 
             Add(geoIndex, transform, materialIndex);
         }

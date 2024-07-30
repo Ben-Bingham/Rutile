@@ -311,12 +311,12 @@ namespace Rutile {
         m_RayTracingShader->Bind();
 
         std::vector<LocalMaterial> localMats{ };
-        for (size_t i = 0; i < App::materialBank.Size(); ++i) {
+        for (size_t i = 0; i < App::scene.materialBank.Size(); ++i) {
             LocalMaterial mat{ };
-            mat.type = (int)App::materialBank[i].type;
-            mat.fuzz = App::materialBank[i].fuzz;
-            mat.indexOfRefraction = App::materialBank[i].indexOfRefraction;
-            mat.color = glm::vec4{ App::materialBank[i].solid.color, 1.0 };
+            mat.type = (int)App::scene.materialBank[i].type;
+            mat.fuzz = App::scene.materialBank[i].fuzz;
+            mat.indexOfRefraction = App::scene.materialBank[i].indexOfRefraction;
+            mat.color = glm::vec4{ App::scene.materialBank[i].solid.color, 1.0 };
 
             localMats.emplace_back(LocalMaterial{ mat });
         }
@@ -328,7 +328,7 @@ namespace Rutile {
         std::vector<float> meshData{ };
         std::vector<int> meshOffsets{ };
         std::vector<int> meshSizes{ };
-        for (size_t i = 0; i < App::geometryBank.Size(); ++i) {
+        for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
             bool found = false;
             for (auto& object : App::scene.objects) {
                 if (object.geometry == i) {
@@ -341,13 +341,13 @@ namespace Rutile {
                 continue;
             }
 
-            const Geometry& geo = App::geometryBank[i];
+            const Geometry& geo = App::scene.geometryBank[i];
 
             meshOffsets.resize(i + 1);
             meshSizes.resize(i + 1);
 
-            std::vector<Vertex> vertices = App::geometryBank[i].vertices;
-            std::vector<Index> indices = App::geometryBank[i].indices;
+            std::vector<Vertex> vertices = App::scene.geometryBank[i].vertices;
+            std::vector<Index> indices = App::scene.geometryBank[i].indices;
 
             meshOffsets[i] = (int)meshData.size();
 
@@ -372,17 +372,17 @@ namespace Rutile {
         int i = 0;
         for (auto object : App::scene.objects) {
             int geoType;
-            if (App::geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
+            if (App::scene.geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
                 geoType = 0;
             } else {
                 geoType = 1;
             }
 
             localObjects.push_back(LocalObject{
-                App::transformBank[object.transform].matrix,
-                glm::inverse(App::transformBank[object.transform].matrix),
-                glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix })) },
-                glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix }))) },
+                App::scene.transformBank[object.transform].matrix,
+                glm::inverse(App::scene.transformBank[object.transform].matrix),
+                glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix })) },
+                glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix }))) },
                 (int)object.material,
                 geoType,
                 meshOffsets[object.geometry],

@@ -32,10 +32,6 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static GeometryBank geometryBank{ };
-        inline static MaterialBank materialBank{ };
-        inline static TransformBank transformBank{ };
-
         inline static Scene scene = SceneManager::GetScene(SceneType::BACKPACK);
         inline static SceneType currentSceneType = SceneType::BACKPACK;
         inline static SceneType lastSceneType = currentSceneType;

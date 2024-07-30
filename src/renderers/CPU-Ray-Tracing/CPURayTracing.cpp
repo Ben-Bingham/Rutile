@@ -89,7 +89,7 @@ namespace Rutile {
             HitInfo hitInfo;
 
             for (auto& object : App::scene.objects) {
-                const glm::mat4 invModel = glm::inverse(App::transformBank[object.transform].matrix);
+                const glm::mat4 invModel = glm::inverse(App::scene.transformBank[object.transform].matrix);
 
                 const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
 
@@ -122,7 +122,7 @@ namespace Rutile {
 
                 // At this point, no matter what t will be the closest hit for this object
 
-                glm::vec3 hitPointWorldSpace = App::transformBank[object.transform].matrix * glm::vec4{ o + t * normalize(d), 1.0 };
+                glm::vec3 hitPointWorldSpace = App::scene.transformBank[object.transform].matrix * glm::vec4{ o + t * normalize(d), 1.0 };
 
                 float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
@@ -136,15 +136,15 @@ namespace Rutile {
                     hitInfo.normal = glm::normalize(hitPointLocalSpace - spherePos);
 
                     // Transform normal back to world space
-                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::transformBank[object.transform].matrix))) * hitInfo.normal;
+                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::scene.transformBank[object.transform].matrix))) * hitInfo.normal;
                     hitInfo.normal = glm::normalize(normalWorldSpace);
 
-                    hitInfo.position = App::transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
+                    hitInfo.position = App::scene.transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
                 }
             }
 
             if (hitSomething) {
-                pixelColor *= App::materialBank[hitInfo.hitObject->material].solid.color;
+                pixelColor *= App::scene.materialBank[hitInfo.hitObject->material].solid.color;
 
                 ray.origin = hitInfo.position;
                 ray.direction = glm::normalize(hitInfo.normal + RandomUnitVec3());

@@ -16,29 +16,29 @@ namespace Rutile {
             int i = 0;
             for (auto object : App::scene.objects) {
                 if (ImGui::TreeNode((object.name + "##SceneObjects" + std::to_string(i)).c_str())) {
-                    ImGui::Text(("Geometry: " + App::geometryBank[i].name).c_str());
+                    ImGui::Text(("Geometry: " + App::scene.geometryBank[i].name).c_str());
 
                     ImGui::Text("Transform");
 
-                    Transform& transform = App::transformBank[object.transform];
+                    Transform& transform = App::scene.transformBank[object.transform];
 
-                    if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), glm::value_ptr(transform.position), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
-                    if (ImGui::DragFloat3(("Scale##"       + std::to_string(i)).c_str(), glm::value_ptr(transform.scale),    0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
-                    if (ImGui::DragFloat4(("Rotation##"    + std::to_string(i)).c_str(), glm::value_ptr(transform.rotation), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat3(("Translation##" + std::to_string(i)).c_str(), glm::value_ptr(transform.position), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::scene.transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat3(("Scale##"       + std::to_string(i)).c_str(), glm::value_ptr(transform.scale),    0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::scene.transformBank[object.transform].CalculateMatrix(); }
+                    if (ImGui::DragFloat4(("Rotation##"    + std::to_string(i)).c_str(), glm::value_ptr(transform.rotation), 0.01f)) { App::eventManager.Notify(new ObjectTransformUpdate{ (ObjectIndex)i }); App::scene.transformBank[object.transform].CalculateMatrix(); }
 
                     ImGui::Text("Material");
                     switch (App::settings.materialType) {
                         case MaterialType::SOLID: {
-                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Color##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
                         }
                         case MaterialType::PHONG: {
-                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.ambient)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
-                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.diffuse)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
-                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].phong.specular))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Ambient##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].phong.ambient)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Diffuse##material"  + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].phong.diffuse)))  { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::ColorEdit3(("Specular##material" + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].phong.specular))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
-                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].phong.shininess))               { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (ImGui::DragFloat(("Shininess##material" + std::to_string(object.material)).c_str(), &App::scene.materialBank[object.material].phong.shininess))               { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             break;
                         }
@@ -46,25 +46,25 @@ namespace Rutile {
                             RadioButtons(
                                 "Type",
                                 { "Diffuse", "Mirror", "Dielectric", "Emissive" },
-                                (int*)&App::materialBank[object.material].type,
+                                (int*)&App::scene.materialBank[object.material].type,
                                 [i] {
                                     App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i });
                                 }
                             );
 
-                            if (App::materialBank[object.material].type == Material::Type::EMISSIVE) {
-                                if (ImGui::DragFloat3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color), 0.1f, 0.0f, 1000000000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (App::scene.materialBank[object.material].type == Material::Type::EMISSIVE) {
+                                if (ImGui::DragFloat3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].solid.color), 0.1f, 0.0f, 1000000000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
 
                             } else {
-                                if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                                if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
                             }
 
-                            if (App::materialBank[object.material].type == Material::Type::MIRROR) {
-                                if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (App::scene.materialBank[object.material].type == Material::Type::MIRROR) {
+                                if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::scene.materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
                             }
 
-                            if (App::materialBank[object.material].type == Material::Type::DIELECTRIC) {
-                                if (ImGui::DragFloat(("Index of Refraction##materialRay" + std::to_string(object.material)).c_str(), &App::materialBank[object.material].indexOfRefraction, 0.01f, 0.0f, 1000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
+                            if (App::scene.materialBank[object.material].type == Material::Type::DIELECTRIC) {
+                                if (ImGui::DragFloat(("Index of Refraction##materialRay" + std::to_string(object.material)).c_str(), &App::scene.materialBank[object.material].indexOfRefraction, 0.01f, 0.0f, 1000.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
                             }
 
                             break;

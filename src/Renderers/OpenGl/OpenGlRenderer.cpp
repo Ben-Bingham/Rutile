@@ -314,7 +314,7 @@ namespace Rutile {
 
             // Render
             for (const auto& object : App::scene.objects) {
-                m_OmnidirectionalShadowMappingShader->SetMat4("model", App::transformBank[object.transform].matrix);
+                m_OmnidirectionalShadowMappingShader->SetMat4("model", App::scene.transformBank[object.transform].matrix);
 
                 for (int i = 0; i < 6; ++i) {
                     m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
@@ -324,7 +324,7 @@ namespace Rutile {
                 m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", pointLight.shadowMapFarPlane);
 
                 glBindVertexArray(m_VAOs[object.geometry]);
-                glDrawElements(GL_TRIANGLES, (int)App::geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+                glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
             }
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -441,14 +441,14 @@ namespace Rutile {
         m_CascadingShadowMapShader->Bind();
 
         for (const auto& object : App::scene.objects) {
-            m_CascadingShadowMapShader->SetMat4("model", App::transformBank[object.transform].matrix);
+            m_CascadingShadowMapShader->SetMat4("model", App::scene.transformBank[object.transform].matrix);
 
             for (int i = 0; i < m_CascadeCount; ++i) {
                 m_CascadingShadowMapShader->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", m_LightSpaceMatrices[i]);
             }
 
             glBindVertexArray(m_VAOs[object.geometry]);
-            glDrawElements(GL_TRIANGLES, (int)App::geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -471,9 +471,9 @@ namespace Rutile {
         for (const auto& object : App::scene.objects) {
             Shader* shaderProgram = nullptr;
 
-            Transform& transform = App::transformBank[object.transform];
+            Transform& transform = App::scene.transformBank[object.transform];
 
-            Material mat = App::materialBank[object.material];
+            Material mat = App::scene.materialBank[object.material];
 
             switch (App::settings.materialType) {
                 case MaterialType::SOLID: {
@@ -698,12 +698,12 @@ namespace Rutile {
 
             */
 
-            glm::mat4 mvp = m_Projection * App::camera.View() * App::transformBank[object.transform].matrix;
+            glm::mat4 mvp = m_Projection * App::camera.View() * App::scene.transformBank[object.transform].matrix;
 
             shaderProgram->SetMat4("mvp", mvp);
 
             glBindVertexArray(m_VAOs[object.geometry]);
-            glDrawElements(GL_TRIANGLES, (int)App::geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
         }
     }
 
@@ -801,7 +801,7 @@ namespace Rutile {
         m_VBOs.clear();
         m_EBOs.clear();
 
-        const size_t geometryCount = App::geometryBank.Size();
+        const size_t geometryCount = App::scene.geometryBank.Size();
 
         m_VAOs.resize(geometryCount);
         m_VBOs.resize(geometryCount);
@@ -812,7 +812,7 @@ namespace Rutile {
         glGenBuffers(     static_cast<GLsizei>(geometryCount), m_EBOs.data());
 
         for (size_t i = 0; i < geometryCount; ++i) {
-            const Geometry& geo = App::geometryBank[i];
+            const Geometry& geo = App::scene.geometryBank[i];
 
             std::vector<Vertex> vertices = geo.vertices;
             std::vector<Index> indices   = geo.indices;

@@ -20,6 +20,10 @@ namespace Rutile {
 
         bool HasDirectionalLight();
 
+        GeometryBank geometryBank{ };
+        MaterialBank materialBank{ };
+        TransformBank transformBank{ };
+
     private:
         bool m_EnableDirectionalLight{ false };
     };

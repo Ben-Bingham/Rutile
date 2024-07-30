@@ -35,7 +35,7 @@ namespace Rutile {
 	private:
 		void LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform);
 
-		Scene m_CurrentScene;
+		Scene m_Scene;
 
 		int m_ObjectNamingIndex{ 0 };
 	};

@@ -125,7 +125,7 @@ namespace Rutile {
         AABB mainBbox{ };
 
         for (auto object : objects) {
-            AABB bbox = Construct(App::geometryBank[object.geometry], App::transformBank[object.transform]);
+            AABB bbox = Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
             mainBbox = Construct(mainBbox, bbox);
         }

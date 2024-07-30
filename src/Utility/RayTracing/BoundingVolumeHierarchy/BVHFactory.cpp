@@ -83,15 +83,15 @@ namespace Rutile {
         float smallestX = std::numeric_limits<float>::max();
 
         for (auto object : objects) {
-            if (App::transformBank[object.transform].position.x < smallestX) {
-                smallestX = App::transformBank[object.transform].position.x;
+            if (App::scene.transformBank[object.transform].position.x < smallestX) {
+                smallestX = App::scene.transformBank[object.transform].position.x;
             }
         }
 
         std::vector<float> closestDistances;
 
         for (size_t i = 0; i < objects.size(); ++ i) {
-            float distanceToAxis = App::transformBank[objects[i].transform].position.x - smallestX;
+            float distanceToAxis = App::scene.transformBank[objects[i].transform].position.x - smallestX;
 
             closestDistances.push_back(distanceToAxis);
         }
