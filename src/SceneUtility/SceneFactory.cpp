@@ -2,6 +2,14 @@
 
 #include "Settings/App.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <iostream>
+
+#include "Utility/Random.h"
+
 namespace Rutile {
     Scene SceneFactory::GetScene() {
         return m_CurrentScene;
@@ -58,5 +66,71 @@ namespace Rutile {
     void SceneFactory::Add(const DirectionalLight& light) {
         m_CurrentScene.directionalLight = light;
         m_CurrentScene.m_EnableDirectionalLight = true;
+    }
+
+    void SceneFactory::Add(const std::string& path, TransformIndex transform) {
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cout << "ERROR: ASSIMP failed to load model with path:\n" << path << "\n" << importer.GetErrorString() << std::endl;
+        }
+
+        LoadAssimpNode(scene->mRootNode, scene, transform);
+    }
+
+    void SceneFactory::Add(const std::string& path, const Transform& transform) {
+        const TransformIndex transformIndex = App::transformBank.Add(transform);
+
+        Add(path, transformIndex);
+    }
+
+    void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transforme) {
+        for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
+            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+
+            std::vector<Vertex> vertices;
+            vertices.resize((size_t)mesh->mNumVertices);
+
+            for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
+                glm::vec3 pos;
+                pos.x = mesh->mVertices[j].x;
+                pos.y = mesh->mVertices[j].y;
+                pos.z = mesh->mVertices[j].z;
+
+                glm::vec3 normal;
+                normal.x = mesh->mNormals[j].x;
+                normal.y = mesh->mNormals[j].y;
+                normal.z = mesh->mNormals[j].z;
+
+                glm::vec2 texCoords;
+                if (mesh->mTextureCoords[0]) {
+                    texCoords.x = mesh->mTextureCoords[0][j].x;
+                    texCoords.y = mesh->mTextureCoords[0][j].y;
+                }
+                else {
+                    texCoords = glm::vec2{ 0.0f, 0.0f };
+                }
+
+                vertices[j] = Vertex{ pos, normal, texCoords };
+            }
+
+            std::vector<Index> indices;
+            for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
+                aiFace face = mesh->mFaces[j];
+                for (unsigned int k = 0; k < face.mNumIndices; ++k) {
+                    indices.push_back(face.mIndices[k]);
+                }
+            }
+
+            const GeometryIndex geoIndex = App::geometryBank.Add(Geometry{ "filler", vertices, indices });
+            const MaterialIndex materialIndex = App::materialBank.Add(MaterialFactory::Construct(RandomVec3()));
+
+            Add(geoIndex, transforme, materialIndex);
+        }
+
+        for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+            LoadAssimpNode(node->mChildren[i], scene, transforme);
+        }
     }
 }

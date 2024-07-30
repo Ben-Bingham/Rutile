@@ -63,6 +63,8 @@ namespace Rutile {
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
 
+        sceneFactory.Add("assets\\models\\backpack\\backpack.obj", Transform{ });
+
         return sceneFactory.GetScene();
     }
 

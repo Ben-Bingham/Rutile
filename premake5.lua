@@ -17,6 +17,7 @@ workspace "Rutile-Renderer"
 	group "3rdParty"
 		include "3rdParty/ImGui"
 		include "3rdParty/glm"
+		include "3rdParty/assimp"
 	group ""
 
 project "Rutile"
@@ -53,7 +54,12 @@ project "Rutile"
 		"3rdParty/GLFW/include",
 		"3rdParty/stb",
 		"3rdParty/ImGui/src",
-		"3rdParty/glm"
+		"3rdParty/glm",
+		
+		-- Assimp
+		"3rdParty/assimp/ConfigurationHeaders/",
+		"3rdParty/assimp/ConfigurationHeaders/assimp/",
+		"3rdParty/assimp/include/",
 	}
 
 	libdirs {
@@ -66,5 +72,6 @@ project "Rutile"
         "opengl32",
         "glfw3",
 		"ImGui",
-		"glm"
+		"glm",
+		"assimp"
     }
