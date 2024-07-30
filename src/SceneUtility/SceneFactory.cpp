@@ -80,12 +80,10 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(const std::string& path, const Transform& transform) {
-        const TransformIndex transformIndex = App::transformBank.Add(transform);
-
-        Add(path, transformIndex);
+        Add(path, App::transformBank.Add(transform));
     }
 
-    void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transforme) {
+    void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform) {
         for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
@@ -126,11 +124,11 @@ namespace Rutile {
             const GeometryIndex geoIndex = App::geometryBank.Add(Geometry{ "filler", vertices, indices });
             const MaterialIndex materialIndex = App::materialBank.Add(MaterialFactory::Construct(RandomVec3()));
 
-            Add(geoIndex, transforme, materialIndex);
+            Add(geoIndex, transform, materialIndex);
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-            LoadAssimpNode(node->mChildren[i], scene, transforme);
+            LoadAssimpNode(node->mChildren[i], scene, transform);
         }
     }
 }
