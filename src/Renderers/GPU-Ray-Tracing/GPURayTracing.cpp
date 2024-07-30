@@ -329,18 +329,6 @@ namespace Rutile {
         std::vector<int> meshOffsets{ };
         std::vector<int> meshSizes{ };
         for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
-            bool found = false;
-            for (auto& object : App::scene.objects) {
-                if (object.geometry == i) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                continue;
-            }
-
             const Geometry& geo = App::scene.geometryBank[i];
 
             meshOffsets.resize(i + 1);
