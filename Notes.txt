@@ -1,69 +1,26 @@
 TODO Instanced Rendering
 
-TODO Frame Time Stats
-
 TODO Vsync
-
-Renderer switching
-	TODO More renderers
 
 TODO UBOS in opengl
 
-TODO Rename Packet to Object
-
-TODO Restarting the renderer should not modify all the changes weve made to the bundle
-
-TODO Ability to modify current geometry of a Packet
+TODO Ability to modify current geometry of a object
 
 TODO Textures
-
-TODO after adding more renderers consider storing lights within bundle in 3 differnt lists, one list for point, one for directional, and one for spot light
 
 TODO setting as to wether or not we should depth test
 
 TODO Update shadow map mode might not need its own function in renderer
 
-TODO cubemap visualization only supports depth, and no color
-
-TODO multiple point lights
-
-
 TODO Clear color in ImGui
 TODO Perspective/ortho in ImGui
 
-TODO improve SceneFactory add, optimize by checking if we already have a copy of that primitive and returing a GeometryIndex from the geometyBank
-
 TODO disable face culling for 2d objects especially when shadow mapping
-
 
 TODO make projection matrix more universal, probably pass it to Renderer::Render();
 
-Final goal, be able to render Sponza (and similar scenes) in 4 different renderers:
-	OpenGl
-	Vulkan
-	DirectX
-	BackendGeneric
-
 This is a renderer not a game engine, data can be stored in whatever method serves best for rendering. Just needs to be generic enough
 to work for any of the 4 renderers
-
-
-Material Ranks:
-	Solid -> Solid color
-	Phong -> Phong or blin phong -> diffuse, ambient, etc
-	Phong-Texture -> Phong or blin-phong with textures
-	PBR, maybe with or without IBL
-
-
-Scene object:
-	Geometry -> Same as current
-	Transform -> Same as current
-	Material Index -> new
-		Every unique material has a unique material index, which can be stored in a central material bank,
-		But that same bank stores multiple versions of the same materials, one for each material rank.
-		ie: if the solid rank is active, than the materialIndex 0 would point to a specific material that has just a color,
-		but when the the PBR rank is active, the 0th material will now be a collection of textures required for PBR rendering
-
 
 Modify ObjectMaterialUpdate and ObjectTransformUpdate to store the index of the material or transform that is modified within the transform or material bank
 
@@ -72,6 +29,9 @@ to the banks of the scene
 
 apply gamma correction to OpenGl renderer
 
-Add camera to scene
-
 TODO replace Geometry name checks with primitive type checks
+
+Lock in scene switching system, and give each scene its own material/transform/geometry banks, but also implement some kind of global asset bank
+that stores models so they dont have to be reloaded
+
+Lock in the modification of tranforms and geoemtry and materials for each renderer

@@ -1,4 +1,5 @@
 #include "SceneFactory.h"
+#include <fstream>
 
 #include "Settings/App.h"
 
@@ -7,6 +8,10 @@
 #include <assimp/postprocess.h>
 
 #include <iostream>
+
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/Exporter.hpp>
+#include <assimp/Logger.hpp>
 
 #include "Utility/Random.h"
 
@@ -69,14 +74,46 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(const std::string& path, TransformIndex transform) {
+        Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
+
+        std::string fileName = path.substr(path.find_last_of("\\"), path.end() - path.begin());
+        const std::string modelName = fileName.substr(1, fileName.end() - fileName.begin());
+
+        std::cout << "Loading model: " << modelName << std::endl;
+
+        std::string modelNameNoFileType = fileName.substr(1, fileName.find_last_of('.') - 1);
+
+        std::string modelPath = path;
+        bool exportToBin = true;
+
+        std::ifstream f{ "assets\\models\\bin\\" + modelNameNoFileType + ".assbin" };
+        if (f.good()) {
+            std::cout << "Found binary version of model: " << modelName << std::endl;
+
+            modelPath = "assets\\models\\bin\\" + modelNameNoFileType + ".assbin";
+            exportToBin = false;
+        }
+
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+        const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_FlipUVs);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cout << "ERROR: ASSIMP failed to load model with path:\n" << path << "\n" << importer.GetErrorString() << std::endl;
         }
 
+        if (exportToBin) {
+            std::cout << "Could not find binary version of model" << std::endl;
+            std::cout << "Creating binary version of: " << modelName << std::endl;
+            Assimp::Exporter exporter;
+
+            if (exporter.Export(scene, "assbin", "assets/models/bin/" + modelNameNoFileType + ".assbin") != aiReturn_SUCCESS) {
+                std::cout << "ERROR: Failed to create binary version of the model: " << modelName << "\nError string: " << exporter.GetErrorString() << std::endl;
+            }
+        }
+
         LoadAssimpNode(scene->mRootNode, scene, transform);
+
+        Assimp::DefaultLogger::kill();
     }
 
     void SceneFactory::Add(const std::string& path, const Transform& transform) {

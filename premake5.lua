@@ -74,4 +74,4 @@ project "Rutile"
 		"ImGui",
 		"glm",
 		"assimp"
-    }
+	}
