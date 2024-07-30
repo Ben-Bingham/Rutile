@@ -325,24 +325,43 @@ namespace Rutile {
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        std::vector<float> meshData;
-        std::vector<int> meshOffsets;
-        std::vector<int> meshSizes;
-        for (auto object : App::scene.objects) {
-            meshOffsets.push_back((int)meshData.size());
-
-            std::vector<Vertex> vertices = App::geometryBank[object.geometry].vertices;
-            std::vector<Index> indices = App::geometryBank[object.geometry].indices;
-
-            for (auto index : indices) {
-                Vertex vertToAdd = vertices[index];
-
-                meshData.push_back(vertToAdd.position.x);
-                meshData.push_back(vertToAdd.position.y);
-                meshData.push_back(vertToAdd.position.z);
+        std::vector<float> meshData{ };
+        std::vector<int> meshOffsets{ };
+        std::vector<int> meshSizes{ };
+        for (size_t i = 0; i < App::geometryBank.Size(); ++i) {
+            bool found = false;
+            for (auto& object : App::scene.objects) {
+                if (object.geometry == i) {
+                    found = true;
+                    break;
+                }
             }
 
-            meshSizes.push_back((int)indices.size() * 3);
+            if (!found) {
+                continue;
+            }
+
+            const Geometry& geo = App::geometryBank[i];
+
+            meshOffsets.resize(i + 1);
+            meshSizes.resize(i + 1);
+
+            std::vector<Vertex> vertices = App::geometryBank[i].vertices;
+            std::vector<Index> indices = App::geometryBank[i].indices;
+
+            meshOffsets[i] = (int)meshData.size();
+
+            if (geo.type != Geometry::GeometryType::SPHERE) {
+                for (auto index : indices) {
+                    Vertex vertToAdd = vertices[index];
+
+                    meshData.push_back(vertToAdd.position.x);
+                    meshData.push_back(vertToAdd.position.y);
+                    meshData.push_back(vertToAdd.position.z);
+                }
+            }
+
+            meshSizes[i] = (int)indices.size() * 3;
         }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
@@ -366,8 +385,8 @@ namespace Rutile {
                 glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::transformBank[object.transform].matrix }))) },
                 (int)object.material,
                 geoType,
-                meshOffsets[i],
-                meshSizes[i]
+                meshOffsets[object.geometry],
+                meshSizes[object.geometry]
             });
 
             ++i;
