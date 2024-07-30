@@ -57,7 +57,7 @@ namespace Rutile {
     }
 
     AABB AABBFactory::Construct(const Geometry& geometry, Transform transform) {
-        if (geometry.name == "Sphere") {
+        if (geometry.type == Geometry::GeometryType::SPHERE) {
             const glm::vec3 sphereCenter = transform.position;
             const glm::vec3 radius = transform.scale;
 

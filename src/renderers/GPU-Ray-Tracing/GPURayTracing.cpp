@@ -11,6 +11,7 @@
 
 #include "Settings/App.h"
 
+#include "Utility/GeometryFactory.h"
 #include "Utility/events/Events.h"
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHBank.h"
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHFactory.h"
@@ -352,7 +353,7 @@ namespace Rutile {
         int i = 0;
         for (auto object : App::scene.objects) {
             int geoType;
-            if (App::geometryBank[object.geometry].name == "Sphere") {
+            if (App::geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
                 geoType = 0;
             } else {
                 geoType = 1;

@@ -20,6 +20,7 @@ namespace Rutile {
                 2, 1, 0
             };
 
+            geo.type = Geometry::GeometryType::TRIANGLE;
 
             break;
 
@@ -79,6 +80,8 @@ namespace Rutile {
                 20, 23, 22,
             };
 
+            geo.type = Geometry::GeometryType::CUBE;
+
             break;
         case Primitive::SQUARE:
             geo.name = "Square";
@@ -95,6 +98,8 @@ namespace Rutile {
                 2, 1, 0,
                 3, 2, 0
             };
+
+            geo.type = Geometry::GeometryType::SQUARE;
 
             break;
         case Primitive::SPHERE:
@@ -153,6 +158,8 @@ namespace Rutile {
                     }
                 }
             }
+
+            geo.type = Geometry::GeometryType::SPHERE;
         }
 
         return geo;
@@ -184,6 +191,8 @@ namespace Rutile {
             2, 1, 0,
             3, 2, 0
         };
+
+        geo.type = Geometry::GeometryType::SQUARE;
 
         return geo;
     }
@@ -245,6 +254,8 @@ namespace Rutile {
             22, 21, 20,
             20, 23, 22,
         };
+
+        geo.type = Geometry::GeometryType::CUBE;
 
         return geo;
     }

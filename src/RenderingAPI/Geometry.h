@@ -18,5 +18,15 @@ namespace Rutile {
 
         std::vector<Vertex> vertices;
         std::vector<Index> indices;
+
+        enum class GeometryType {
+            TRIANGLE,
+            SQUARE,
+            CUBE,
+            SPHERE,
+            MODEL
+        };
+
+        GeometryType type;
     };
 }

@@ -158,7 +158,7 @@ namespace Rutile {
                 }
             }
 
-            const GeometryIndex geoIndex = App::geometryBank.Add(Geometry{ "filler", vertices, indices });
+            const GeometryIndex geoIndex = App::geometryBank.Add(Geometry{ "filler", vertices, indices, Geometry::GeometryType::MODEL }); // TODO change name
             const MaterialIndex materialIndex = App::materialBank.Add(MaterialFactory::Construct(RandomVec3()));
 
             Add(geoIndex, transform, materialIndex);

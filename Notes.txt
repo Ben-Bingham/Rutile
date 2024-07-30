@@ -35,3 +35,5 @@ Lock in scene switching system, and give each scene its own material/transform/g
 that stores models so they dont have to be reloaded
 
 Lock in the modification of tranforms and geoemtry and materials for each renderer
+
+TODO make a custom binary format for models and speed test it against assimp
