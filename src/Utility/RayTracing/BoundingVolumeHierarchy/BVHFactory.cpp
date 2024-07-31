@@ -7,24 +7,27 @@
 #include "Utility/RayTracing/AABBFactory.h"
 
 namespace Rutile {
-    std::pair<BVHBank, BVHIndex> BVHFactory::Construct(const Scene& scene) {
+    BVHFactory::ReturnStructure BVHFactory::Construct(const Scene& scene) {
         BVHBank bank{ };
 
         if (scene.objects.empty()) {
             std::cout << "ERROR: Cannot create a BVH for a scene with on objects" << std::endl;
         }
 
-        BVHIndex startingIndex = Construct(scene.objects, bank);
+        std::vector<float> triangles;
+        std::vector<ReturnStructure::ObjectTriangleData> objTriData;
+
+        BVHIndex startingIndex = Construct(scene.objects, bank, scene, m_MaxDepth);
 
         for (BVHIndex i = 0; i < (BVHIndex)bank.Size(); ++i) {
             bank[i].bbox.AddPadding(0.1f);
         }
 
-        return std::make_pair(bank, startingIndex);
+        return ReturnStructure{ bank, startingIndex };
     }
 
     // There will always be at least 1 object
-    BVHIndex BVHFactory::Construct(const std::vector<Object>& objects, BVHBank& bank) {
+    BVHIndex BVHFactory::Construct(const std::vector<Object>& objects, BVHBank& bank, const Scene& scene, size_t depth) {
         BVHNode node;
 
         node.bbox = AABBFactory::Construct(objects);
@@ -36,8 +39,8 @@ namespace Rutile {
 
             std::vector<Object>::const_iterator it = std::find(objects.begin(), objects.end(), objects[0]);
             if (it != objects.end()) {
-                for (size_t i = 0; i < App::scene.objects.size(); ++i) {
-                    if (App::scene.objects[i] == *it) {
+                for (size_t i = 0; i < scene.objects.size(); ++i) {
+                    if (scene.objects[i] == *it) {
                         node.objectIndex = (int)i;
                         break;
                     }
@@ -47,8 +50,8 @@ namespace Rutile {
         } else if (objects.size() >= 2) {
             auto [group1, group2] = DivideObjects(objects);
 
-            node.node1 = Construct(group1, bank);
-            node.node2 = Construct(group2, bank);
+            node.node1 = Construct(group1, bank, scene, --depth);
+            node.node2 = Construct(group2, bank, scene, --depth);
         }
 
         return bank.Add(node);
