@@ -67,8 +67,6 @@ namespace Rutile {
         const std::vector<Vertex> vertices = geometry.vertices;
         const std::vector<Index> indices = geometry.indices;
 
-        using Triangle = std::array<glm::vec3, 3>;
-
         std::vector<Triangle> triangles;
 
         transform.CalculateMatrix();
@@ -92,7 +90,7 @@ namespace Rutile {
         return mainBbox;
     }
 
-    AABB AABBFactory::Construct(const std::array<glm::vec3, 3>& triangle) {
+    AABB AABBFactory::Construct(const Triangle& triangle) {
         glm::vec3 min{ std::numeric_limits<float>::max() };
         glm::vec3 max{ -std::numeric_limits<float>::max() };
 
@@ -126,6 +124,18 @@ namespace Rutile {
 
         for (auto object : objects) {
             AABB bbox = Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+
+            mainBbox = Construct(mainBbox, bbox);
+        }
+
+        return mainBbox;
+    }
+
+    AABB AABBFactory::Construct(const std::vector<Triangle>& triangles) {
+        AABB mainBbox{ };
+
+        for (auto triangle : triangles) {
+            AABB bbox = Construct(triangle);
 
             mainBbox = Construct(mainBbox, bbox);
         }

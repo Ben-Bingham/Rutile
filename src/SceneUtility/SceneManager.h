@@ -13,7 +13,8 @@ namespace Rutile {
         HOLLOW_GLASS_SPHERE,
         RAY_TRACING_IN_ONE_WEEKEND,
         CORNELL_BOX,
-        BACKPACK
+        BACKPACK,
+        BVH_VISUALIZATION
     };
 
     class SceneManager {
@@ -32,5 +33,6 @@ namespace Rutile {
         static Scene GetRayTracingInOneWeekendScene();
         static Scene GetCornellBoxScene();
         static Scene GetBackpackScene();
+        static Scene GetBVHVisualizationScene();
     };
 }

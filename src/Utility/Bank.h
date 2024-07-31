@@ -17,6 +17,10 @@ namespace Rutile {
             return m_BankObjects[i];
         }
 
+        const BankType& operator[](IndexType i) const {
+            return m_BankObjects[i];
+        }
+
         size_t Size() {
             return m_BankObjects.size();
         }

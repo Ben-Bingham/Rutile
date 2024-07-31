@@ -4,13 +4,22 @@
 #include "Utility/RayTracing/AABB.h"
 
 namespace Rutile {
-    class BVHNode {
-    public:
+    struct SceneBVHNode {
         AABB bbox;
 
         BVHIndex node1;
         BVHIndex node2;
 
         int objectIndex{ -1 };
+    };
+
+    struct ObjectBVHNode {
+        AABB bbox;
+
+        BVHIndex node1;
+        BVHIndex node2;
+
+        int triangleOffset;
+        int triangleCount;
     };
 }

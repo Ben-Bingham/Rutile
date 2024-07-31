@@ -302,11 +302,11 @@ namespace Rutile {
         BVHIndex node1;
         BVHIndex node2;
 
-        //int objectIndex;
-        //int pading;
+        int objectIndex;
+        int padding;
 
-        int triangleOffset;
-        int triangleCount;
+        //int triangleOffset;
+        //int triangleCount;
     };
 
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
@@ -350,6 +350,12 @@ namespace Rutile {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
+
+        for (auto object : App::scene.objects) {
+            BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry]);
+
+            int a = 1;
+        }
 
         std::vector<float> meshData{ };
         std::vector<int> meshOffsets{ };
