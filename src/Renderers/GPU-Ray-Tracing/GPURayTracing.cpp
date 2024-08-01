@@ -294,7 +294,8 @@ namespace Rutile {
 
         int materialIndex;
         int geometryType;
-        int meshOffset;
+        //int meshOffset;
+        int BVHStartIndex;
         int meshSize;
     };
 
@@ -313,9 +314,6 @@ namespace Rutile {
 
         int objectIndex;
         int padding;
-
-        //int triangleOffset;
-        //int triangleCount;
     };
 
     struct ObjectLocalBVHNode {
@@ -326,9 +324,6 @@ namespace Rutile {
 
         int triangleOffset;
         int triangleCount;
-
-        //int triangleOffset;
-        //int triangleCount;
     };
 
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
@@ -373,98 +368,113 @@ namespace Rutile {
 
         m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
 
-        //for (auto object : App::scene.objects) {
-        Object object = App::scene.objects[0];
-        BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry]);
+        std::vector<float> triangleData;
+        std::vector<ObjectLocalBVHNode> objBvhNodes;
+        std::vector<int> startingIndices;
 
-        std::vector<Triangle> triangles = structure2.triangles;
-        ObjectBVHBank bank = structure2.bank;
-        int startingIndex = structure2.startingIndex;
-        //}
+        int k = 0;
+        for (auto object : App::scene.objects) {
+            BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
-        std::vector<float> meshData{ };
+            std::vector<Triangle> triangles = structure2.triangles;
+            ObjectBVHBank bank = structure2.bank;
+            int startingIndex = structure2.startingIndex + (int)objBvhNodes.size();
 
-        for (auto tri : triangles) {
-            glm::vec3 v1 = tri[0];
-            glm::vec3 v2 = tri[1];
-            glm::vec3 v3 = tri[2];
+            startingIndices.push_back(startingIndex);
 
-            meshData.push_back(v1.x);
-            meshData.push_back(v1.y);
-            meshData.push_back(v1.z);
+            std::vector<float> meshData{ };
 
-            meshData.push_back(v2.x);
-            meshData.push_back(v2.y);
-            meshData.push_back(v2.z);
+            Transform t = App::scene.transformBank[object.transform];
 
-            meshData.push_back(v3.x);
-            meshData.push_back(v3.y);
-            meshData.push_back(v3.z);
+            t.CalculateMatrix();
+            glm::mat4 model = t.matrix;
+            glm::mat4 inv = glm::inverse(model);
+
+            for (auto tri : triangles) {
+                glm::vec3 v1 = inv * glm::vec4{ tri[0], 1.0 };
+                glm::vec3 v2 = inv * glm::vec4{ tri[1], 1.0 };
+                glm::vec3 v3 = inv * glm::vec4{ tri[2], 1.0 };
+
+                meshData.push_back(v1.x);
+                meshData.push_back(v1.y);
+                meshData.push_back(v1.z);
+
+                meshData.push_back(v2.x);
+                meshData.push_back(v2.y);
+                meshData.push_back(v2.z);
+
+                meshData.push_back(v3.x);
+                meshData.push_back(v3.y);
+                meshData.push_back(v3.z);
+            }
+
+            //if (k == 0) {
+            //    triangleData = meshData;
+            //}
+
+            std::vector<ObjectLocalBVHNode> localObjBvhNodes{ };
+
+            for (int i = 0; i < structure2.bank.Size(); ++i) {
+                int node1 = -1;
+                int node2 = -1;
+
+                if (structure2.bank[i].node1 != -1) {
+                    node1 = (int)structure2.bank[i].node1 + (int)objBvhNodes.size();
+                } 
+                if (structure2.bank[i].node2 != -1) {
+                    node2 = (int)structure2.bank[i].node2 + (int)objBvhNodes.size();
+                }
+
+                int triangleOffset = -1;
+                int triangleCount = 0;
+
+                if (structure2.bank[i].triangleOffset != -1) {
+                    triangleOffset = (structure2.bank[i].triangleOffset * 9) + (int)triangleData.size(); // 9 floats in a triangle
+                }
+
+                if (structure2.bank[i].triangleCount != 0) {
+                    // 9 floats in a triangle
+                    triangleCount = structure2.bank[i].triangleCount * 9;
+                }
+
+                localObjBvhNodes.push_back(ObjectLocalBVHNode{
+                    LocalAABB{
+                        structure2.bank[i].bbox.min,
+                        123.4f,
+                        structure2.bank[i].bbox.max,
+                        567.8f
+                    },
+                    node1,
+                    node2,
+                    triangleOffset, 
+                    triangleCount,
+                });
+            }
+
+            triangleData.insert(triangleData.end(), meshData.begin(), meshData.end());
+
+            //if (k == 0) {
+            //    objBvhNodes = localObjBvhNodes;
+            //}
+
+            objBvhNodes.insert(objBvhNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
+
+            ++k;
         }
-
-        //for (auto val : meshData) {
-        //    std::cout << val << std::endl;
-        //}
-
-        std::vector<int> meshOffsets{ };
-        meshOffsets.push_back(0);
-        std::vector<int> meshSizes{ };
-        meshSizes.push_back(meshData.size());
-
-        //for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
-        //    const Geometry& geo = App::scene.geometryBank[i];
-
-        //    meshOffsets.resize(i + 1);
-        //    meshSizes.resize(i + 1);
-
-        //    std::vector<Vertex> vertices = App::scene.geometryBank[i].vertices;
-        //    std::vector<Index> indices = App::scene.geometryBank[i].indices;
-
-        //    meshOffsets[i] = (int)meshData.size();
-
-        //    if (geo.type != Geometry::GeometryType::SPHERE) {
-        //        for (auto index : indices) {
-        //            Vertex vertToAdd = vertices[index];
-
-        //            meshData.push_back(vertToAdd.position.x);
-        //            meshData.push_back(vertToAdd.position.y);
-        //            meshData.push_back(vertToAdd.position.z);
-        //        }
-        //    }
-
-        //    meshSizes[i] = (int)indices.size() * 3;
-        //}
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(meshData.size() * sizeof(float)), meshData.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(triangleData.size() * sizeof(float)), triangleData.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        std::vector<ObjectLocalBVHNode> localObjBvhNodes{ };
-
-        for (int i = 0; i < structure2.bank.Size(); ++i) {
-            localObjBvhNodes.push_back(ObjectLocalBVHNode{
-                LocalAABB{
-                    structure2.bank[i].bbox.min,
-                    123.4f,
-                    structure2.bank[i].bbox.max,
-                    567.8f
-                },
-                (int)structure2.bank[i].node1,
-                (int)structure2.bank[i].node2,
-                structure2.bank[i].triangleOffset * 9, // 9 floats in a triangle
-                structure2.bank[i].triangleCount * 9,  // 9 floats in a triangle
-            });
-        }
-
-        m_RayTracingShader->SetInt("objectBVHStartIndex", (int)structure2.startingIndex);
+        //m_RayTracingShader->SetInt("objectBVHStartIndex", (int)structure2.startingIndex);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_Object0BVHSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjBvhNodes.size() * sizeof(ObjectLocalBVHNode)), localObjBvhNodes.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(objBvhNodes.size() * sizeof(ObjectLocalBVHNode)), objBvhNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         std::vector<LocalObject> localObjects{ };
         int i = 0;
-        //for (auto object : App::scene.objects) {
+        for (auto object : App::scene.objects) {
             int geoType;
             if (App::scene.geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
                 geoType = 0;
@@ -479,12 +489,12 @@ namespace Rutile {
                 glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix }))) },
                 (int)object.material,
                 geoType,
-                meshOffsets[0],
-                meshSizes[0]
+                startingIndices[i],
+                //meshSizes[0]
             });
 
             ++i;
-        //}
+        }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjects.size() * sizeof(LocalObject)), localObjects.data(), GL_DYNAMIC_DRAW);

@@ -41,10 +41,10 @@ namespace Rutile {
 
     public:
         // Object BVH
-        static ReturnStructure2 Construct(const Geometry& geometry);
+        static ReturnStructure2 Construct(const Geometry& geometry, Transform transform);
 
     private:
-        static inline size_t m_MaxDepth = 4;
+        static inline size_t m_MaxDepth = 0;
 
         static BVHIndex Construct(const std::vector<Triangle>& triangles, ObjectBVHBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles);
 

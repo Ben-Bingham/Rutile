@@ -34,7 +34,8 @@ struct Object {
     int materialIndex;
 
     int geometryType;
-    int meshOffset;
+    //int meshOffset;
+    int BVHStartIndex;
     int meshSize;
 };
 
@@ -281,20 +282,27 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
     
-    Object obj = objects[0];
-    int geoType = obj.geometryType;
+    for (int i = 0; i < objectCount; ++i) {
+        //int i = 6;
+        Object obj = objects[i];
+        int geoType = obj.geometryType;
 
-    HitInfo backupHitInfo = hitInfo;
+        HitInfo backupHitInfo = hitInfo;
 
-    if (geoType == SPHERE_TYPE) {
-        if (HitSphere(ray, 0, backupHitInfo)) {
-            hitInfo = backupHitInfo;
-            hitSomething = true;
-        }
-    } else if (geoType == MESH_TYPE) {
-        if (HitMesh(ray, 0, backupHitInfo)) {
-            hitInfo = backupHitInfo;
-            hitSomething = true;
+        if (geoType == SPHERE_TYPE) {
+            if (HitSphere(ray, i, backupHitInfo)) {
+                if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
+                    hitInfo = backupHitInfo;
+                    hitSomething = true;
+                }
+            }
+        } else if (geoType == MESH_TYPE) {
+            if (HitMesh(ray, i, backupHitInfo)) {
+                if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
+                    hitInfo = backupHitInfo;
+                    hitSomething = true;
+                }
+            }
         }
     }
     /*
@@ -456,7 +464,7 @@ bool IsInterior(float alpha, float beta) {
 }
 
 bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
-    hitInfo.closestDistance = MAX_FLOAT;
+    //hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
 
     int stack[32];
@@ -464,7 +472,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
 
     //float dist;
-    //if (HitAABB(ray, objectBVHNodes[objectBVHStartIndex].bbox, dist)) {
+    //if (HitAABB(ray, objectBVHNodes[objectIndex].bbox, dist)) {
     //    hitInfo.closestDistance = dist;
     //    hitInfo.hitObjectIndex = 0;
     //    return true;
@@ -472,7 +480,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
     //
     //return false;
 
-    stack[stackIndex] = objectBVHStartIndex;
+    stack[stackIndex] = objects[objectIndex].BVHStartIndex;
 
     while (stackIndex > 0) {
         int nodeIndex = stack[stackIndex];
@@ -481,7 +489,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         ObjectBVHNode node = objectBVHNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            HitInfo backupHitInfo = hitInfo;
+            //HitInfo backupHitInfo = hitInfo;
 
             //for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; ++i) {
             //    
