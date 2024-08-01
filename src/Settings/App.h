@@ -32,13 +32,13 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
-        inline static SceneType currentSceneType = SceneType::TRIANGLE_SCENE;
+        inline static Scene scene = SceneManager::GetScene(SceneType::CORNELL_BOX);
+        inline static SceneType currentSceneType = SceneType::CORNELL_BOX;
         inline static SceneType lastSceneType = currentSceneType;
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;
 
-        inline static RendererType currentRendererType = RendererType::OPENGL;
+        inline static RendererType currentRendererType = RendererType::GPU_RAY_TRACING;
         inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
 

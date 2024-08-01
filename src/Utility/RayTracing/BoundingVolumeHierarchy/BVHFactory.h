@@ -29,13 +29,6 @@ namespace Rutile {
             BVHIndex startingIndex;
 
             std::vector<Triangle> triangles;
-
-            struct ObjectTriangleData {
-                int triangleOffset;
-                int triangleCount;
-            };
-
-            std::vector<ObjectTriangleData> objTriData;
         };
 
         // Scene BVH

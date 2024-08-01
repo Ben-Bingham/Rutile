@@ -52,6 +52,16 @@ struct BVHNode {
     int objectIndex;
 };
 
+struct ObjectBVHNode {
+    AABB bbox;
+
+    int node1;
+    int node2;
+
+    int triangleOffset;
+    int triangleCount;
+};
+
 layout(std430, binding = 0) readonly buffer materialBuffer {
     Material materialBank[];
 };
@@ -68,9 +78,15 @@ layout(std430, binding = 3) readonly buffer BVHBuffer {
     BVHNode bvhNodes[];
 };
 
+layout(std430, binding = 4) readonly buffer objectBVHBuffer {
+    ObjectBVHNode objectBVHNodes[];
+};
+
 uniform int objectCount;
 
 uniform int BVHStartIndex;
+
+uniform int objectBVHStartIndex;
 
 struct HitInfo {
     vec3 normal;
@@ -247,6 +263,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
+            color += throughput * 1.0;
             color += backgroundColor * throughput;
             break;
         }
@@ -264,6 +281,24 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
     
+    Object obj = objects[0];
+    int geoType = obj.geometryType;
+
+    HitInfo backupHitInfo = hitInfo;
+
+    if (geoType == SPHERE_TYPE) {
+        if (HitSphere(ray, 0, backupHitInfo)) {
+            hitInfo = backupHitInfo;
+            hitSomething = true;
+        }
+    } else if (geoType == MESH_TYPE) {
+        if (HitMesh(ray, 0, backupHitInfo)) {
+            hitInfo = backupHitInfo;
+            hitSomething = true;
+        }
+    }
+    /*
+
     int stack[32];
     int stackIndex = 1;
 
@@ -329,6 +364,8 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             //}
         }
     }
+
+    */
     return hitSomething;
 }
 
@@ -419,26 +456,129 @@ bool IsInterior(float alpha, float beta) {
 }
 
 bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
-    Object object = objects[objectIndex];
-    
+    hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
 
-    for (int i = 0; i < object.meshSize; i += 9) {
-        HitInfo backupHitInfo = hitInfo;
+    int stack[32];
+    int stackIndex = 1;
 
-        vec3 v1 = vec3(meshData[object.meshOffset + i + 0], meshData[object.meshOffset + i + 1], meshData[object.meshOffset + i + 2]);
-        vec3 v2 = vec3(meshData[object.meshOffset + i + 3], meshData[object.meshOffset + i + 4], meshData[object.meshOffset + i + 5]);
-        vec3 v3 = vec3(meshData[object.meshOffset + i + 6], meshData[object.meshOffset + i + 7], meshData[object.meshOffset + i + 8]);
 
-        vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
-    
-        if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
-            hitInfo = backupHitInfo;
-            hitSomething = true;
+    //float dist;
+    //if (HitAABB(ray, objectBVHNodes[objectBVHStartIndex].bbox, dist)) {
+    //    hitInfo.closestDistance = dist;
+    //    hitInfo.hitObjectIndex = 0;
+    //    return true;
+    //}
+    //
+    //return false;
+
+    stack[stackIndex] = objectBVHStartIndex;
+
+    while (stackIndex > 0) {
+        int nodeIndex = stack[stackIndex];
+        --stackIndex;
+
+        ObjectBVHNode node = objectBVHNodes[nodeIndex];
+
+        if (node.triangleCount > 0) { // Is a leaf node, has triangles
+            HitInfo backupHitInfo = hitInfo;
+
+            //for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; ++i) {
+            //    
+            //}
+
+            for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
+                HitInfo backupHitInfo = hitInfo;
+            
+                vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
+                vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
+                vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
+            
+                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+            
+                if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
+                    if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
+                }
+            }
+
+            //int geoType = objects[node.objectIndex].geometryType;
+                
+            //if (geoType == SPHERE_TYPE) {
+            //    if (HitSphere(ray, node.objectIndex, backupHitInfo)) {
+            //        hitInfo = backupHitInfo;
+            //        hitSomething = true;
+            //    }
+            //} else if (geoType == MESH_TYPE) {
+            //    if (HitMesh(ray, node.objectIndex, backupHitInfo)) {
+            //        hitInfo = backupHitInfo;
+            //        hitSomething = true;
+            //    }
+            //}
+
+        } else { // Is a branch node, its children are other nodes
+            float distanceNode1 = MAX_FLOAT;
+            bool hit1 = HitAABB(ray, objectBVHNodes[node.node1].bbox, distanceNode1);
+            
+            float distanceNode2 = MAX_FLOAT;
+            bool hit2 = HitAABB(ray, objectBVHNodes[node.node2].bbox, distanceNode2);
+
+            // Option 1
+            if (hit1 && distanceNode1 < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = node.node1;
+            }
+            
+            if (hit2 && distanceNode2 < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = node.node2;
+            }
+
+            // Option 2
+            //bool nearestIs1 = distanceNode1 < distanceNode2;
+            //
+            //int closeIndex = nearestIs1 ? node.node1 : node.node2;
+            //int farIndex = nearestIs1 ? node.node2 : node.node1;
+            //
+            //float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
+            //float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
+            //
+            //bool closeHit = nearestIs1 ? hit1 : hit2;
+            //bool farHit = nearestIs1 ? hit2 : hit1;
+            //
+            //if (farHit && farDistance < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = farIndex;
+            //}
+            //
+            //if (closeHit && closeDistance < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = closeIndex;
+            //}
         }
     }
 
+    
     return hitSomething;
+
+    //Object object = objects[objectIndex];
+    //
+    //bool hitSomething = false;
+    //
+    //for (int i = 0; i < object.meshSize; i += 9) {
+    //    HitInfo backupHitInfo = hitInfo;
+    //
+    //    vec3 v1 = vec3(meshData[object.meshOffset + i + 0], meshData[object.meshOffset + i + 1], meshData[object.meshOffset + i + 2]);
+    //    vec3 v2 = vec3(meshData[object.meshOffset + i + 3], meshData[object.meshOffset + i + 4], meshData[object.meshOffset + i + 5]);
+    //    vec3 v3 = vec3(meshData[object.meshOffset + i + 6], meshData[object.meshOffset + i + 7], meshData[object.meshOffset + i + 8]);
+    //
+    //    vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+    //
+    //    if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
+    //        hitInfo = backupHitInfo;
+    //        hitSomething = true;
+    //    }
+    //}
+    //
+    //return hitSomething;
 }
 
 bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[3]) {
