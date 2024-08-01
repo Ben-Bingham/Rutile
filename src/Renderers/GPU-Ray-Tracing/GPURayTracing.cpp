@@ -372,7 +372,6 @@ namespace Rutile {
         std::vector<ObjectLocalBVHNode> objBvhNodes;
         std::vector<int> startingIndices;
 
-        int k = 0;
         for (auto object : App::scene.objects) {
             BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
@@ -407,10 +406,6 @@ namespace Rutile {
                 meshData.push_back(v3.y);
                 meshData.push_back(v3.z);
             }
-
-            //if (k == 0) {
-            //    triangleData = meshData;
-            //}
 
             std::vector<ObjectLocalBVHNode> localObjBvhNodes{ };
 
@@ -453,20 +448,12 @@ namespace Rutile {
 
             triangleData.insert(triangleData.end(), meshData.begin(), meshData.end());
 
-            //if (k == 0) {
-            //    objBvhNodes = localObjBvhNodes;
-            //}
-
             objBvhNodes.insert(objBvhNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
-
-            ++k;
         }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(triangleData.size() * sizeof(float)), triangleData.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        //m_RayTracingShader->SetInt("objectBVHStartIndex", (int)structure2.startingIndex);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_Object0BVHSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(objBvhNodes.size() * sizeof(ObjectLocalBVHNode)), objBvhNodes.data(), GL_DYNAMIC_DRAW);
@@ -489,8 +476,7 @@ namespace Rutile {
                 glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix }))) },
                 (int)object.material,
                 geoType,
-                startingIndices[i],
-                //meshSizes[0]
+                startingIndices[i]
             });
 
             ++i;

@@ -95,7 +95,7 @@ namespace Rutile {
         }
 
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_FlipUVs);
+        const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cout << "ERROR: ASSIMP failed to load model with path:\n" << path << "\n" << importer.GetErrorString() << std::endl;

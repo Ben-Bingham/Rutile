@@ -264,7 +264,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
-            color += throughput * 1.0;
+            //color += throughput * 1.0;
             color += backgroundColor * throughput;
             break;
         }
@@ -282,31 +282,6 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
     
-    for (int i = 0; i < objectCount; ++i) {
-        //int i = 6;
-        Object obj = objects[i];
-        int geoType = obj.geometryType;
-
-        HitInfo backupHitInfo = hitInfo;
-
-        if (geoType == SPHERE_TYPE) {
-            if (HitSphere(ray, i, backupHitInfo)) {
-                if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
-                    hitInfo = backupHitInfo;
-                    hitSomething = true;
-                }
-            }
-        } else if (geoType == MESH_TYPE) {
-            if (HitMesh(ray, i, backupHitInfo)) {
-                if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
-                    hitInfo = backupHitInfo;
-                    hitSomething = true;
-                }
-            }
-        }
-    }
-    /*
-
     int stack[32];
     int stackIndex = 1;
 
@@ -373,7 +348,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         }
     }
 
-    */
+    
     return hitSomething;
 }
 
@@ -464,21 +439,10 @@ bool IsInterior(float alpha, float beta) {
 }
 
 bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
-    //hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
 
     int stack[32];
     int stackIndex = 1;
-
-
-    //float dist;
-    //if (HitAABB(ray, objectBVHNodes[objectIndex].bbox, dist)) {
-    //    hitInfo.closestDistance = dist;
-    //    hitInfo.hitObjectIndex = 0;
-    //    return true;
-    //}
-    //
-    //return false;
 
     stack[stackIndex] = objects[objectIndex].BVHStartIndex;
 
@@ -489,12 +453,6 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         ObjectBVHNode node = objectBVHNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            //HitInfo backupHitInfo = hitInfo;
-
-            //for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; ++i) {
-            //    
-            //}
-
             for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
                 HitInfo backupHitInfo = hitInfo;
             
@@ -511,20 +469,6 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
                     }
                 }
             }
-
-            //int geoType = objects[node.objectIndex].geometryType;
-                
-            //if (geoType == SPHERE_TYPE) {
-            //    if (HitSphere(ray, node.objectIndex, backupHitInfo)) {
-            //        hitInfo = backupHitInfo;
-            //        hitSomething = true;
-            //    }
-            //} else if (geoType == MESH_TYPE) {
-            //    if (HitMesh(ray, node.objectIndex, backupHitInfo)) {
-            //        hitInfo = backupHitInfo;
-            //        hitSomething = true;
-            //    }
-            //}
 
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
@@ -566,27 +510,6 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
     
     return hitSomething;
-
-    //Object object = objects[objectIndex];
-    //
-    //bool hitSomething = false;
-    //
-    //for (int i = 0; i < object.meshSize; i += 9) {
-    //    HitInfo backupHitInfo = hitInfo;
-    //
-    //    vec3 v1 = vec3(meshData[object.meshOffset + i + 0], meshData[object.meshOffset + i + 1], meshData[object.meshOffset + i + 2]);
-    //    vec3 v2 = vec3(meshData[object.meshOffset + i + 3], meshData[object.meshOffset + i + 4], meshData[object.meshOffset + i + 5]);
-    //    vec3 v3 = vec3(meshData[object.meshOffset + i + 6], meshData[object.meshOffset + i + 7], meshData[object.meshOffset + i + 8]);
-    //
-    //    vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
-    //
-    //    if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
-    //        hitInfo = backupHitInfo;
-    //        hitSomething = true;
-    //    }
-    //}
-    //
-    //return hitSomething;
 }
 
 bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[3]) {
