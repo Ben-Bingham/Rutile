@@ -491,18 +491,18 @@ namespace Rutile {
                     triangleCount = structure2.bank[i].triangleCount * 9;
                 }
 
-                localObjBvhNodes.push_back(ObjectLocalBVHNode{
-                    LocalAABB{
-                        structure2.bank[i].bbox.min,
-                        123.4f,
-                        structure2.bank[i].bbox.max,
-                        567.8f
-                    },
-                    node1,
-                    node2,
-                    triangleOffset, 
-                    triangleCount,
-                });
+                ObjectLocalBVHNode node{ };
+
+                node.bbox.min = structure2.bank[i].bbox.min;
+                node.bbox.max = structure2.bank[i].bbox.max;
+
+                node.node1 = node1;
+                node.node2 = node2;
+
+                node.triangleOffset = triangleOffset;
+                node.triangleCount = triangleCount;
+
+                localObjBvhNodes.push_back(node);
             }
 
             triangleData.insert(triangleData.end(), meshData.begin(), meshData.end());
