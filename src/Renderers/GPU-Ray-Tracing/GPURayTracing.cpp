@@ -370,14 +370,12 @@ namespace Rutile {
     };
 
     struct LocalBVHNode {
-        //LocalAABB bbox;
 
         glm::vec3 min;
         float pad1;
         glm::vec3 max;
         float pad2;
 
-        //BVHIndex node1ObjIndex;
         BVHIndex node1;
         BVHIndex node2;
 

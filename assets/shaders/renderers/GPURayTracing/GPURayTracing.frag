@@ -59,20 +59,12 @@ struct AABB {
 };
 
 struct BLASNode {
-    //vec3 minBound;
-    //vec3 maxBound;
-
     AABB bbox;
 
     int node1ObjIndex;
     int node2;
 
-    //int a;
-    //int b;
-    //int c;
-    //int d;
-    //int objectIndex;
-    int pad;
+    //int pad;
 };
 
 struct TLASNode {
