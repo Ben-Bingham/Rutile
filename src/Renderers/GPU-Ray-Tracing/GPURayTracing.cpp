@@ -426,10 +426,10 @@ namespace Rutile {
             node.max = structure.bank[i].bbox.max;
 
             //node.node1ObjIndex = structure.bank[i].node1ObjIndex;
-            node.node1 = structure.bank[i].node1;
+            node.node1 = structure.bank[i].node1ObjIndex;
             node.node2 = structure.bank[i].node2;
 
-            node.objectIndex = structure.bank[i].objIndex;
+            //node.objectIndex = structure.bank[i].objIndex;
 
             localBvhNodes.push_back(node);
 

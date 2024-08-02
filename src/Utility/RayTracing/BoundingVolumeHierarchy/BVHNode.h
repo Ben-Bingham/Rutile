@@ -7,11 +7,11 @@ namespace Rutile {
     struct TLASNode {
         AABB bbox;
 
-        //BVHIndex node1ObjIndex;
-        BVHIndex node1;
+        BVHIndex node1ObjIndex;
         BVHIndex node2;
 
-        int objIndex;
+        //int objIndex;
+        int pad;
     };
 
     struct BLASNode {
