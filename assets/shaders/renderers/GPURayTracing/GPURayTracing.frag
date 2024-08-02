@@ -59,10 +59,6 @@ struct AABB {
 };
 
 struct BLASNode {
-    //AABB bbox;
-    //vec3 minBound;
-    //vec3 maxBound;
-
     float minX;
     float minY;
     float minZ;

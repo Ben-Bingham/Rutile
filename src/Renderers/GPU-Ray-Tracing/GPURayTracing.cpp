@@ -370,26 +370,11 @@ namespace Rutile {
     };
 
     struct LocalBVHNode {
-
         glm::vec3 min;
-        //float pad1;
         glm::vec3 max;
-        //float pad2;
-
-        //float minX;
-        //float minY;
-        //float minZ;
-        //
-
 
         BVHIndex node1;
         BVHIndex node2;
-
-        //int objectIndex{ -1 };
-        //int pad3;
-        //float maxX;
-        //float maxY;
-        //float maxZ;
     };
 
     struct ObjectLocalBVHNode {
@@ -427,38 +412,13 @@ namespace Rutile {
         for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
             LocalBVHNode node{ };
 
-            //node.bbox = LocalAABB{ structure.bank[i].bbox.min, 123.4f, structure.bank[i].bbox.max };
-
             node.min = structure.bank[i].bbox.min;
             node.max = structure.bank[i].bbox.max;
 
-            //node.minX = structure.bank[i].bbox.min.x;
-            //node.minY = structure.bank[i].bbox.min.y;
-            //node.minZ = structure.bank[i].bbox.min.z;
-
-            //node.maxX = structure.bank[i].bbox.max.x;
-            //node.maxY = structure.bank[i].bbox.max.y;
-            //node.maxZ = structure.bank[i].bbox.max.z;
-
-            //node.node1ObjIndex = structure.bank[i].node1ObjIndex;
             node.node1 = structure.bank[i].node1ObjIndex;
             node.node2 = structure.bank[i].node2;
 
-            //node.objectIndex = structure.bank[i].objIndex;
-
             localBvhNodes.push_back(node);
-
-            //localBvhNodes.push_back({
-            //    {
-            //        structure.bank[i].bbox.min,
-            //        123.456f,
-            //        structure.bank[i].bbox.max,
-            //        133.0f
-            //    },
-            //    structure.bank[i].node1,
-            //    structure.bank[i].node2,
-            //    structure.bank[i].objIndex
-            //});
         }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
