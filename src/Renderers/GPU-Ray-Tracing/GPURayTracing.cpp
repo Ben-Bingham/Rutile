@@ -369,6 +369,7 @@ namespace Rutile {
         float pad2;
     };
 
+    // TLAS
     struct LocalBVHNode {
         glm::vec3 min;
         glm::vec3 max;
@@ -377,8 +378,10 @@ namespace Rutile {
         BVHIndex node2;
     };
 
+    // BLAS
     struct ObjectLocalBVHNode {
-        LocalAABB bbox;
+        glm::vec3 min;
+        glm::vec3 max;
 
         BVHIndex node1;
         BVHIndex node2;
@@ -493,8 +496,8 @@ namespace Rutile {
 
                 ObjectLocalBVHNode node{ };
 
-                node.bbox.min = structure2.bank[i].bbox.min;
-                node.bbox.max = structure2.bank[i].bbox.max;
+                node.min = structure2.bank[i].bbox.min;
+                node.max = structure2.bank[i].bbox.max;
 
                 node.node1 = node1;
                 node.node2 = node2;
