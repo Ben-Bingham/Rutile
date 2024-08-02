@@ -5,6 +5,6 @@
 #include "Utility/Bank.h"
 
 namespace Rutile {
-    using SceneBVHBank = Bank<SceneBVHNode, BVHIndex>;
-    using ObjectBVHBank = Bank<ObjectBVHNode, BVHIndex>;
+    using TLASBank = Bank<TLASNode, BVHIndex>;
+    using BLASBank = Bank<BLASNode, BVHIndex>;
 }

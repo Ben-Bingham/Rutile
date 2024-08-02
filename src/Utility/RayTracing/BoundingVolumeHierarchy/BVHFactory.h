@@ -11,7 +11,7 @@ namespace Rutile {
     public:
         // TODO get rid of theses or clean them up a lot
         struct ReturnStructure {
-            SceneBVHBank bank;
+            TLASBank bank;
             BVHIndex startingIndex;
 
             std::vector<float> triangles;
@@ -25,7 +25,7 @@ namespace Rutile {
         };
 
         struct ReturnStructure2 {
-            ObjectBVHBank bank;
+            BLASBank bank;
             BVHIndex startingIndex;
 
             std::vector<Triangle> triangles;
@@ -35,7 +35,7 @@ namespace Rutile {
         static ReturnStructure Construct(const Scene& scene);
 
     private:
-        static BVHIndex Construct(const std::vector<Object>& objects, SceneBVHBank& bank, const Scene& scene);
+        static BVHIndex Construct(const std::vector<Object>& objects, TLASBank& bank, const Scene& scene);
 
         static std::pair<std::vector<Object>, std::vector<Object>> DivideObjects(const std::vector<Object>& objects, const AABB& bbox, const Scene& scene);
 
@@ -46,7 +46,7 @@ namespace Rutile {
     private:
         static inline size_t m_MaxDepth = 32;
 
-        static BVHIndex Construct(const std::vector<Triangle>& triangles, ObjectBVHBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles);
+        static BVHIndex Construct(const std::vector<Triangle>& triangles, BLASBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles);
 
         static std::pair<std::vector<Triangle>, std::vector<Triangle>> DivideTriangles(const std::vector<Triangle>& triangles, const AABB& bbox);
     };

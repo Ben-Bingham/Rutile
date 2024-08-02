@@ -50,9 +50,7 @@ struct Object {
     int materialIndex;
 
     int geometryType;
-    //int meshOffset;
     int BVHStartIndex;
-    int meshSize;
 };
 
 struct AABB {
@@ -60,16 +58,23 @@ struct AABB {
     vec3 maxBound;
 };
 
-struct BVHNode {
+struct BLASNode {
+    //vec3 minBound;
+    //vec3 maxBound;
+
     AABB bbox;
 
     int node1;
     int node2;
 
+    //int a;
+    //int b;
+    //int c;
+    //int d;
     int objectIndex;
 };
 
-struct ObjectBVHNode {
+struct TLASNode {
     AABB bbox;
 
     int node1;
@@ -92,11 +97,11 @@ layout(std430, binding = 2) readonly buffer meshBuffer {
 };
 
 layout(std430, binding = 3) readonly buffer BVHBuffer {
-    BVHNode bvhNodes[];
+    BLASNode bvhNodes[];
 };
 
 layout(std430, binding = 4) readonly buffer objectBVHBuffer {
-    ObjectBVHNode objectBVHNodes[];
+    TLASNode objectBLASNodes[];
 };
 
 uniform int objectCount;
@@ -301,7 +306,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
-            color += throughput * 1.0;
+            //color += throughput * 1.0;
             color += backgroundColor * throughput;
             break;
         }
@@ -318,24 +323,6 @@ vec3 FireRayIntoScene(Ray r) {
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
-    
-    //for (int i = 0; i < objectCount; ++i) {
-    //    HitInfo backupHitInfo = hitInfo;
-    //
-    //    int geoType = objects[i].geometryType;
-    //            
-    //    if (geoType == SPHERE_TYPE) {
-    //        if (HitSphere(ray, i, backupHitInfo)) {
-    //            hitInfo = backupHitInfo;
-    //            hitSomething = true;
-    //        }
-    //    } else if (geoType == MESH_TYPE) {
-    //        if (HitMesh(ray, i, backupHitInfo)) {
-    //            hitInfo = backupHitInfo;
-    //            hitSomething = true;
-    //        }
-    //    }
-    //}
  
     int stack[32];
     int stackIndex = 1;
@@ -346,9 +333,9 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         int nodeIndex = stack[stackIndex];
         --stackIndex;
     
-        BVHNode node = bvhNodes[nodeIndex];
+        BLASNode node = bvhNodes[nodeIndex];
     
-        if (node.objectIndex != -1) { // Is a leaf node, has an object
+        if (node.node2 == -1) { // Is a leaf node, has an object
             HitInfo backupHitInfo = hitInfo;
     
             int geoType = objects[node.objectIndex].geometryType;
@@ -372,16 +359,6 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             float distanceNode2 = MAX_FLOAT;
             bool hit2 = HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2);
     
-            // Option 1
-            //if (hit1 && distanceNode1 < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = node.node1;
-            //}
-            //
-            //if (hit2 && distanceNode2 < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = node.node2;
-            //}
-    
-            // Option 2
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
             int closeIndex = nearestIs1 ? node.node1 : node.node2;
@@ -503,48 +480,6 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
     bool hitSomething = false;
 
-    /*
-    int stack[32];
-    int stackIndex = 1;
-
-    stack[stackIndex] = objects[objectIndex].BVHStartIndex;
-
-    while (stackIndex > 0) {
-        int nodeIndex = stack[stackIndex];
-        ObjectBVHNode node = objectBVHNodes[nodeIndex];
-        --stackIndex;
-
-        float dist;
-        if (!HitAABB(ray, node.bbox, dist)) {
-            continue;
-        }
-
-        if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
-                HitInfo backupHitInfo = hitInfo;
-            
-                vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
-                vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
-                vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
-            
-                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
-            
-                if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
-                    if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                }
-            }
-        } 
-        else {
-            stack[stackIndex += 1] = node.node1;
-            stack[stackIndex += 1] = node.node2;
-        }
-    }
-    */
-    
-
     int stack[32];
     int stackIndex = 1;
 
@@ -554,7 +489,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         int nodeIndex = stack[stackIndex];
         --stackIndex;
 
-        ObjectBVHNode node = objectBVHNodes[nodeIndex];
+        TLASNode node = objectBLASNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
             for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
@@ -576,21 +511,11 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            bool hit1 = HitAABB(ray, objectBVHNodes[node.node1].bbox, distanceNode1);
+            bool hit1 = HitAABB(ray, objectBLASNodes[node.node1].bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
-            bool hit2 = HitAABB(ray, objectBVHNodes[node.node2].bbox, distanceNode2);
+            bool hit2 = HitAABB(ray, objectBLASNodes[node.node2].bbox, distanceNode2);
 
-            // Option 1
-            //if (hit1 && distanceNode1 < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = node.node1;
-            //}
-            //
-            //if (hit2 && distanceNode2 < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = node.node2;
-            //}
-
-            // Option 2
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
             int closeIndex = nearestIs1 ? node.node1 : node.node2;

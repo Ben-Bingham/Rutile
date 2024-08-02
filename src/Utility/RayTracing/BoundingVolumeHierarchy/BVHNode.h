@@ -4,16 +4,17 @@
 #include "Utility/RayTracing/AABB.h"
 
 namespace Rutile {
-    struct SceneBVHNode {
+    struct TLASNode {
         AABB bbox;
 
+        //BVHIndex node1ObjIndex;
         BVHIndex node1;
         BVHIndex node2;
 
-        int objectIndex{ -1 };
+        int objIndex;
     };
 
-    struct ObjectBVHNode {
+    struct BLASNode {
         AABB bbox;
 
         BVHIndex node1;

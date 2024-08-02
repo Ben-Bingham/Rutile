@@ -134,18 +134,18 @@ namespace Rutile {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         // Scene BVH
-        glGenBuffers(1, &m_SceneBVHSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SceneBVHSSBO);
+        glGenBuffers(1, &m_TLASSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_SceneBVHSSBO);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_TLASSSBO);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         // Object BVH
-        glGenBuffers(1, &m_Object0BVHSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_Object0BVHSSBO);
+        glGenBuffers(1, &m_BLASSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_Object0BVHSSBO);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_BLASSSBO);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -186,8 +186,8 @@ namespace Rutile {
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
-        glDeleteBuffers(1, &m_SceneBVHSSBO);
-        glDeleteBuffers(1, &m_SceneBVHSSBO);
+        glDeleteBuffers(1, &m_TLASSSBO);
+        glDeleteBuffers(1, &m_TLASSSBO);
         glDeleteBuffers(1, &m_MeshSSBO);
         glDeleteBuffers(1, &m_ObjectSSBO);
         glDeleteBuffers(1, &m_MaterialBankSSBO);
@@ -371,12 +371,15 @@ namespace Rutile {
 
     struct LocalBVHNode {
         LocalAABB bbox;
+        //glm::vec3 min;
+        //glm::vec3 max;
 
+        //BVHIndex node1ObjIndex;
         BVHIndex node1;
         BVHIndex node2;
 
-        int objectIndex;
-        int padding;
+        int objectIndex{ -1 };
+        int pad;
     };
 
     struct ObjectLocalBVHNode {
@@ -412,6 +415,14 @@ namespace Rutile {
         std::vector<LocalBVHNode> localBvhNodes;
 
         for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
+            //LocalBVHNode node{ };
+
+            //node.min = structure.bank[i].bbox.min;
+            //node.max = structure.bank[i].bbox.max;
+
+            //node.node1ObjIndex = structure.bank[i].node1ObjIndex;
+            //node.node2 = structure.bank[i].node2;
+
             localBvhNodes.push_back({
                 {
                     structure.bank[i].bbox.min,
@@ -421,11 +432,11 @@ namespace Rutile {
                 },
                 structure.bank[i].node1,
                 structure.bank[i].node2,
-                structure.bank[i].objectIndex
+                structure.bank[i].objIndex
             });
         }
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_SceneBVHSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localBvhNodes.size() * sizeof(LocalBVHNode)), localBvhNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -439,7 +450,7 @@ namespace Rutile {
             BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
             std::vector<Triangle> triangles = structure2.triangles;
-            ObjectBVHBank bank = structure2.bank;
+            BLASBank bank = structure2.bank;
             int startingIndex = structure2.startingIndex + (int)objBvhNodes.size();
 
             startingIndices.push_back(startingIndex);
@@ -518,7 +529,7 @@ namespace Rutile {
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(triangleData.size() * sizeof(float)), triangleData.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_Object0BVHSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(objBvhNodes.size() * sizeof(ObjectLocalBVHNode)), objBvhNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
