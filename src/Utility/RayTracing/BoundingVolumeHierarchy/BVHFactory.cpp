@@ -111,13 +111,6 @@ namespace Rutile {
         std::vector<Object> group1{ };
         std::vector<Object> group2{ };
 
-
-
-
-
-
-
-
         int bestAxis = -1;
         float bestPos = 0;
         float bestCost = std::numeric_limits<float>::max();
@@ -177,72 +170,6 @@ namespace Rutile {
             group1.insert(group1.end(), objs.begin(), objs.begin() + midPoint);
             group2.insert(group2.end(), objs.begin() + midPoint, objs.end());
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //size_t group1Size;
-        //size_t group2Size;
-        //
-        //if (objects.size() % 2 == 0) {
-        //    group1Size = objects.size() / 2;
-        //    group2Size = objects.size() / 2;
-        //} else {
-        //    group1Size = (size_t)std::floor((float)objects.size() / 2.0f);
-        //    group2Size = group1Size + 1;
-        //}
-        //
-        //float smallestX = std::numeric_limits<float>::max();
-        //
-        //for (auto object : objects) {
-        //    if (App::scene.transformBank[object.transform].position.x < smallestX) {
-        //        smallestX = App::scene.transformBank[object.transform].position.x;
-        //    }
-        //}
-        //
-        //std::vector<float> closestDistances;
-        //
-        //for (size_t i = 0; i < objects.size(); ++ i) {
-        //    float distanceToAxis = App::scene.transformBank[objects[i].transform].position.x - smallestX;
-        //
-        //    closestDistances.push_back(distanceToAxis);
-        //}
-        //
-        //std::vector<std::pair<Object, float>> newObjects;
-        //
-        //int i = 0;
-        //for (auto distance : closestDistances) {
-        //    newObjects.push_back(std::make_pair(objects[i], distance));
-        //    ++i;
-        //}
-        //
-        //std::sort(newObjects.begin(), newObjects.end(), [](std::pair<Object, float> obj1, std::pair<Object, float> obj2) {
-        //    return obj1.second < obj2.second;
-        //});
-        //
-        //std::vector<Object> finalObjects;
-        //
-        //for (auto obj : newObjects) {
-        //    finalObjects.push_back(obj.first);
-        //}
-        //
-        //for (size_t i = 0; i < finalObjects.size(); ++i) {
-        //    if (i < group1Size) {
-        //        group1.push_back(finalObjects[i]);
-        //    }
-        //    else {
-        //        group2.push_back(finalObjects[i]);
-        //    }
-        //}
         
         return std::make_pair(group1, group2);
     }
@@ -286,7 +213,6 @@ namespace Rutile {
         node.bbox = AABBFactory::Construct(triangles);
 
         if (depth > m_MaxDepth || triangles.size() <= 3) {
-
             // Leaf node (stores all remaining triangles)
             node.node1 = -1;
             node.node2 = -1;
@@ -297,7 +223,7 @@ namespace Rutile {
             finalTriangles.insert(finalTriangles.end(), triangles.begin(), triangles.end());
 
         } else {
-            // Branch node (stores 2 nodes as children
+            // Branch node (stores 2 nodes as children)
             auto [group1, group2] = DivideTriangles(triangles, node.bbox);
 
             int node1Offset = (int)finalTriangles.size();
