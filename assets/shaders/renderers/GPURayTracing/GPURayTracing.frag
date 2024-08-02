@@ -58,7 +58,7 @@ struct AABB {
     vec3 maxBound;
 };
 
-struct BLASNode { // TODO rename to TLAS (stores objects)
+struct TLASNode { // TODO rename to TLAS (stores objects)
     float minX;
     float minY;
     float minZ;
@@ -71,7 +71,7 @@ struct BLASNode { // TODO rename to TLAS (stores objects)
     int node2;
 };
 
-struct TLASNode { // TODO rename to BLAS (stores triangles)
+struct BLASNode { // TODO rename to BLAS (stores triangles)
     float minX;
     float minY;
     float minZ;
@@ -99,12 +99,12 @@ layout(std430, binding = 2) readonly buffer meshBuffer {
     float meshData[];
 };
 
-layout(std430, binding = 3) readonly buffer BVHBuffer {
-    BLASNode bvhNodes[];
+layout(std430, binding = 3) readonly buffer TLASBuffer {
+    TLASNode TLASNodes[];
 };
 
-layout(std430, binding = 4) readonly buffer objectBVHBuffer {
-    TLASNode objectBLASNodes[];
+layout(std430, binding = 4) readonly buffer BLASBuffer {
+    BLASNode BLASNodes[];
 };
 
 uniform int objectCount;
@@ -336,7 +336,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         int nodeIndex = stack[stackIndex];
         --stackIndex;
     
-        BLASNode node = bvhNodes[nodeIndex];
+        TLASNode node = TLASNodes[nodeIndex];
     
         if (node.node2 == -1) { // Is a leaf node, has an object
             HitInfo backupHitInfo = hitInfo;
@@ -357,15 +357,15 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(bvhNodes[node.node1ObjIndex].minX, bvhNodes[node.node1ObjIndex].minY, bvhNodes[node.node1ObjIndex].minZ);
-            vec3 maxBoundN1 = vec3(bvhNodes[node.node1ObjIndex].maxX, bvhNodes[node.node1ObjIndex].maxY, bvhNodes[node.node1ObjIndex].maxZ);
+            vec3 minBoundN1 = vec3(TLASNodes[node.node1ObjIndex].minX, TLASNodes[node.node1ObjIndex].minY, TLASNodes[node.node1ObjIndex].minZ);
+            vec3 maxBoundN1 = vec3(TLASNodes[node.node1ObjIndex].maxX, TLASNodes[node.node1ObjIndex].maxY, TLASNodes[node.node1ObjIndex].maxZ);
 
             AABB bbox = AABB(minBoundN1, maxBoundN1);
             bool hit1 = HitAABB(ray, bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(bvhNodes[node.node2].minX, bvhNodes[node.node2].minY, bvhNodes[node.node2].minZ);
-            vec3 maxBoundN2 = vec3(bvhNodes[node.node2].maxX, bvhNodes[node.node2].maxY, bvhNodes[node.node2].maxZ);
+            vec3 minBoundN2 = vec3(TLASNodes[node.node2].minX, TLASNodes[node.node2].minY, TLASNodes[node.node2].minZ);
+            vec3 maxBoundN2 = vec3(TLASNodes[node.node2].maxX, TLASNodes[node.node2].maxY, TLASNodes[node.node2].maxZ);
 
             AABB bbox2 = AABB(minBoundN2, maxBoundN2);
             bool hit2 = HitAABB(ray, bbox2, distanceNode2);
@@ -500,7 +500,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         int nodeIndex = stack[stackIndex];
         --stackIndex;
 
-        TLASNode node = objectBLASNodes[nodeIndex];
+        BLASNode node = BLASNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
             for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
@@ -522,13 +522,13 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(objectBLASNodes[node.node1].minX, objectBLASNodes[node.node1].minY, objectBLASNodes[node.node1].minZ);
-            vec3 maxBoundN1 = vec3(objectBLASNodes[node.node1].maxX, objectBLASNodes[node.node1].maxY, objectBLASNodes[node.node1].maxZ);
+            vec3 minBoundN1 = vec3(BLASNodes[node.node1].minX, BLASNodes[node.node1].minY, BLASNodes[node.node1].minZ);
+            vec3 maxBoundN1 = vec3(BLASNodes[node.node1].maxX, BLASNodes[node.node1].maxY, BLASNodes[node.node1].maxZ);
             bool hit1 = HitAABB(ray, AABB(minBoundN1, maxBoundN1), distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(objectBLASNodes[node.node2].minX, objectBLASNodes[node.node2].minY, objectBLASNodes[node.node2].minZ);
-            vec3 maxBoundN2 = vec3(objectBLASNodes[node.node2].maxX, objectBLASNodes[node.node2].maxY, objectBLASNodes[node.node2].maxZ);
+            vec3 minBoundN2 = vec3(BLASNodes[node.node2].minX, BLASNodes[node.node2].minY, BLASNodes[node.node2].minZ);
+            vec3 maxBoundN2 = vec3(BLASNodes[node.node2].maxX, BLASNodes[node.node2].maxY, BLASNodes[node.node2].maxZ);
             bool hit2 = HitAABB(ray, AABB(minBoundN2, maxBoundN2), distanceNode2);
 
             bool nearestIs1 = distanceNode1 < distanceNode2;
