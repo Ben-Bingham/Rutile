@@ -722,54 +722,54 @@ namespace Rutile {
         for (auto object : sceneFactory.GetScene().objects) {
             BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(sceneFactory.GetScene().geometryBank[object.geometry], sceneFactory.GetScene().transformBank[object.transform]);
 
-            for (int i = 0; i < structure2.bank.Size(); ++i) {
+            //for (int i = 0; i < structure2.bank.Size(); ++i) {
 
-                float y = 2.0f;
+            //    float y = 2.0f;
 
-                if (structure2.bank[i].triangleCount <= 0) {
-                    y = 4.0f;
-                }
+            //    if (structure2.bank[i].triangleCount <= 0) {
+            //        y = 4.0f;
+            //    }
 
-                sceneFactory.Add(GeometryFactory::Construct(structure2.bank[i].bbox), Transform{ { 2.0f * i + 2.0f, y + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
+            //    sceneFactory.Add(GeometryFactory::Construct(structure2.bank[i].bbox), Transform{ { 2.0f * i + 2.0f, y + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
 
-                int offset = structure2.bank[i].triangleOffset;
-                int count = structure2.bank[i].triangleCount;
+            //    int offset = structure2.bank[i].triangleOffset;
+            //    int count = structure2.bank[i].triangleCount;
 
-                if (structure2.bank[i].triangleCount <= 0) {
-                    continue;
-                }
+            //    if (structure2.bank[i].triangleCount <= 0) {
+            //        continue;
+            //    }
 
-                std::vector<Triangle> tris;
-                for (int i = offset; i < offset + count; ++i) {
-                    tris.push_back(structure2.triangles[i]);
-                }
+            //    std::vector<Triangle> tris;
+            //    for (int i = offset; i < offset + count; ++i) {
+            //        tris.push_back(structure2.triangles[i]);
+            //    }
 
-                std::vector<Vertex> verts{ };
+            //    std::vector<Vertex> verts{ };
 
-                for (auto tri : tris) {
-                    Vertex v1 = { tri[0] };
-                    Vertex v2 = { tri[1] };
-                    Vertex v3 = { tri[2] };
+            //    for (auto tri : tris) {
+            //        Vertex v1 = { tri[0] };
+            //        Vertex v2 = { tri[1] };
+            //        Vertex v3 = { tri[2] };
 
-                    verts.push_back(v1);
-                    verts.push_back(v2);
-                    verts.push_back(v3);
-                }
+            //        verts.push_back(v1);
+            //        verts.push_back(v2);
+            //        verts.push_back(v3);
+            //    }
 
-                std::vector<Index> indices{ };
+            //    std::vector<Index> indices{ };
 
-                int j = 0;
-                for (auto vert : verts) {
-                    indices.push_back(j);
-                    ++j;
-                }
-                Geometry geo;
+            //    int j = 0;
+            //    for (auto vert : verts) {
+            //        indices.push_back(j);
+            //        ++j;
+            //    }
+            //    Geometry geo;
 
-                geo.vertices = verts;
-                geo.indices = indices;
+            //    geo.vertices = verts;
+            //    geo.indices = indices;
 
-                sceneFactory.Add(geo, Transform{ { 2.0f * i + 2.0f, 0.0f + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
-            }
+            //    sceneFactory.Add(geo, Transform{ { 2.0f * i + 2.0f, 0.0f + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
+            //}
             ++k;
         }
 

@@ -25,9 +25,7 @@ namespace Rutile {
         };
 
         struct ReturnStructure2 {
-            BLASBank bank;
-            BVHIndex startingIndex;
-
+            std::vector<BLASNode> nodes;
             std::vector<Triangle> triangles;
         };
 

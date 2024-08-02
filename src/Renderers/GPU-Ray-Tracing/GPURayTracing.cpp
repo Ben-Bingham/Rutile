@@ -424,6 +424,46 @@ namespace Rutile {
             localBvhNodes.push_back(node);
         }
 
+
+
+
+
+
+
+
+
+
+        //std::vector<Triangle> triangles;
+        //for (auto obj : App::scene.objects) {
+        //    
+        //}
+
+        //struct BVHNode {
+        //    glm::vec3 min;
+        //    glm::vec3 max;
+
+        //    int triangleOffset;
+        //    int triangleCount;
+
+        //    int node1;
+        //    int node2;
+        //};
+
+        //std::vector<BVHNode> nodes;
+        //nodes.resize()
+
+
+
+
+
+
+
+
+
+
+
+
+
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localBvhNodes.size() * sizeof(LocalBVHNode)), localBvhNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -438,8 +478,8 @@ namespace Rutile {
             BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
             std::vector<Triangle> triangles = structure2.triangles;
-            BLASBank bank = structure2.bank;
-            int startingIndex = structure2.startingIndex + (int)objBvhNodes.size();
+            //BLASBank bank = structure2.bank;
+            int startingIndex = (int)objBvhNodes.size();
 
             startingIndices.push_back(startingIndex);
 
@@ -471,41 +511,41 @@ namespace Rutile {
 
             std::vector<ObjectLocalBVHNode> localObjBvhNodes{ };
 
-            for (int i = 0; i < structure2.bank.Size(); ++i) {
+            for (auto node : structure2.nodes) {
                 int node1 = -1;
                 int node2 = -1;
 
-                if (structure2.bank[i].node1 != -1) {
-                    node1 = (int)structure2.bank[i].node1 + (int)objBvhNodes.size();
+                if (node.node1 != -1) {
+                    node1 = (int)node.node1 + (int)objBvhNodes.size();
                 } 
-                if (structure2.bank[i].node2 != -1) {
-                    node2 = (int)structure2.bank[i].node2 + (int)objBvhNodes.size();
+                if (node.node2 != -1) {
+                    node2 = (int)node.node2 + (int)objBvhNodes.size();
                 }
 
                 int triangleOffset = -1;
                 int triangleCount = 0;
 
-                if (structure2.bank[i].triangleOffset != -1) {
-                    triangleOffset = (structure2.bank[i].triangleOffset * 9) + (int)triangleData.size(); // 9 floats in a triangle
+                if (node.triangleOffset != -1) {
+                    triangleOffset = (node.triangleOffset * 9) + (int)triangleData.size(); // 9 floats in a triangle
                 }
 
-                if (structure2.bank[i].triangleCount != 0) {
+                if (node.triangleCount != 0) {
                     // 9 floats in a triangle
-                    triangleCount = structure2.bank[i].triangleCount * 9;
+                    triangleCount = node.triangleCount * 9;
                 }
 
-                ObjectLocalBVHNode node{ };
+                ObjectLocalBVHNode n{ };
 
-                node.min = structure2.bank[i].bbox.min;
-                node.max = structure2.bank[i].bbox.max;
+                n.min = node.bbox.min;
+                n.max = node.bbox.max;
 
-                node.node1 = node1;
-                node.node2 = node2;
+                n.node1 = node1;
+                n.node2 = node2;
 
-                node.triangleOffset = triangleOffset;
-                node.triangleCount = triangleCount;
+                n.triangleOffset = triangleOffset;
+                n.triangleCount = triangleCount;
 
-                localObjBvhNodes.push_back(node);
+                localObjBvhNodes.push_back(n);
             }
 
             triangleData.insert(triangleData.end(), meshData.begin(), meshData.end());

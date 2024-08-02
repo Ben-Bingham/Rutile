@@ -174,8 +174,10 @@ namespace Rutile {
         return std::make_pair(group1, group2);
     }
 
+    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int nodesUsed);
+
     BVHFactory::ReturnStructure2 BVHFactory::Construct(const Geometry& geometry, Transform transform) {
-        BLASBank bank{ };
+        //BLASBank bank{ };
 
         std::vector<Triangle> triangles;
 
@@ -197,14 +199,84 @@ namespace Rutile {
             std::cout << "ERROR: Cannot create a BVH for an object with no triangles" << std::endl;
         }
 
-        std::vector<Triangle> tris;
-        BVHIndex startingIndex = Construct(triangles, bank, 0, 0, tris);
+        std::vector<BLASNode> nodes;
 
-        for (BVHIndex i = 0; i < (BVHIndex)bank.Size(); ++i) {
-            bank[i].bbox.AddPadding(0.1f);
+        nodes.resize(2 * triangles.size() - 1);
+
+        const int rootNodeIndex = 0;
+        BLASNode& rootNode = nodes[rootNodeIndex];
+        rootNode.node1 = 0;
+        rootNode.node2 = 0;
+        rootNode.triangleOffset = 0;
+        rootNode.triangleCount = (int)triangles.size();
+
+        rootNode.bbox = AABBFactory::Construct(triangles);
+
+        Subdivide(rootNodeIndex, nodes, triangles, 1); // TODO replace nodes used with expanding nodes vector
+
+        for (BVHIndex i = 0; i < (BVHIndex)nodes.size(); ++i) {
+            nodes[i].bbox.AddPadding(0.1f);
         }
 
-        return ReturnStructure2{ bank, startingIndex, tris };
+        return ReturnStructure2{ nodes, triangles };
+    }
+
+    // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
+    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int nodesUsed) {
+        BLASNode& node = nodes[nodeIndex];
+
+        // Choose the split axis
+        glm::vec3 extent = node.bbox.max - node.bbox.min;
+        int axis = 0;
+        if (extent.y > extent.x) axis = 1;
+        if (extent.z > extent[axis]) axis = 2;
+        float splitPos = node.bbox.min[axis] + extent[axis] * 0.5f;
+
+        // Split triangles, based on position
+        int i = node.triangleOffset;
+        int j = i + node.triangleCount - 1;
+        while (i <= j) {
+            Triangle& tri = triangles[i];
+            glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
+            if (centroid[axis] < splitPos) {
+                ++i;
+            }
+            else
+                std::swap(triangles[i], triangles[j--]);
+        }
+
+        int leftCount = i - node.triangleOffset;
+        if (leftCount == 0 || leftCount == node.triangleCount) return;
+
+        // Create child nodes
+        int leftChildIdx = nodesUsed++;
+        int rightChildIdx = nodesUsed++;
+
+        node.node1 = leftChildIdx;
+        node.node2 = rightChildIdx; // TODO this is 1 greateer than the other always
+
+        nodes[leftChildIdx].triangleOffset = node.triangleOffset;
+        nodes[leftChildIdx].triangleCount = leftCount;
+
+        nodes[rightChildIdx].triangleOffset = i;
+        nodes[rightChildIdx].triangleCount = node.triangleCount - leftCount;
+
+        node.triangleCount = 0;
+
+        // Expand node AABBs
+        BLASNode& node1 = nodes[leftChildIdx];
+        std::vector<Triangle> node1Tris;
+        node1Tris.insert(node1Tris.end(), triangles.begin() + node1.triangleOffset, triangles.begin() + node1.triangleOffset + node1.triangleCount);
+        node1.bbox = AABBFactory::Construct(node1Tris);
+
+        BLASNode& node2 = nodes[rightChildIdx];
+        std::vector<Triangle> node2Tris;
+        node2Tris.insert(node2Tris.end(), triangles.begin() + node2.triangleOffset, triangles.begin() + node2.triangleOffset + node2.triangleCount);
+        node2.bbox = AABBFactory::Construct(node2Tris);
+
+        // Recurse
+        Subdivide(leftChildIdx, nodes, triangles, nodesUsed);
+        Subdivide(rightChildIdx, nodes, triangles, nodesUsed);
     }
 
     BVHIndex BVHFactory::Construct(const std::vector<Triangle>& triangles, BLASBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles) {
