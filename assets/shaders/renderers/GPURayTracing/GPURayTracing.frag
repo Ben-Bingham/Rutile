@@ -64,14 +64,15 @@ struct BLASNode {
 
     AABB bbox;
 
-    int node1;
+    int node1ObjIndex;
     int node2;
 
     //int a;
     //int b;
     //int c;
     //int d;
-    int objectIndex;
+    //int objectIndex;
+    int pad;
 };
 
 struct TLASNode {
@@ -338,15 +339,15 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         if (node.node2 == -1) { // Is a leaf node, has an object
             HitInfo backupHitInfo = hitInfo;
     
-            int geoType = objects[node.objectIndex].geometryType;
+            int geoType = objects[node.node1ObjIndex].geometryType;
                 
             if (geoType == SPHERE_TYPE) {
-                if (HitSphere(ray, node.objectIndex, backupHitInfo)) {
+                if (HitSphere(ray, node.node1ObjIndex, backupHitInfo)) {
                     hitInfo = backupHitInfo;
                     hitSomething = true;
                 }
             } else if (geoType == MESH_TYPE) {
-                if (HitMesh(ray, node.objectIndex, backupHitInfo)) {
+                if (HitMesh(ray, node.node1ObjIndex, backupHitInfo)) {
                     hitInfo = backupHitInfo;
                     hitSomething = true;
                 }
@@ -354,15 +355,15 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            bool hit1 = HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1);
+            bool hit1 = HitAABB(ray, bvhNodes[node.node1ObjIndex].bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
             bool hit2 = HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2);
     
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
-            int closeIndex = nearestIs1 ? node.node1 : node.node2;
-            int farIndex = nearestIs1 ? node.node2 : node.node1;
+            int closeIndex = nearestIs1 ? node.node1ObjIndex : node.node2;
+            int farIndex = nearestIs1 ? node.node2 : node.node1ObjIndex;
             
             float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
             float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;

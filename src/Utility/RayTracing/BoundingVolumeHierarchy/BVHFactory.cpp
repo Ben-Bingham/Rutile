@@ -32,15 +32,14 @@ namespace Rutile {
         node.bbox = AABBFactory::Construct(objects);
 
         if (objects.size() == 1) {
-            node.node1 = 01;
+            node.node1 = -1;
             node.node2 = -1;
 
             std::vector<Object>::const_iterator it = std::find(objects.begin(), objects.end(), objects[0]);
             if (it != objects.end()) {
                 for (size_t i = 0; i < scene.objects.size(); ++i) {
                     if (scene.objects[i] == *it) {
-                        //node.node1ObjIndex = (int)i;
-                        node.objIndex = (int)i;
+                        node.node1 = (int)i;
                         break;
                     }
                 }
@@ -50,7 +49,7 @@ namespace Rutile {
             auto [group1, group2] = DivideObjects(objects, node.bbox, scene);
 
             node.node1 = Construct(group1, bank, scene);
-            node.node2         = Construct(group2, bank, scene);
+            node.node2 = Construct(group2, bank, scene);
         }
 
         return bank.Add(node);

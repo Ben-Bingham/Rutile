@@ -370,16 +370,19 @@ namespace Rutile {
     };
 
     struct LocalBVHNode {
-        LocalAABB bbox;
-        //glm::vec3 min;
-        //glm::vec3 max;
+        //LocalAABB bbox;
+
+        glm::vec3 min;
+        float pad1;
+        glm::vec3 max;
+        float pad2;
 
         //BVHIndex node1ObjIndex;
         BVHIndex node1;
         BVHIndex node2;
 
         int objectIndex{ -1 };
-        int pad;
+        int pad3;
     };
 
     struct ObjectLocalBVHNode {
@@ -415,25 +418,32 @@ namespace Rutile {
         std::vector<LocalBVHNode> localBvhNodes;
 
         for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
-            //LocalBVHNode node{ };
+            LocalBVHNode node{ };
 
-            //node.min = structure.bank[i].bbox.min;
-            //node.max = structure.bank[i].bbox.max;
+            //node.bbox = LocalAABB{ structure.bank[i].bbox.min, 123.4f, structure.bank[i].bbox.max };
+
+            node.min = structure.bank[i].bbox.min;
+            node.max = structure.bank[i].bbox.max;
 
             //node.node1ObjIndex = structure.bank[i].node1ObjIndex;
-            //node.node2 = structure.bank[i].node2;
+            node.node1 = structure.bank[i].node1;
+            node.node2 = structure.bank[i].node2;
 
-            localBvhNodes.push_back({
-                {
-                    structure.bank[i].bbox.min,
-                    123.456f,
-                    structure.bank[i].bbox.max,
-                    133.0f
-                },
-                structure.bank[i].node1,
-                structure.bank[i].node2,
-                structure.bank[i].objIndex
-            });
+            node.objectIndex = structure.bank[i].objIndex;
+
+            localBvhNodes.push_back(node);
+
+            //localBvhNodes.push_back({
+            //    {
+            //        structure.bank[i].bbox.min,
+            //        123.456f,
+            //        structure.bank[i].bbox.max,
+            //        133.0f
+            //    },
+            //    structure.bank[i].node1,
+            //    structure.bank[i].node2,
+            //    structure.bank[i].objIndex
+            //});
         }
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
