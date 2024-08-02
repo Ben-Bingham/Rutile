@@ -372,15 +372,24 @@ namespace Rutile {
     struct LocalBVHNode {
 
         glm::vec3 min;
-        float pad1;
+        //float pad1;
         glm::vec3 max;
-        float pad2;
+        //float pad2;
+
+        //float minX;
+        //float minY;
+        //float minZ;
+        //
+
 
         BVHIndex node1;
         BVHIndex node2;
 
-        int objectIndex{ -1 };
-        int pad3;
+        //int objectIndex{ -1 };
+        //int pad3;
+        //float maxX;
+        //float maxY;
+        //float maxZ;
     };
 
     struct ObjectLocalBVHNode {
@@ -422,6 +431,14 @@ namespace Rutile {
 
             node.min = structure.bank[i].bbox.min;
             node.max = structure.bank[i].bbox.max;
+
+            //node.minX = structure.bank[i].bbox.min.x;
+            //node.minY = structure.bank[i].bbox.min.y;
+            //node.minZ = structure.bank[i].bbox.min.z;
+
+            //node.maxX = structure.bank[i].bbox.max.x;
+            //node.maxY = structure.bank[i].bbox.max.y;
+            //node.maxZ = structure.bank[i].bbox.max.z;
 
             //node.node1ObjIndex = structure.bank[i].node1ObjIndex;
             node.node1 = structure.bank[i].node1ObjIndex;

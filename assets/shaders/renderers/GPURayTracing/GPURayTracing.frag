@@ -59,12 +59,20 @@ struct AABB {
 };
 
 struct BLASNode {
-    AABB bbox;
+    //AABB bbox;
+    //vec3 minBound;
+    //vec3 maxBound;
+
+    float minX;
+    float minY;
+    float minZ;
+    
+    float maxX;
+    float maxY;
+    float maxZ;
 
     int node1ObjIndex;
     int node2;
-
-    //int pad;
 };
 
 struct TLASNode {
@@ -347,10 +355,18 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            bool hit1 = HitAABB(ray, bvhNodes[node.node1ObjIndex].bbox, distanceNode1);
+            vec3 minBoundN1 = vec3(bvhNodes[node.node1ObjIndex].minX, bvhNodes[node.node1ObjIndex].minY, bvhNodes[node.node1ObjIndex].minZ);
+            vec3 maxBoundN1 = vec3(bvhNodes[node.node1ObjIndex].maxX, bvhNodes[node.node1ObjIndex].maxY, bvhNodes[node.node1ObjIndex].maxZ);
+
+            AABB bbox = AABB(minBoundN1, maxBoundN1);
+            bool hit1 = HitAABB(ray, bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
-            bool hit2 = HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2);
+            vec3 minBoundN2 = vec3(bvhNodes[node.node2].minX, bvhNodes[node.node2].minY, bvhNodes[node.node2].minZ);
+            vec3 maxBoundN2 = vec3(bvhNodes[node.node2].maxX, bvhNodes[node.node2].maxY, bvhNodes[node.node2].maxZ);
+
+            AABB bbox2 = AABB(minBoundN2, maxBoundN2);
+            bool hit2 = HitAABB(ray, bbox2, distanceNode2);
     
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
