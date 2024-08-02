@@ -63,7 +63,57 @@ namespace Rutile {
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        sceneFactory.Add(GeometryFactory::Primitive::TRIANGLE, Transform{ }, MaterialFactory::Color::RED);
+        //sceneFactory.Add(GeometryFactory::Primitive::CUBE, Transform{ }, MaterialFactory::Color::RED);
+
+        std::vector<Vertex> vertices;
+        std::vector<Index> indices;
+
+        const int triCount = 64;
+
+        //for (int i = 0; i < triCount * 3; i += 3) {
+        //    glm::vec3 r1 = RandomVec3();
+        //    glm::vec3 r2 = RandomVec3();
+        //    glm::vec3 r3 = RandomVec3();
+
+        //    Vertex p1 = { glm::vec3{ r1 * 9.0f - glm::vec3{ 5.0f } } };
+        //    Vertex p2 = { p1.position + r1 };
+        //    Vertex p3 = { p1.position + r2 };
+
+        //    vertices.push_back(p1);
+        //    vertices.push_back(p2);
+        //    vertices.push_back(p3);
+
+        //    indices.push_back(i + 0);
+        //    indices.push_back(i + 1);
+        //    indices.push_back(i + 2);
+        //}
+
+        int i = 0;
+        for (int x = 0; x < 4; ++x) {
+            for (int y = 0; y < 4; ++y) {
+                for (int z = 0; z < 4; ++z) {
+                    glm::vec3 p1 = { (float)x, (float)y, (float)z };
+                    glm::vec3 p2 = p1 + glm::vec3{ 0.5f, 1.0f, 0.0f };
+                    glm::vec3 p3 = p1 + glm::vec3{ 1.0f, 0.0f, 0.0f };
+
+                    vertices.push_back(Vertex{ p3 });
+                    vertices.push_back(Vertex{ p2 });
+                    vertices.push_back(Vertex{ p1 });
+
+                    indices.push_back(i + 0);
+                    indices.push_back(i + 1);
+                    indices.push_back(i + 2);
+
+                    i += 3;
+                }
+            }
+        }
+
+        Geometry geo;
+        geo.vertices = vertices;
+        geo.indices = indices;
+
+        sceneFactory.Add(geo, Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::RED));
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
@@ -652,7 +702,7 @@ namespace Rutile {
     Scene SceneManager::GetBackpackScene() {
         SceneFactory sceneFactory;
 
-        sceneFactory.Add("assets\\models\\backpack\\backpack.obj", Transform{ });
+        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8k.obj", Transform{ });
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);

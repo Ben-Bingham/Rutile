@@ -7,6 +7,8 @@
 
 #include <glm/gtx/string_cast.hpp>
 
+#include "GUI/ImGuiUtil.h"
+
 #include "renderers/OpenGl/Utility/GLDebug.h"
 
 #include "Settings/App.h"
@@ -261,7 +263,68 @@ namespace Rutile {
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
     }
 
-    void GPURayTracing::ProvideLocalRendererSettings() { }
+    void GPURayTracing::ProvideLocalRendererSettings() {
+        static int maxBboxChecks = 100;
+        static int maxSphereChecks = 100;
+        static int maxTriangleChecks = 100;
+        static int maxMeshChecks = 100;
+
+        static int mode = 0;
+
+        RadioButtons("Stats mode", std::vector<std::string>{
+                "Bounding Boxes",
+                "Spheres",
+                "Triangles",
+                "Meshes"
+            },
+            &mode
+        );
+
+        int bbox = -1;
+        int sphere = -1;
+        int tri = -1;
+        int mesh = -1;
+
+        switch (mode) {
+        case 0:
+            if (ImGui::DragInt("Max Bounding Box Checks", &maxBboxChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            bbox = maxBboxChecks;
+            break;
+
+        case 1:
+            if (ImGui::DragInt("Max Sphere Checks", &maxSphereChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            sphere = maxSphereChecks;
+            break;
+
+        case 2:
+            if (ImGui::DragInt("Max Triangle Checks", &maxTriangleChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            tri = maxTriangleChecks;
+            break;
+
+        case 3:
+            if (ImGui::DragInt("Max Mesh Checks", &maxMeshChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            mesh = maxMeshChecks;
+            break;
+
+        default:
+            std::cout << "ERROR: Unknown mode" << std::endl;
+            break;
+        }
+
+        m_RayTracingShader->Bind();
+        m_RayTracingShader->SetInt("maxBboxChecks", bbox);
+        m_RayTracingShader->SetInt("maxSphereChecks", sphere);
+        m_RayTracingShader->SetInt("maxTriangleChecks", tri);
+        m_RayTracingShader->SetInt("maxMeshChecks", mesh);
+    }
 
     void GPURayTracing::ResetAccumulatedPixelData() {
         m_FrameCount = 0;

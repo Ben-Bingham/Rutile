@@ -59,7 +59,7 @@ namespace Rutile {
         float omnidirectionalShadowMapDiskRadius = 0.05f;
 
         // Ray-Tracing
-        int maxBounces = 5;
+        int maxBounces = 1;
     };
 
     Settings DefaultSettings();

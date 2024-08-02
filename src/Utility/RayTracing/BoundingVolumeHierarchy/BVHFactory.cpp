@@ -180,7 +180,10 @@ namespace Rutile {
 
         node.bbox = AABBFactory::Construct(triangles);
 
+        std::cout << triangles.size() << std::endl;
+
         if (depth > m_MaxDepth || triangles.size() <= 3) {
+
             // Leaf node (stores all remaining triangles)
             node.node1 = -1;
             node.node2 = -1;
@@ -208,31 +211,99 @@ namespace Rutile {
         return bank.Add(node);
     }
 
+    float Area(const AABB& bbox) {
+        glm::vec3 extent = bbox.max - bbox.min;
+        return extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+    }
+
+    // Taken from: https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/
+    float EvaluateSAH(int axis, float pos, const std::vector<Triangle>& triangles) {
+        AABB leftBox;
+        AABB rightBox;
+        int leftCount = 0, rightCount = 0;
+        for (size_t i = 0; i < triangles.size(); ++i) {
+            Triangle tri = triangles[i];
+            glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
+
+            if (centroid[axis] < pos) {
+                leftCount++;
+                leftBox = AABBFactory::Construct(AABBFactory::Construct(tri), leftBox);
+            }
+            else {
+                rightCount++;
+                rightBox = AABBFactory::Construct(AABBFactory::Construct(tri), rightBox);
+            }
+        }
+
+        float a = Area(leftBox);
+        float a2 = Area(rightBox);
+
+        float cost = leftCount * Area(leftBox) + rightCount * Area(rightBox);
+        return cost > 0 ? cost : std::numeric_limits<float>::max();
+    }
+
     std::pair<std::vector<Triangle>, std::vector<Triangle>> BVHFactory::DivideTriangles(const std::vector<Triangle>& triangles, const AABB& bbox) {
         std::vector<Triangle> group1{ };
         std::vector<Triangle> group2{ };
 
-        int axis = 0;
-        
-        glm::vec3 center = (bbox.max + bbox.min) / 2.0f;
+        int bestAxis = -1;
+        float bestPos = 0;
+        int bestCost = std::numeric_limits<int>::max();
+        for (int axis = 0; axis < 3; ++axis) {
+            for (size_t i = 0; i < triangles.size(); ++i) {
+                Triangle tri = triangles[i];
+                glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
 
-        if (center.x > center.y && center.x > center.z) {
-            axis = 0;
-        } else if (center.y > center.z && center.y > center.x) {
-            axis = 1;
-        } else if (center.z > center.x && center.z > center.y) {
-            axis = 2;
+                float candidatePos = centroid[axis];
+                float cost = EvaluateSAH(axis, candidatePos, triangles);
+                if (cost < bestCost) {
+                    bestPos = candidatePos;
+                    bestAxis = axis;
+                    bestCost = cost;
+                }
+            }
         }
+
+        int axis = bestAxis;
+        float splitPos = bestPos;
 
         for (const auto& tri : triangles) {
             glm::vec3 pos = tri[0] + tri[1] + tri[2];
             pos /= 3.0f;
 
-            if (pos[axis] > center[axis]) {
+            if (pos[axis] > splitPos) {
                 group1.push_back(tri);
             } else {
                 group2.push_back(tri);
             }
+        }
+
+        if (group1.empty() || group2.empty()) {
+            group1.clear();
+            group2.clear();
+
+            glm::vec3 extent = bbox.max - bbox.min;
+            axis = 0;
+            if (extent.y > extent.x) {
+                axis = 1;
+            }
+            if (extent.z > extent[axis]) {
+                axis = 2;
+            }
+
+            std::vector<Triangle> tris = triangles;
+
+            std::sort(tris.begin(), tris.end(), [axis] (const Triangle& t1, const Triangle& t2) {
+                glm::vec3 c1 = (t1[0] + t1[1] + t1[2]) / 3.0f;
+                glm::vec3 c2 = (t2[0] + t2[1] + t2[2]) / 3.0f;
+
+                return c1[axis] > c2[axis];
+            });
+
+            size_t midPoint = triangles.size() / 2;
+
+            group1.insert(group1.end(), triangles.begin(), triangles.begin() + midPoint);
+            group2.insert(group2.end(), triangles.begin() + midPoint, triangles.end());
         }
 
         return std::make_pair(group1, group2);

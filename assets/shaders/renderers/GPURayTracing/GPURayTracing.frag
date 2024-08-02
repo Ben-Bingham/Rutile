@@ -3,11 +3,27 @@
 // Lots of code translated from Ray Tracing In One Weekend:
 // https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
+//#define STATS
+
 struct Ray {
 	vec3 origin;
 	vec3 direction;
     vec3 inverseDirection;
 };
+
+#ifdef STATS
+struct Stats {
+    int bboxChecks;
+    int sphereChecks;
+    int triangleChecks;
+    int meshChecks;
+} stats;
+
+uniform int maxBboxChecks;
+uniform int maxSphereChecks;
+uniform int maxTriangleChecks;
+uniform int maxMeshChecks;
+#endif
 
 const int DIFFUSE_TYPE = 0;
 const int MIRROR_TYPE = 1;
@@ -178,6 +194,10 @@ bool NearZero(vec3 vec) {
 }
 
 void main() {
+#ifdef STATS
+    stats = Stats(0, 0, 0, 0);
+#endif
+
     randomState = normalizedPixelPosition.xy * miliTime * 3.4135;
 
     vec2 normalizedPixelCoordinate = normalizedPixelPosition;
@@ -211,8 +231,25 @@ void main() {
     // Writing to accumulation buffer
     vec3 accumulationColor = texture(accumulationBuffer, normalizedPixelPosition).rgb;
 
-    accumulationColor += pixelColor;
+#ifdef STATS
+    float col;
+    if (maxBboxChecks != -1) {
+        col = float(stats.bboxChecks) / float(maxBboxChecks);
+    } else if (maxSphereChecks != -1) {
+        col = float(stats.sphereChecks) / float(maxSphereChecks);
+    } else if (maxTriangleChecks != -1) {
+        col = float(stats.triangleChecks) / float(maxTriangleChecks);
+    } else if (maxMeshChecks != -1) {
+        col = float(stats.meshChecks) / float(maxMeshChecks);
+    }
 
+    pixelColor = vec3(col, 0.0, 0.0);
+
+    accumulationColor = pixelColor;
+#else
+    accumulationColor += pixelColor;
+#endif
+  
     outFragColor = vec4(accumulationColor.rgb, 1.0);
 }
 
@@ -264,7 +301,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
-            //color += throughput * 1.0;
+            color += throughput * 1.0;
             color += backgroundColor * throughput;
             break;
         }
@@ -282,20 +319,38 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
     
+    //for (int i = 0; i < objectCount; ++i) {
+    //    HitInfo backupHitInfo = hitInfo;
+    //
+    //    int geoType = objects[i].geometryType;
+    //            
+    //    if (geoType == SPHERE_TYPE) {
+    //        if (HitSphere(ray, i, backupHitInfo)) {
+    //            hitInfo = backupHitInfo;
+    //            hitSomething = true;
+    //        }
+    //    } else if (geoType == MESH_TYPE) {
+    //        if (HitMesh(ray, i, backupHitInfo)) {
+    //            hitInfo = backupHitInfo;
+    //            hitSomething = true;
+    //        }
+    //    }
+    //}
+ 
     int stack[32];
     int stackIndex = 1;
-
+    
     stack[stackIndex] = BVHStartIndex;
-
+    
     while (stackIndex > 0) {
         int nodeIndex = stack[stackIndex];
         --stackIndex;
-
+    
         BVHNode node = bvhNodes[nodeIndex];
-
+    
         if (node.objectIndex != -1) { // Is a leaf node, has an object
             HitInfo backupHitInfo = hitInfo;
-
+    
             int geoType = objects[node.objectIndex].geometryType;
                 
             if (geoType == SPHERE_TYPE) {
@@ -309,45 +364,44 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                     hitSomething = true;
                 }
             }
-
+    
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
             bool hit1 = HitAABB(ray, bvhNodes[node.node1].bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
             bool hit2 = HitAABB(ray, bvhNodes[node.node2].bbox, distanceNode2);
-
+    
             // Option 1
-            if (hit1 && distanceNode1 < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = node.node1;
+            //if (hit1 && distanceNode1 < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = node.node1;
+            //}
+            //
+            //if (hit2 && distanceNode2 < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = node.node2;
+            //}
+    
+            // Option 2
+            bool nearestIs1 = distanceNode1 < distanceNode2;
+            
+            int closeIndex = nearestIs1 ? node.node1 : node.node2;
+            int farIndex = nearestIs1 ? node.node2 : node.node1;
+            
+            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
+            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
+            
+            bool closeHit = nearestIs1 ? hit1 : hit2;
+            bool farHit = nearestIs1 ? hit2 : hit1;
+            
+            if (farHit && farDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = farIndex;
             }
             
-            if (hit2 && distanceNode2 < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = node.node2;
+            if (closeHit && closeDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = closeIndex;
             }
-
-            // Option 2
-            //bool nearestIs1 = distanceNode1 < distanceNode2;
-            //
-            //int closeIndex = nearestIs1 ? node.node1 : node.node2;
-            //int farIndex = nearestIs1 ? node.node2 : node.node1;
-            //
-            //float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
-            //float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
-            //
-            //bool closeHit = nearestIs1 ? hit1 : hit2;
-            //bool farHit = nearestIs1 ? hit2 : hit1;
-            //
-            //if (farHit && farDistance < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = farIndex;
-            //}
-            //
-            //if (closeHit && closeDistance < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = closeIndex;
-            //}
         }
     }
-
     
     return hitSomething;
 }
@@ -360,6 +414,10 @@ vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
 }
 
 bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo) {
+#ifdef STATS
+    ++stats.sphereChecks;
+#endif
+
     //float r = 1.0; // Sphere radius in local space
     //vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
 
@@ -439,7 +497,53 @@ bool IsInterior(float alpha, float beta) {
 }
 
 bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
+#ifdef STATS
+    ++stats.meshChecks;
+#endif
+
     bool hitSomething = false;
+
+    /*
+    int stack[32];
+    int stackIndex = 1;
+
+    stack[stackIndex] = objects[objectIndex].BVHStartIndex;
+
+    while (stackIndex > 0) {
+        int nodeIndex = stack[stackIndex];
+        ObjectBVHNode node = objectBVHNodes[nodeIndex];
+        --stackIndex;
+
+        float dist;
+        if (!HitAABB(ray, node.bbox, dist)) {
+            continue;
+        }
+
+        if (node.triangleCount > 0) { // Is a leaf node, has triangles
+            for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
+                HitInfo backupHitInfo = hitInfo;
+            
+                vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
+                vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
+                vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
+            
+                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+            
+                if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
+                    if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
+                }
+            }
+        } 
+        else {
+            stack[stackIndex += 1] = node.node1;
+            stack[stackIndex += 1] = node.node2;
+        }
+    }
+    */
+    
 
     int stack[32];
     int stackIndex = 1;
@@ -478,41 +582,44 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
             bool hit2 = HitAABB(ray, objectBVHNodes[node.node2].bbox, distanceNode2);
 
             // Option 1
-            if (hit1 && distanceNode1 < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = node.node1;
-            }
-            
-            if (hit2 && distanceNode2 < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = node.node2;
-            }
+            //if (hit1 && distanceNode1 < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = node.node1;
+            //}
+            //
+            //if (hit2 && distanceNode2 < hitInfo.closestDistance) {
+            //    stack[stackIndex += 1] = node.node2;
+            //}
 
             // Option 2
-            //bool nearestIs1 = distanceNode1 < distanceNode2;
-            //
-            //int closeIndex = nearestIs1 ? node.node1 : node.node2;
-            //int farIndex = nearestIs1 ? node.node2 : node.node1;
-            //
-            //float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
-            //float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
-            //
-            //bool closeHit = nearestIs1 ? hit1 : hit2;
-            //bool farHit = nearestIs1 ? hit2 : hit1;
-            //
-            //if (farHit && farDistance < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = farIndex;
-            //}
-            //
-            //if (closeHit && closeDistance < hitInfo.closestDistance) {
-            //    stack[stackIndex += 1] = closeIndex;
-            //}
+            bool nearestIs1 = distanceNode1 < distanceNode2;
+            
+            int closeIndex = nearestIs1 ? node.node1 : node.node2;
+            int farIndex = nearestIs1 ? node.node2 : node.node1;
+            
+            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
+            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
+            
+            bool closeHit = nearestIs1 ? hit1 : hit2;
+            bool farHit = nearestIs1 ? hit2 : hit1;
+            
+            if (farHit && farDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = farIndex;
+            }
+            
+            if (closeHit && closeDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = closeIndex;
+            }
         }
     }
-
     
     return hitSomething;
 }
 
 bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[3]) {
+#ifdef STATS
+    ++stats.triangleChecks;
+#endif
+
     Object object = objects[objectIndex];
 
     // Transform the ray into the local space of the object
@@ -576,6 +683,10 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 }
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
+#ifdef STATS
+    ++stats.bboxChecks;
+#endif
+
     vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
     vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
 
