@@ -395,9 +395,10 @@ namespace Rutile {
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+
         BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
 
-        std::vector<LocalTLASNode> localBvhNodes;
+        std::vector<LocalTLASNode> TLASNodes;
 
         for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
             LocalTLASNode node{ };
@@ -408,52 +409,13 @@ namespace Rutile {
             node.node1 = structure.bank[i].node1ObjIndex;
             node.node2 = structure.bank[i].node2;
 
-            localBvhNodes.push_back(node);
+            TLASNodes.push_back(node);
         }
 
-
-
-
-
-
-
-
-
-
-        //std::vector<Triangle> triangles;
-        //for (auto obj : App::scene.objects) {
-        //    
-        //}
-
-        //struct BVHNode {
-        //    glm::vec3 min;
-        //    glm::vec3 max;
-
-        //    int triangleOffset;
-        //    int triangleCount;
-
-        //    int node1;
-        //    int node2;
-        //};
-
-        //std::vector<BVHNode> nodes;
-        //nodes.resize()
-
-
-
-
-
-
-
-
-
-
-
-
-
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localBvhNodes.size() * sizeof(LocalTLASNode)), localBvhNodes.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(TLASNodes.size() * sizeof(LocalTLASNode)), TLASNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 
         m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
 
@@ -465,7 +427,6 @@ namespace Rutile {
             BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
             std::vector<Triangle> triangles = structure2.triangles;
-            //BLASBank bank = structure2.bank;
             int startingIndex = (int)objBvhNodes.size();
 
             startingIndices.push_back(startingIndex);
@@ -546,6 +507,7 @@ namespace Rutile {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BLASSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(objBvhNodes.size() * sizeof(LocalBLASNode)), objBvhNodes.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
 
         std::vector<LocalObject> localObjects{ };
         int i = 0;
