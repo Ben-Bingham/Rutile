@@ -177,8 +177,8 @@ namespace Rutile {
     void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed);
 
     BVHFactory::ReturnStructure2 BVHFactory::Construct(const Geometry& geometry, Transform transform) {
-        //BLASBank bank{ };
-
+        std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
+        std::cout << "Making BLAS for geometry with: " << geometry.indices.size() / 3 << " triangles" << std::endl;
         std::vector<Triangle> triangles;
 
         transform.CalculateMatrix();
@@ -219,7 +219,31 @@ namespace Rutile {
             nodes[i].bbox.AddPadding(0.1f);
         }
 
+        std::cout << "Finished BVH creation, it took: " << (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() / 1000000.0 << "ms" << std::endl;
         return ReturnStructure2{ nodes, triangles };
+    }
+
+    // Taken from: https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/
+    float EvaluateSAH(int axis, float pos, const std::vector<Triangle>& triangles) {
+        AABB leftBox;
+        AABB rightBox;
+        int leftCount = 0, rightCount = 0;
+        for (size_t i = 0; i < triangles.size(); ++i) {
+            Triangle tri = triangles[i];
+            glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
+
+            if (centroid[axis] < pos) {
+                leftCount++;
+                leftBox = AABBFactory::Construct(AABBFactory::Construct(tri), leftBox);
+            }
+            else {
+                rightCount++;
+                rightBox = AABBFactory::Construct(AABBFactory::Construct(tri), rightBox);
+            }
+        }
+
+        float cost = leftCount * Area(leftBox) + rightCount * Area(rightBox);
+        return cost > 0 ? cost : std::numeric_limits<float>::max();
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
@@ -230,12 +254,26 @@ namespace Rutile {
             return;
         }
 
-        // Choose the split axis
-        glm::vec3 extent = node.bbox.max - node.bbox.min;
-        int axis = 0;
-        if (extent.y > extent.x) axis = 1;
-        if (extent.z > extent[axis]) axis = 2;
-        float splitPos = node.bbox.min[axis] + extent[axis] * 0.5f;
+        int bestAxis = -1;
+        float bestPos = 0;
+        float bestCost = std::numeric_limits<float>::max();
+        for (int axis = 0; axis < 3; ++axis) {
+            for (size_t i = 0; i < triangles.size(); ++i) {
+                Triangle tri = triangles[i];
+                glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
+
+                float candidatePos = centroid[axis];
+                float cost = EvaluateSAH(axis, candidatePos, triangles);
+                if (cost < bestCost) {
+                    bestPos = candidatePos;
+                    bestAxis = axis;
+                    bestCost = cost;
+                }
+            }
+        }
+
+        int axis = bestAxis;
+        float splitPos = bestPos;
 
         // Split triangles, based on position
         int i = node.triangleOffset;
@@ -317,29 +355,6 @@ namespace Rutile {
         }
 
         return bank.Add(node);
-    }
-
-    // Taken from: https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/
-    float EvaluateSAH(int axis, float pos, const std::vector<Triangle>& triangles) {
-        AABB leftBox;
-        AABB rightBox;
-        int leftCount = 0, rightCount = 0;
-        for (size_t i = 0; i < triangles.size(); ++i) {
-            Triangle tri = triangles[i];
-            glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
-
-            if (centroid[axis] < pos) {
-                leftCount++;
-                leftBox = AABBFactory::Construct(AABBFactory::Construct(tri), leftBox);
-            }
-            else {
-                rightCount++;
-                rightBox = AABBFactory::Construct(AABBFactory::Construct(tri), rightBox);
-            }
-        }
-
-        float cost = leftCount * Area(leftBox) + rightCount * Area(rightBox);
-        return cost > 0 ? cost : std::numeric_limits<float>::max();
     }
 
     std::pair<std::vector<Triangle>, std::vector<Triangle>> BVHFactory::DivideTriangles(const std::vector<Triangle>& triangles, const AABB& bbox) {

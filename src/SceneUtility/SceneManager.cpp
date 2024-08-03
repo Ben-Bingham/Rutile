@@ -702,7 +702,7 @@ namespace Rutile {
     Scene SceneManager::GetBackpackScene() {
         SceneFactory sceneFactory;
 
-        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8k.obj", Transform{ });
+        sceneFactory.Add("assets\\models\\knight\\knight.obj", Transform{ });
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
