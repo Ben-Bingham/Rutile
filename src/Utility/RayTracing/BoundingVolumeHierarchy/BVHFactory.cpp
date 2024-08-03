@@ -209,11 +209,10 @@ namespace Rutile {
 
         rootNode.bbox = AABBFactory::Construct(triangles);
 
-        int nodesUsed = 1;
-        Subdivide(rootNodeIndex, nodes, triangles, nodesUsed); // TODO replace nodes used with expanding nodes vector
+        Subdivide(rootNodeIndex, nodes, triangles);
 
-        for (BVHIndex i = 0; i < (BVHIndex)nodes.size(); ++i) {
-            nodes[i].bbox.AddPadding(0.1f);
+        for (auto& node : nodes) {
+            node.bbox.AddPadding(0.01f);
         }
 
         std::cout << "Finished BVH creation, it took: " << (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() / 1000000.0 << "ms" << std::endl;
@@ -243,7 +242,7 @@ namespace Rutile {
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
-    void BVHFactory::Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed) {
+    void BVHFactory::Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles) {
         BLASNode& node = nodes[nodeIndex];
 
         if (node.triangleCount <= 2) {
@@ -268,8 +267,8 @@ namespace Rutile {
             }
         }
 
-        int axis = bestAxis;
-        float splitPos = bestPos;
+        const int axis = bestAxis;
+        const float splitPos = bestPos;
 
         // Split triangles, based on position
         int i = node.triangleOffset;
@@ -280,145 +279,45 @@ namespace Rutile {
             if (centroid[axis] < splitPos) {
                 ++i;
             }
-            else
+            else {
                 std::swap(triangles[i], triangles[j--]);
+            }
         }
 
-        int leftCount = i - node.triangleOffset;
-        if (leftCount == 0 || leftCount == node.triangleCount) {
+        const int lessCount = i - node.triangleOffset;
+        if (lessCount == 0 || lessCount == node.triangleCount) {
             return;
         }
 
         // Create child nodes
-        int leftChildIdx = (int)nodes.size();
-        int rightChildIdx = leftChildIdx + 1;
+        const int node1Idx = (int)nodes.size();
+        const int node2Idx = node1Idx + 1;
 
         nodes.resize(nodes.size() + 2);
 
-        node.node1 = leftChildIdx;
+        node.node1 = node1Idx;
 
-        nodes[leftChildIdx].triangleOffset = node.triangleOffset;
-        nodes[leftChildIdx].triangleCount = leftCount;
+        nodes[node1Idx].triangleOffset = node.triangleOffset;
+        nodes[node1Idx].triangleCount = lessCount;
 
-        nodes[rightChildIdx].triangleOffset = i;
-        nodes[rightChildIdx].triangleCount = node.triangleCount - leftCount;
+        nodes[node2Idx].triangleOffset = i;
+        nodes[node2Idx].triangleCount = node.triangleCount - lessCount;
 
         node.triangleCount = 0;
 
         // Expand node AABBs
-        BLASNode& node1 = nodes[leftChildIdx];
+        BLASNode& node1 = nodes[node1Idx];
         std::vector<Triangle> node1Tris;
         node1Tris.insert(node1Tris.end(), triangles.begin() + node1.triangleOffset, triangles.begin() + node1.triangleOffset + node1.triangleCount);
         node1.bbox = AABBFactory::Construct(node1Tris);
 
-        BLASNode& node2 = nodes[rightChildIdx];
+        BLASNode& node2 = nodes[node2Idx];
         std::vector<Triangle> node2Tris;
         node2Tris.insert(node2Tris.end(), triangles.begin() + node2.triangleOffset, triangles.begin() + node2.triangleOffset + node2.triangleCount);
         node2.bbox = AABBFactory::Construct(node2Tris);
 
         // Recurse
-        Subdivide(leftChildIdx, nodes, triangles, nodesUsed);
-        Subdivide(rightChildIdx, nodes, triangles, nodesUsed);
+        Subdivide(node1Idx, nodes, triangles);
+        Subdivide(node2Idx, nodes, triangles);
     }
-
-    /*
-    BVHIndex BVHFactory::Construct(const std::vector<Triangle>& triangles, BLASBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles) {
-        BLASNode node;
-
-        node.bbox = AABBFactory::Construct(triangles);
-
-        if (depth > m_MaxDepth || triangles.size() <= 3) {
-            // Leaf node (stores all remaining triangles)
-            node.node1 = -1;
-
-            node.triangleCount = (int)triangles.size();
-            node.triangleOffset = (int)finalTriangles.size();
-
-            finalTriangles.insert(finalTriangles.end(), triangles.begin(), triangles.end());
-
-        } else {
-            // Branch node (stores 2 nodes as children)
-            auto [group1, group2] = DivideTriangles(triangles, node.bbox);
-
-            int node1Offset = (int)finalTriangles.size();
-
-            depth += 1;
-
-            node.triangleCount = 0;
-            node.triangleOffset = -1;
-
-            node.node1 = Construct(group1, bank, depth, node1Offset, finalTriangles);
-            //node.node2 = Construct(group2, bank, depth, node1Offset + (int)group2.size(), finalTriangles);
-        }
-
-        return bank.Add(node);
-    }
-
-    std::pair<std::vector<Triangle>, std::vector<Triangle>> BVHFactory::DivideTriangles(const std::vector<Triangle>& triangles, const AABB& bbox) {
-        std::vector<Triangle> group1{ };
-        std::vector<Triangle> group2{ };
-
-        int bestAxis = -1;
-        float bestPos = 0;
-        float bestCost = std::numeric_limits<float>::max();
-        for (int axis = 0; axis < 3; ++axis) {
-            for (size_t i = 0; i < triangles.size(); ++i) {
-                Triangle tri = triangles[i];
-                glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
-
-                float candidatePos = centroid[axis];
-                float cost = EvaluateSAH(axis, candidatePos, triangles);
-                if (cost < bestCost) {
-                    bestPos = candidatePos;
-                    bestAxis = axis;
-                    bestCost = cost;
-                }
-            }
-        }
-
-        int axis = bestAxis;
-        float splitPos = bestPos;
-
-        for (const auto& tri : triangles) {
-            glm::vec3 pos = tri[0] + tri[1] + tri[2];
-            pos /= 3.0f;
-
-            if (pos[axis] > splitPos) {
-                group1.push_back(tri);
-            } else {
-                group2.push_back(tri);
-            }
-        }
-
-        if (group1.empty() || group2.empty()) {
-            group1.clear();
-            group2.clear();
-
-            glm::vec3 extent = bbox.max - bbox.min;
-            axis = 0;
-            if (extent.y > extent.x) {
-                axis = 1;
-            }
-            if (extent.z > extent[axis]) {
-                axis = 2;
-            }
-
-            std::vector<Triangle> tris = triangles;
-
-            std::sort(tris.begin(), tris.end(), [axis] (const Triangle& t1, const Triangle& t2) {
-                glm::vec3 c1 = (t1[0] + t1[1] + t1[2]) / 3.0f;
-                glm::vec3 c2 = (t2[0] + t2[1] + t2[2]) / 3.0f;
-
-                return c1[axis] > c2[axis];
-            });
-
-            size_t midPoint = triangles.size() / 2;
-
-            group1.insert(group1.end(), tris.begin(), tris.begin() + midPoint);
-            group2.insert(group2.end(), tris.begin() + midPoint, tris.end());
-        }
-
-        return std::make_pair(group1, group2);
-    }
-*/
 }

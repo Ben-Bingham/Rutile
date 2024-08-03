@@ -42,6 +42,6 @@ namespace Rutile {
         static ReturnStructure2 Construct(const Geometry& geometry, Transform transform);
 
     private:
-        static void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed);
+        static void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles);
     };
 }
