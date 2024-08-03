@@ -174,7 +174,7 @@ namespace Rutile {
         return std::make_pair(group1, group2);
     }
 
-    BVHFactory::ReturnStructure2 BVHFactory::Construct(const Geometry& geometry, Transform transform) {
+    BVHFactory::BLAS BVHFactory::Construct(const Geometry& geometry, Transform transform) {
         std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
         std::cout << "Making BLAS for geometry with: " << geometry.indices.size() / 3 << " triangles" << std::endl;
         std::vector<Triangle> triangles;
@@ -216,7 +216,7 @@ namespace Rutile {
         }
 
         std::cout << "Finished BVH creation, it took: " << (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime).count() / 1000000.0 << "ms" << std::endl;
-        return ReturnStructure2{ nodes, triangles };
+        return BLAS{ nodes, triangles };
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/

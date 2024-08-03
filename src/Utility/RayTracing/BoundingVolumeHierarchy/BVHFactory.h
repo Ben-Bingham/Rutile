@@ -24,11 +24,6 @@ namespace Rutile {
             std::vector<ObjectTriangleData> objTriData;
         };
 
-        struct ReturnStructure2 {
-            std::vector<BLASNode> nodes;
-            std::vector<Triangle> triangles;
-        };
-
         // TLAS BVH
         static ReturnStructure Construct(const Scene& scene);
 
@@ -38,8 +33,10 @@ namespace Rutile {
         static std::pair<std::vector<Object>, std::vector<Object>> DivideObjects(const std::vector<Object>& objects, const AABB& bbox, const Scene& scene);
 
     public:
+        using BLAS = std::pair<std::vector<BLASNode>, std::vector<Triangle>>;
+
         // BLAS BVH
-        static ReturnStructure2 Construct(const Geometry& geometry, Transform transform);
+        static BLAS Construct(const Geometry& geometry, Transform transform);
 
     private:
         static float FindBestSplitPlane(BLASNode& node, int& bestAxis, float& bestPosition, const std::vector<Triangle>& triangles);

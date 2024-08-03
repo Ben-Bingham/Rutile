@@ -424,9 +424,8 @@ namespace Rutile {
         std::vector<int> startingIndices;
 
         for (auto object : App::scene.objects) {
-            BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+            auto [nodes, triangles] = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
 
-            std::vector<Triangle> triangles = structure2.triangles;
             int startingIndex = (int)objBvhNodes.size();
 
             startingIndices.push_back(startingIndex);
@@ -459,7 +458,7 @@ namespace Rutile {
 
             std::vector<LocalBLASNode> localObjBvhNodes{ };
 
-            for (auto node : structure2.nodes) {
+            for (auto node : nodes) {
                 int node1 = -1;
                 int node2 = -1;
 

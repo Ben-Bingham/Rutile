@@ -720,7 +720,7 @@ namespace Rutile {
 
         int k = 0;
         for (auto object : sceneFactory.GetScene().objects) {
-            BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(sceneFactory.GetScene().geometryBank[object.geometry], sceneFactory.GetScene().transformBank[object.transform]);
+            //BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(sceneFactory.GetScene().geometryBank[object.geometry], sceneFactory.GetScene().transformBank[object.transform]);
 
             //for (int i = 0; i < structure2.bank.Size(); ++i) {
 
