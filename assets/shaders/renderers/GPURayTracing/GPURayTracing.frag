@@ -309,7 +309,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
-            //color += throughput * 1.0;
+            color += throughput * 1.0;
             color += backgroundColor * throughput;
             break;
         }
@@ -525,7 +525,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
             vec3 minBoundN1 = vec3(BLASNodes[node.node1].minX, BLASNodes[node.node1].minY, BLASNodes[node.node1].minZ);
             vec3 maxBoundN1 = vec3(BLASNodes[node.node1].maxX, BLASNodes[node.node1].maxY, BLASNodes[node.node1].maxZ);
             bool hit1 = HitAABB(ray, AABB(minBoundN1, maxBoundN1), distanceNode1);
-            
+
             float distanceNode2 = MAX_FLOAT;
             vec3 minBoundN2 = vec3(BLASNodes[node.node2].minX, BLASNodes[node.node2].minY, BLASNodes[node.node2].minZ);
             vec3 maxBoundN2 = vec3(BLASNodes[node.node2].maxX, BLASNodes[node.node2].maxY, BLASNodes[node.node2].maxZ);

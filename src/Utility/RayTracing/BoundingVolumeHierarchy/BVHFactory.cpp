@@ -174,7 +174,7 @@ namespace Rutile {
         return std::make_pair(group1, group2);
     }
 
-    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int nodesUsed);
+    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed);
 
     BVHFactory::ReturnStructure2 BVHFactory::Construct(const Geometry& geometry, Transform transform) {
         //BLASBank bank{ };
@@ -205,14 +205,15 @@ namespace Rutile {
 
         const int rootNodeIndex = 0;
         BLASNode& rootNode = nodes[rootNodeIndex];
-        rootNode.node1 = 0;
-        rootNode.node2 = 0;
+        rootNode.node1 = -1;
+        rootNode.node2 = -1;
         rootNode.triangleOffset = 0;
         rootNode.triangleCount = (int)triangles.size();
 
         rootNode.bbox = AABBFactory::Construct(triangles);
 
-        Subdivide(rootNodeIndex, nodes, triangles, 1); // TODO replace nodes used with expanding nodes vector
+        int nodesUsed = 1;
+        Subdivide(rootNodeIndex, nodes, triangles, nodesUsed); // TODO replace nodes used with expanding nodes vector
 
         for (BVHIndex i = 0; i < (BVHIndex)nodes.size(); ++i) {
             nodes[i].bbox.AddPadding(0.1f);
@@ -222,8 +223,12 @@ namespace Rutile {
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
-    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int nodesUsed) {
+    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed) {
         BLASNode& node = nodes[nodeIndex];
+
+        if (node.triangleCount <= 2) {
+            return;
+        }
 
         // Choose the split axis
         glm::vec3 extent = node.bbox.max - node.bbox.min;
@@ -246,14 +251,16 @@ namespace Rutile {
         }
 
         int leftCount = i - node.triangleOffset;
-        if (leftCount == 0 || leftCount == node.triangleCount) return;
+        if (leftCount == 0 || leftCount == node.triangleCount) {
+            return;
+        }
 
         // Create child nodes
         int leftChildIdx = nodesUsed++;
         int rightChildIdx = nodesUsed++;
 
         node.node1 = leftChildIdx;
-        node.node2 = rightChildIdx; // TODO this is 1 greateer than the other always
+        node.node2 = rightChildIdx; // TODO this is 1 greater than the other always
 
         nodes[leftChildIdx].triangleOffset = node.triangleOffset;
         nodes[leftChildIdx].triangleCount = leftCount;
