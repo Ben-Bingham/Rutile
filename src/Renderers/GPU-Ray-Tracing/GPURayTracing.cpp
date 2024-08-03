@@ -423,13 +423,16 @@ namespace Rutile {
         std::vector<LocalBLASNode> objBvhNodes;
         std::vector<int> startingIndices;
 
-        for (auto object : App::scene.objects) {
-            if (App::scene.geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
+        //for (auto object : App::scene.objects) {
+        for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
+            Geometry& geo = App::scene.geometryBank[i];
+
+            if (geo.type == Geometry::GeometryType::SPHERE) {
                 startingIndices.push_back(-1);
                 continue;
             }
 
-            auto [nodes, triangles] = BVHFactory::Construct(App::scene.geometryBank[object.geometry]);
+            auto [nodes, triangles] = BVHFactory::Construct(geo);
 
             int startingIndex = (int)objBvhNodes.size();
 
@@ -524,7 +527,7 @@ namespace Rutile {
                 glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix }))) },
                 (int)object.material,
                 geoType,
-                startingIndices[i]
+                startingIndices[object.geometry]
             });
 
             ++i;
