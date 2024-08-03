@@ -13,11 +13,13 @@
 namespace Rutile {
 	class SceneFactory {
 	public:
-		Scene GetScene();
+		Scene& GetScene();
 
 		void Add(GeometryIndex geometry,			   TransformIndex transform,   MaterialIndex material,       const std::string& name = "");
 
 		void Add(const Geometry& geometry,			   const Transform& transform, const Material& material,     const std::string& name = "");
+
+		void Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name = "");
 
 		void Add(GeometryFactory::Primitive primitive, const Transform& transform, const Material& material,	 const std::string& name = "");
 		void Add(const Geometry& geometry,			   const Transform& transform, MaterialFactory::Color color, const std::string& name = "");

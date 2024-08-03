@@ -424,6 +424,11 @@ namespace Rutile {
         std::vector<int> startingIndices;
 
         for (auto object : App::scene.objects) {
+            if (App::scene.geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
+                startingIndices.push_back(-1);
+                continue;
+            }
+
             auto [nodes, triangles] = BVHFactory::Construct(App::scene.geometryBank[object.geometry]);
 
             int startingIndex = (int)objBvhNodes.size();

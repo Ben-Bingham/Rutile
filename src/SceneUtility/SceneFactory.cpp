@@ -16,7 +16,7 @@
 #include "Utility/Random.h"
 
 namespace Rutile {
-    Scene SceneFactory::GetScene() {
+    Scene& SceneFactory::GetScene() {
         return m_Scene;
     }
 
@@ -42,6 +42,10 @@ namespace Rutile {
         const MaterialIndex materialIndex = m_Scene.materialBank.Add(material);
 
         Add(geoIndex, transformIndex, materialIndex, name);
+    }
+
+    void SceneFactory::Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name) {
+        Add(geometry, m_Scene.transformBank.Add(transform), m_Scene.materialBank.Add(material), name);
     }
 
     void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, const Material& material, const std::string& name) {

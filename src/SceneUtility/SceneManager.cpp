@@ -88,32 +88,37 @@ namespace Rutile {
         //    indices.push_back(i + 2);
         //}
 
-        int i = 0;
-        for (int x = 0; x < 4; ++x) {
-            for (int y = 0; y < 4; ++y) {
-                for (int z = 0; z < 4; ++z) {
-                    glm::vec3 p1 = { (float)x, (float)y, (float)z };
-                    glm::vec3 p2 = p1 + glm::vec3{ 0.5f, 1.0f, 0.0f };
-                    glm::vec3 p3 = p1 + glm::vec3{ 1.0f, 0.0f, 0.0f };
+        //int i = 0;
+        //for (int x = 0; x < 4; ++x) {
+        //    for (int y = 0; y < 4; ++y) {
+        //        for (int z = 0; z < 4; ++z) {
+        //            glm::vec3 p1 = { (float)x, (float)y, (float)z };
+        //            glm::vec3 p2 = p1 + glm::vec3{ 0.5f, 1.0f, 0.0f };
+        //            glm::vec3 p3 = p1 + glm::vec3{ 1.0f, 0.0f, 0.0f };
 
-                    vertices.push_back(Vertex{ p3 });
-                    vertices.push_back(Vertex{ p2 });
-                    vertices.push_back(Vertex{ p1 });
+        //            vertices.push_back(Vertex{ p3 });
+        //            vertices.push_back(Vertex{ p2 });
+        //            vertices.push_back(Vertex{ p1 });
 
-                    indices.push_back(i + 0);
-                    indices.push_back(i + 1);
-                    indices.push_back(i + 2);
+        //            indices.push_back(i + 0);
+        //            indices.push_back(i + 1);
+        //            indices.push_back(i + 2);
 
-                    i += 3;
-                }
-            }
-        }
+        //            i += 3;
+        //        }
+        //    }
+        //}
 
         Geometry geo;
         geo.vertices = vertices;
         geo.indices = indices;
 
-        sceneFactory.Add(geo, Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::RED));
+        //sceneFactory.Add(geo, Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::RED));
+
+        GeometryIndex cube = sceneFactory.GetScene().geometryBank.Add(GeometryFactory::Construct(GeometryFactory::Primitive::CUBE));
+
+        sceneFactory.Add(cube, Transform{ { 3.0f, 0.0f, 0.0f } }, MaterialFactory::Construct(MaterialFactory::Color::RED));
+        sceneFactory.Add(cube, Transform{ }, MaterialFactory::Construct(MaterialFactory::Color::GREEN));
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
