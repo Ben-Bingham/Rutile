@@ -206,7 +206,7 @@ namespace Rutile {
         const int rootNodeIndex = 0;
         BLASNode& rootNode = nodes[rootNodeIndex];
         rootNode.node1 = -1;
-        rootNode.node2 = -1;
+
         rootNode.triangleOffset = 0;
         rootNode.triangleCount = (int)triangles.size();
 
@@ -298,7 +298,6 @@ namespace Rutile {
         int rightChildIdx = nodesUsed++;
 
         node.node1 = leftChildIdx;
-        node.node2 = rightChildIdx; // TODO this is 1 greater than the other always
 
         nodes[leftChildIdx].triangleOffset = node.triangleOffset;
         nodes[leftChildIdx].triangleCount = leftCount;
@@ -332,7 +331,6 @@ namespace Rutile {
         if (depth > m_MaxDepth || triangles.size() <= 3) {
             // Leaf node (stores all remaining triangles)
             node.node1 = -1;
-            node.node2 = -1;
 
             node.triangleCount = (int)triangles.size();
             node.triangleOffset = (int)finalTriangles.size();
@@ -351,7 +349,7 @@ namespace Rutile {
             node.triangleOffset = -1;
 
             node.node1 = Construct(group1, bank, depth, node1Offset, finalTriangles);
-            node.node2 = Construct(group2, bank, depth, node1Offset + (int)group2.size(), finalTriangles);
+            //node.node2 = Construct(group2, bank, depth, node1Offset + (int)group2.size(), finalTriangles);
         }
 
         return bank.Add(node);

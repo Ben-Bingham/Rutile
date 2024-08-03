@@ -81,7 +81,7 @@ struct BLASNode { // TODO rename to BLAS (stores triangles)
     float maxZ;
 
     int node1;
-    int node2;
+    int padding;
 
     int triangleOffset;
     int triangleCount;
@@ -527,14 +527,14 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
             bool hit1 = HitAABB(ray, AABB(minBoundN1, maxBoundN1), distanceNode1);
 
             float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(BLASNodes[node.node2].minX, BLASNodes[node.node2].minY, BLASNodes[node.node2].minZ);
-            vec3 maxBoundN2 = vec3(BLASNodes[node.node2].maxX, BLASNodes[node.node2].maxY, BLASNodes[node.node2].maxZ);
+            vec3 minBoundN2 = vec3(BLASNodes[node.node1 + 1].minX, BLASNodes[node.node1 + 1].minY, BLASNodes[node.node1 + 1].minZ);
+            vec3 maxBoundN2 = vec3(BLASNodes[node.node1 + 1].maxX, BLASNodes[node.node1 + 1].maxY, BLASNodes[node.node1 + 1].maxZ);
             bool hit2 = HitAABB(ray, AABB(minBoundN2, maxBoundN2), distanceNode2);
 
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
-            int closeIndex = nearestIs1 ? node.node1 : node.node2;
-            int farIndex = nearestIs1 ? node.node2 : node.node1;
+            int closeIndex = nearestIs1 ? node.node1 : node.node1 + 1;
+            int farIndex = nearestIs1 ? node.node1 + 1 : node.node1;
             
             float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
             float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;

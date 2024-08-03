@@ -18,7 +18,6 @@ namespace Rutile {
         AABB bbox;
 
         BVHIndex node1;
-        BVHIndex node2;
 
         int triangleOffset;
         int triangleCount;

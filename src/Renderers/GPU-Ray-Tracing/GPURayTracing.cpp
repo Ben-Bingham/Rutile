@@ -384,7 +384,7 @@ namespace Rutile {
         glm::vec3 max;
 
         BVHIndex node1;
-        BVHIndex node2;
+        int padding;
 
         int triangleOffset;
         int triangleCount;
@@ -518,9 +518,6 @@ namespace Rutile {
                 if (node.node1 != -1) {
                     node1 = (int)node.node1 + (int)objBvhNodes.size();
                 } 
-                if (node.node2 != -1) {
-                    node2 = (int)node.node2 + (int)objBvhNodes.size();
-                }
 
                 int triangleOffset = -1;
                 int triangleCount = 0;
@@ -540,7 +537,6 @@ namespace Rutile {
                 n.max = node.bbox.max;
 
                 n.node1 = node1;
-                n.node2 = node2;
 
                 n.triangleOffset = triangleOffset;
                 n.triangleCount = triangleCount;
