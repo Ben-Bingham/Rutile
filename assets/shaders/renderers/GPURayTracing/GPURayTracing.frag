@@ -80,10 +80,11 @@ struct BLASNode { // TODO rename to BLAS (stores triangles)
     float maxY;
     float maxZ;
 
-    int node1;
+    int node1Offset;
     int padding;
 
-    int triangleOffset;
+    int padding2;
+    //int triangleOffset;
     int triangleCount;
 };
 
@@ -503,7 +504,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         BLASNode node = BLASNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            for (int i = node.triangleOffset; i < node.triangleOffset + node.triangleCount; i += 9) {
+            for (int i = node.node1Offset; i < node.node1Offset + node.triangleCount; i += 9) {
                 HitInfo backupHitInfo = hitInfo;
             
                 vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
@@ -522,19 +523,19 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
 
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(BLASNodes[node.node1].minX, BLASNodes[node.node1].minY, BLASNodes[node.node1].minZ);
-            vec3 maxBoundN1 = vec3(BLASNodes[node.node1].maxX, BLASNodes[node.node1].maxY, BLASNodes[node.node1].maxZ);
+            vec3 minBoundN1 = vec3(BLASNodes[node.node1Offset].minX, BLASNodes[node.node1Offset].minY, BLASNodes[node.node1Offset].minZ);
+            vec3 maxBoundN1 = vec3(BLASNodes[node.node1Offset].maxX, BLASNodes[node.node1Offset].maxY, BLASNodes[node.node1Offset].maxZ);
             bool hit1 = HitAABB(ray, AABB(minBoundN1, maxBoundN1), distanceNode1);
 
             float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(BLASNodes[node.node1 + 1].minX, BLASNodes[node.node1 + 1].minY, BLASNodes[node.node1 + 1].minZ);
-            vec3 maxBoundN2 = vec3(BLASNodes[node.node1 + 1].maxX, BLASNodes[node.node1 + 1].maxY, BLASNodes[node.node1 + 1].maxZ);
+            vec3 minBoundN2 = vec3(BLASNodes[node.node1Offset + 1].minX, BLASNodes[node.node1Offset + 1].minY, BLASNodes[node.node1Offset + 1].minZ);
+            vec3 maxBoundN2 = vec3(BLASNodes[node.node1Offset + 1].maxX, BLASNodes[node.node1Offset + 1].maxY, BLASNodes[node.node1Offset + 1].maxZ);
             bool hit2 = HitAABB(ray, AABB(minBoundN2, maxBoundN2), distanceNode2);
 
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
-            int closeIndex = nearestIs1 ? node.node1 : node.node1 + 1;
-            int farIndex = nearestIs1 ? node.node1 + 1 : node.node1;
+            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
+            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
             
             float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
             float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
