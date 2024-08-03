@@ -29,7 +29,7 @@ namespace Rutile {
             std::vector<Triangle> triangles;
         };
 
-        // Scene BVH
+        // TLAS BVH
         static ReturnStructure Construct(const Scene& scene);
 
     private:
@@ -38,14 +38,10 @@ namespace Rutile {
         static std::pair<std::vector<Object>, std::vector<Object>> DivideObjects(const std::vector<Object>& objects, const AABB& bbox, const Scene& scene);
 
     public:
-        // Object BVH
+        // BLAS BVH
         static ReturnStructure2 Construct(const Geometry& geometry, Transform transform);
 
     private:
-        static inline size_t m_MaxDepth = 32;
-
-        static BVHIndex Construct(const std::vector<Triangle>& triangles, BLASBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles);
-
-        static std::pair<std::vector<Triangle>, std::vector<Triangle>> DivideTriangles(const std::vector<Triangle>& triangles, const AABB& bbox);
+        static void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed);
     };
 }

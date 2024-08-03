@@ -174,8 +174,6 @@ namespace Rutile {
         return std::make_pair(group1, group2);
     }
 
-    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed);
-
     BVHFactory::ReturnStructure2 BVHFactory::Construct(const Geometry& geometry, Transform transform) {
         std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
         std::cout << "Making BLAS for geometry with: " << geometry.indices.size() / 3 << " triangles" << std::endl;
@@ -199,9 +197,8 @@ namespace Rutile {
             std::cout << "ERROR: Cannot create a BVH for an object with no triangles" << std::endl;
         }
 
-        std::vector<BLASNode> nodes;
-
-        nodes.resize(2 * triangles.size() - 1);
+        std::vector<BLASNode> nodes{ };
+        nodes.resize(1);
 
         const int rootNodeIndex = 0;
         BLASNode& rootNode = nodes[rootNodeIndex];
@@ -228,8 +225,7 @@ namespace Rutile {
         AABB leftBox;
         AABB rightBox;
         int leftCount = 0, rightCount = 0;
-        for (size_t i = 0; i < triangles.size(); ++i) {
-            Triangle tri = triangles[i];
+        for (const auto& tri : triangles) {
             glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
 
             if (centroid[axis] < pos) {
@@ -247,7 +243,7 @@ namespace Rutile {
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
-    void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed) {
+    void BVHFactory::Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles, int& nodesUsed) {
         BLASNode& node = nodes[nodeIndex];
 
         if (node.triangleCount <= 2) {
@@ -258,12 +254,12 @@ namespace Rutile {
         float bestPos = 0;
         float bestCost = std::numeric_limits<float>::max();
         for (int axis = 0; axis < 3; ++axis) {
-            for (size_t i = 0; i < triangles.size(); ++i) {
-                Triangle tri = triangles[i];
+            for (const auto& tri : triangles) {
                 glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
 
-                float candidatePos = centroid[axis];
-                float cost = EvaluateSAH(axis, candidatePos, triangles);
+                const float candidatePos = centroid[axis];
+                const float cost = EvaluateSAH(axis, candidatePos, triangles);
+
                 if (cost < bestCost) {
                     bestPos = candidatePos;
                     bestAxis = axis;
@@ -294,8 +290,10 @@ namespace Rutile {
         }
 
         // Create child nodes
-        int leftChildIdx = nodesUsed++;
-        int rightChildIdx = nodesUsed++;
+        int leftChildIdx = (int)nodes.size();
+        int rightChildIdx = leftChildIdx + 1;
+
+        nodes.resize(nodes.size() + 2);
 
         node.node1 = leftChildIdx;
 
@@ -323,6 +321,7 @@ namespace Rutile {
         Subdivide(rightChildIdx, nodes, triangles, nodesUsed);
     }
 
+    /*
     BVHIndex BVHFactory::Construct(const std::vector<Triangle>& triangles, BLASBank& bank, size_t depth, int offset, std::vector<Triangle>& finalTriangles) {
         BLASNode node;
 
@@ -421,4 +420,5 @@ namespace Rutile {
 
         return std::make_pair(group1, group2);
     }
+*/
 }
