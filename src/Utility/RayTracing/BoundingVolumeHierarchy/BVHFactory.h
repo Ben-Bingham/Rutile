@@ -42,6 +42,9 @@ namespace Rutile {
         static ReturnStructure2 Construct(const Geometry& geometry, Transform transform);
 
     private:
+        static float FindBestSplitPlane(BLASNode& node, int& bestAxis, float& bestPosition, const std::vector<Triangle>& triangles);
+        static float CalculateNodeCost(int nodeIndex, const std::vector<BLASNode>& nodes);
+
         static void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles);
     };
 }

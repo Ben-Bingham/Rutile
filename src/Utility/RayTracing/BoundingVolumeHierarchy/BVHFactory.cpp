@@ -237,8 +237,45 @@ namespace Rutile {
             }
         }
 
-        float cost = leftCount * Area(leftBox) + rightCount * Area(rightBox);
+        const float cost = (float)leftCount * Area(leftBox) + (float)rightCount * Area(rightBox);
         return cost > 0 ? cost : std::numeric_limits<float>::max();
+    }
+
+    float BVHFactory::FindBestSplitPlane(BLASNode& node, int& bestAxis, float& bestPosition, const std::vector<Triangle>& triangles) {
+        float bestCost = std::numeric_limits<float>::max();
+
+        for (int axis = 0; axis < 3; ++axis) {
+            const float minBound = node.bbox.min[axis];
+            const float maxBound = node.bbox.max[axis];
+
+            if (minBound == maxBound) {
+                continue;
+            }
+
+            constexpr int divisions = 8;
+            const float scale = (maxBound - minBound) / (float)divisions;
+
+            for (int i = 0; i < divisions; ++i) {
+                const float candidatePos = minBound + (float)(i * divisions);
+                const float cost = EvaluateSAH(axis, candidatePos, triangles);
+
+                if (cost < bestCost) {
+                    bestPosition = candidatePos;
+                    bestAxis = axis;
+                    bestCost = cost;
+                }
+            }
+        }
+
+        return bestCost;
+    }
+
+    float BVHFactory::CalculateNodeCost(int nodeIndex, const std::vector<BLASNode>& nodes) {
+        const BLASNode& node = nodes[nodeIndex];
+        const glm::vec3 extent = node.bbox.max - node.bbox.min;
+        const float surfaceArea = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
+
+        return surfaceArea * node.triangleCount;
     }
 
     // Taken from: https://jacco.ompf2.com/2022/04/13/how-to-build-a-bvh-part-1-basics/
@@ -249,26 +286,17 @@ namespace Rutile {
             return;
         }
 
-        int bestAxis = -1;
-        float bestPos = 0;
-        float bestCost = std::numeric_limits<float>::max();
-        for (int axis = 0; axis < 3; ++axis) {
-            for (const auto& tri : triangles) {
-                glm::vec3 centroid = (tri[0] + tri[1] + tri[2]) / 3.0f;
+        std::vector<Triangle> tris;
+        tris.insert(tris.end(), triangles.begin() + node.triangleOffset, triangles.begin() + node.triangleOffset + node.triangleCount);
+        int axis;
+        float splitPos;
 
-                const float candidatePos = centroid[axis];
-                const float cost = EvaluateSAH(axis, candidatePos, triangles);
+        const float cost = FindBestSplitPlane(nodes[nodeIndex], axis, splitPos, tris);
+        const float currentCostNoSplit = CalculateNodeCost(nodeIndex, nodes);
 
-                if (cost < bestCost) {
-                    bestPos = candidatePos;
-                    bestAxis = axis;
-                    bestCost = cost;
-                }
-            }
+        if (currentCostNoSplit < cost) {
+            return;
         }
-
-        const int axis = bestAxis;
-        const float splitPos = bestPos;
 
         // Split triangles, based on position
         int i = node.triangleOffset;
