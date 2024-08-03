@@ -174,23 +174,17 @@ namespace Rutile {
         return std::make_pair(group1, group2);
     }
 
-    BVHFactory::BLAS BVHFactory::Construct(const Geometry& geometry, Transform transform) {
+    BVHFactory::BLAS BVHFactory::Construct(const Geometry& geometry) {
         std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
         std::cout << "Making BLAS for geometry with: " << geometry.indices.size() / 3 << " triangles" << std::endl;
         std::vector<Triangle> triangles;
-
-        transform.CalculateMatrix();
 
         for (size_t i = 0; i < geometry.indices.size(); i += 3) {
             const Vertex v1 = geometry.vertices[geometry.indices[i + 0]];
             const Vertex v2 = geometry.vertices[geometry.indices[i + 1]];
             const Vertex v3 = geometry.vertices[geometry.indices[i + 2]];
 
-            glm::vec4 p1 = transform.matrix * glm::vec4{ v1.position, 1.0 };
-            glm::vec4 p2 = transform.matrix * glm::vec4{ v2.position, 1.0 };
-            glm::vec4 p3 = transform.matrix * glm::vec4{ v3.position, 1.0 };
-
-            triangles.push_back(Triangle{ p1, p2, p3 });
+            triangles.push_back(Triangle{ v1.position, v2.position, v3.position });
         }
 
         if (triangles.empty()) {

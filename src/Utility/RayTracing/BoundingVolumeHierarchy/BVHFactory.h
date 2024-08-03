@@ -36,7 +36,7 @@ namespace Rutile {
         using BLAS = std::pair<std::vector<BLASNode>, std::vector<Triangle>>;
 
         // BLAS BVH
-        static BLAS Construct(const Geometry& geometry, Transform transform);
+        static BLAS Construct(const Geometry& geometry);
 
     private:
         static float FindBestSplitPlane(BLASNode& node, int& bestAxis, float& bestPosition, const std::vector<Triangle>& triangles);

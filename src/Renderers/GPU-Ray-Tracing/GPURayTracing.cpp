@@ -424,7 +424,7 @@ namespace Rutile {
         std::vector<int> startingIndices;
 
         for (auto object : App::scene.objects) {
-            auto [nodes, triangles] = BVHFactory::Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+            auto [nodes, triangles] = BVHFactory::Construct(App::scene.geometryBank[object.geometry]);
 
             int startingIndex = (int)objBvhNodes.size();
 
@@ -432,16 +432,10 @@ namespace Rutile {
 
             std::vector<float> meshData{ };
 
-            Transform t = App::scene.transformBank[object.transform];
-
-            t.CalculateMatrix();
-            glm::mat4 model = t.matrix;
-            glm::mat4 inv = glm::inverse(model);
-
             for (auto tri : triangles) {
-                glm::vec3 v1 = inv * glm::vec4{ tri[0], 1.0 };
-                glm::vec3 v2 = inv * glm::vec4{ tri[1], 1.0 };
-                glm::vec3 v3 = inv * glm::vec4{ tri[2], 1.0 };
+                glm::vec3 v1 = tri[0];
+                glm::vec3 v2 = tri[1];
+                glm::vec3 v3 = tri[2];
 
                 meshData.push_back(v1.x);
                 meshData.push_back(v1.y);
