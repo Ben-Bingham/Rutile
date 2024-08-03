@@ -58,7 +58,7 @@ struct AABB {
     vec3 maxBound;
 };
 
-struct TLASNode { // TODO rename to TLAS (stores objects)
+struct TLASNode {
     float minX;
     float minY;
     float minZ;
@@ -71,7 +71,7 @@ struct TLASNode { // TODO rename to TLAS (stores objects)
     int node2;
 };
 
-struct BLASNode { // TODO rename to BLAS (stores triangles)
+struct BLASNode {
     float minX;
     float minY;
     float minZ;
@@ -81,10 +81,6 @@ struct BLASNode { // TODO rename to BLAS (stores triangles)
     float maxZ;
 
     int node1Offset;
-    int padding;
-
-    int padding2;
-    //int triangleOffset;
     int triangleCount;
 };
 
