@@ -707,7 +707,7 @@ namespace Rutile {
     Scene SceneManager::GetBackpackScene() {
         SceneFactory sceneFactory;
 
-        sceneFactory.Add("assets\\models\\knight\\knight.obj", Transform{ });
+        sceneFactory.Add("assets\\models\\sponza\\sponza.obj", Transform{ });
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
