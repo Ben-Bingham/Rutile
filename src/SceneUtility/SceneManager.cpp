@@ -706,11 +706,14 @@ namespace Rutile {
 
     Scene SceneManager::GetBackpackScene() {
         SceneFactory sceneFactory;
+        std::cout << "==================================== Starting to load scene" << std::endl;
 
-        sceneFactory.Add("assets\\models\\sponza\\sponza.obj", Transform{ });
+        sceneFactory.Add("assets\\models\\sportsCar\\sportsCar.obj", Transform{ });
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
+
+        std::cout << "==================================== Done loading model" << std::endl;
 
         return sceneFactory.GetScene();
     }

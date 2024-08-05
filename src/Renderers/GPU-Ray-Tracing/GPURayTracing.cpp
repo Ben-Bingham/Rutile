@@ -378,6 +378,7 @@ namespace Rutile {
     };
 
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
+        std::cout << "UploadObjectAndMaterialBuffers" << std::endl;
         m_RayTracingShader->Bind();
 
         std::vector<LocalMaterial> localMats{ };
@@ -391,12 +392,16 @@ namespace Rutile {
             localMats.emplace_back(LocalMaterial{ mat });
         }
 
+        std::cout << "Done mats" << std::endl;
+
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MaterialBankSSBO);
         glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 
+        std::cout << "Starting TLAS" << std::endl;
         BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
+        std::cout << "Done TLAS" << std::endl;
 
         std::vector<LocalTLASNode> TLASNodes;
 
@@ -423,7 +428,8 @@ namespace Rutile {
         std::vector<LocalBLASNode> objBvhNodes;
         std::vector<int> startingIndices;
 
-        //for (auto object : App::scene.objects) {
+        std::cout << "Starting BVH Construction" << std::endl;
+
         for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
             Geometry& geo = App::scene.geometryBank[i];
 
@@ -432,6 +438,7 @@ namespace Rutile {
                 continue;
             }
 
+            std::cout << "====================================== BVH creationg" << std::endl;
             auto [nodes, triangles] = BVHFactory::Construct(geo);
 
             int startingIndex = (int)objBvhNodes.size();
