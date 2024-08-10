@@ -250,7 +250,7 @@ namespace Rutile {
             const float scale = (maxBound - minBound) / (float)divisions;
 
             for (int i = 0; i < divisions; ++i) {
-                const float candidatePos = minBound + (float)(i * divisions);
+                const float candidatePos = minBound + (float)(i * scale);
                 const float cost = EvaluateSAH(axis, candidatePos, triangles);
 
                 if (cost < bestCost) {
@@ -316,6 +316,7 @@ namespace Rutile {
         const int node2Idx = node1Idx + 1;
 
         nodes.resize(nodes.size() + 2);
+        node = nodes[nodeIndex]; // Resizing the nodes can move the nodes in memory, which will make the reference invalid
 
         node.node1 = node1Idx;
 
@@ -341,5 +342,9 @@ namespace Rutile {
         // Recurse
         Subdivide(node1Idx, nodes, triangles);
         Subdivide(node2Idx, nodes, triangles);
+    }
+
+    glm::vec3 BVHUtility::Center(const Triangle& triangle) {
+        return (triangle[0] + triangle[1] + triangle[2]) / 3.0f;
     }
 }

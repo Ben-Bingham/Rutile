@@ -351,8 +351,6 @@ namespace Rutile {
         std::vector<LocalBLASNode> objBvhNodes;
         std::vector<int> startingIndices;
 
-        std::cout << "Starting BVH Construction" << std::endl;
-
         for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
             Geometry& geo = App::scene.geometryBank[i];
 
@@ -361,8 +359,16 @@ namespace Rutile {
                 continue;
             }
 
-            std::cout << "====================================== BVH creationg" << std::endl;
-            auto [nodes, triangles] = BVHFactory::Construct(geo);
+            std::vector<Triangle> tris;
+            for (size_t i = 0; i < geo.indices.size(); i += 3) {
+                const Vertex v1 = geo.vertices[geo.indices[i + 0]];
+                const Vertex v2 = geo.vertices[geo.indices[i + 1]];
+                const Vertex v3 = geo.vertices[geo.indices[i + 2]];
+
+                tris.push_back(Triangle{ v1.position, v2.position, v3.position });
+            }
+
+            auto nodes = TemplateBVHFactory<Triangle>::Construct(tris);
 
             int startingIndex = (int)objBvhNodes.size();
 
@@ -370,7 +376,7 @@ namespace Rutile {
 
             std::vector<float> meshData{ };
 
-            for (auto tri : triangles) {
+            for (auto tri : tris) {
                 glm::vec3 v1 = tri[0];
                 glm::vec3 v2 = tri[1];
                 glm::vec3 v3 = tri[2];
@@ -401,13 +407,13 @@ namespace Rutile {
                 int triangleOffset = -1;
                 int triangleCount = 0;
 
-                if (node.triangleOffset != -1) {
-                    triangleOffset = (node.triangleOffset * 9) + (int)triangleData.size(); // 9 floats in a triangle
+                if (node.offset != -1) {
+                    triangleOffset = (node.offset * 9) + (int)triangleData.size(); // 9 floats in a triangle
                 }
 
-                if (node.triangleCount != 0) {
+                if (node.count != 0) {
                     // 9 floats in a triangle
-                    triangleCount = node.triangleCount * 9;
+                    triangleCount = node.count * 9;
                 }
 
                 LocalBLASNode n{ };
