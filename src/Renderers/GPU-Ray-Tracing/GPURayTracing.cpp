@@ -114,18 +114,22 @@ namespace Rutile {
         m_TLASBank = std::make_unique<SSBO<LocalTLASNode>>(3);
         m_BLASBank = std::make_unique<SSBO<LocalBLASNode>>(4);
 
-        UploadObjectAndMaterialBuffers();
-        ResetAccumulatedPixelData();
+        CreateAndUploadMaterialBuffer();
+        CreateAndUploadTLASBuffer();
+        CreateAndUploadBLASAndMeshAndObjectBuffers();
 
+        ResetAccumulatedPixelData();
         return window;
     }
 
     void GPURayTracing::Notify(Event* event) {
-        if (EVENT_IS(event, ObjectTransformUpdate) ||
-            EVENT_IS(event, ObjectMaterialUpdate)) {
-
-            UploadObjectAndMaterialBuffers();
-            std::cout << "Update" << std::endl;
+        if (EVENT_IS(event, ObjectTransformUpdate)) {
+            CreateAndUploadTLASBuffer();
+            CreateAndUploadBLASAndMeshAndObjectBuffers(); // TODO we really only need to change the object transforms,
+            // TODO but because the objects need starting indices, and we do all of it at once, we just call this
+        }
+        if (EVENT_IS(event, ObjectMaterialUpdate)) {
+            CreateAndUploadMaterialBuffer();
         }
         if (EVENT_IS(event, WindowResize)) {
             glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
@@ -220,12 +224,19 @@ namespace Rutile {
 
     void GPURayTracing::LoadScene() {
         ResetAccumulatedPixelData();
-        UploadObjectAndMaterialBuffers();
+
+        CreateAndUploadMaterialBuffer();
+
+        CreateAndUploadBLASAndMeshAndObjectBuffers();
+
+        CreateAndUploadTLASBuffer();
     }
 
     void GPURayTracing::SignalRayTracingSettingsChange() {
         m_RayTracingShader->Bind();
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
+
+        ResetAccumulatedPixelData();
     }
 
     void GPURayTracing::ProvideLocalRendererSettings() {
@@ -306,7 +317,7 @@ namespace Rutile {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, clearData.data());
     }
 
-    void GPURayTracing::UploadObjectAndMaterialBuffers() {
+    void GPURayTracing::CreateAndUploadMaterialBuffer() {
         m_RayTracingShader->Bind();
 
         std::vector<LocalMaterial> localMats{ };
@@ -317,10 +328,38 @@ namespace Rutile {
             mat.indexOfRefraction = App::scene.materialBank[i].indexOfRefraction;
             mat.color = glm::vec4{ App::scene.materialBank[i].solid.color, 1.0 };
 
-            localMats.emplace_back(LocalMaterial{ mat });
+            localMats.emplace_back(mat);
         }
 
         m_MaterialBank->SetData(localMats);
+    }
+
+    void GPURayTracing::CreateAndUploadTLASBuffer() {
+        m_RayTracingShader->Bind();
+
+        BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
+
+        std::vector<LocalTLASNode> TLASNodes;
+
+        for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
+            LocalTLASNode node{ };
+
+            node.min = structure.bank[i].bbox.min;
+            node.max = structure.bank[i].bbox.max;
+
+            node.node1 = structure.bank[i].node1ObjIndex;
+            node.node2 = structure.bank[i].node2;
+
+            TLASNodes.push_back(node);
+        }
+
+        m_TLASBank->SetData(TLASNodes);
+
+        m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
+    }
+
+    void GPURayTracing::CreateAndUploadBLASAndMeshAndObjectBuffers() {
+        m_RayTracingShader->Bind();
 
         std::vector<float> triangleData;
         std::vector<LocalBLASNode> blasNodes;
@@ -377,7 +416,7 @@ namespace Rutile {
 
                 if (node.node1 != -1) {
                     node1 = (int)node.node1 + (int)blasNodes.size();
-                } 
+                }
 
                 int triangleOffset = -1;
                 int triangleCount = 0;
@@ -400,7 +439,8 @@ namespace Rutile {
 
                 if (n.triangleCount > 0) {
                     n.node1Offset = triangleOffset;
-                } else {
+                }
+                else {
                     n.node1Offset = node1;
                 }
 
@@ -416,33 +456,14 @@ namespace Rutile {
 
         m_BLASBank->SetData(blasNodes);
 
-        BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
-
-        std::vector<LocalTLASNode> TLASNodes;
-
-        for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
-            LocalTLASNode node{ };
-
-            node.min = structure.bank[i].bbox.min;
-            node.max = structure.bank[i].bbox.max;
-
-            node.node1 = structure.bank[i].node1ObjIndex;
-            node.node2 = structure.bank[i].node2;
-
-            TLASNodes.push_back(node);
-        }
-
-        m_TLASBank->SetData(TLASNodes);
-
-        m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
-
         std::vector<LocalObject> localObjects{ };
         int i = 0;
         for (auto object : App::scene.objects) {
             int geoType;
             if (App::scene.geometryBank[object.geometry].type == Geometry::GeometryType::SPHERE) {
                 geoType = 0;
-            } else {
+            }
+            else {
                 geoType = 1;
             }
 
@@ -454,7 +475,7 @@ namespace Rutile {
                 (int)object.material,
                 geoType,
                 startingIndices[object.geometry]
-            });
+                });
 
             ++i;
         }

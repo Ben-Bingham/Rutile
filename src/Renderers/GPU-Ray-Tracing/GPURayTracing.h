@@ -29,13 +29,10 @@ namespace Rutile {
 
     private:
         void ResetAccumulatedPixelData();
-        void UploadObjectAndMaterialBuffers();
 
-        //void CreateAndUploadMaterialBuffer();
-        //void CreateAndUploadObjectBuffer();
-        //void CreateAndUploadMeshBuffer();
-        //void CreateAndUploadTLASBuffer();
-        //void CreateAndUploadBLASBuffer();
+        void CreateAndUploadMaterialBuffer();
+        void CreateAndUploadTLASBuffer();
+        void CreateAndUploadBLASAndMeshAndObjectBuffers();
 
         int m_FrameCount{ 0 };
 
