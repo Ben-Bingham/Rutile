@@ -307,7 +307,6 @@ namespace Rutile {
     }
 
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
-        std::cout << "UploadObjectAndMaterialBuffers" << std::endl;
         m_RayTracingShader->Bind();
 
         std::vector<LocalMaterial> localMats{ };
@@ -321,34 +320,10 @@ namespace Rutile {
             localMats.emplace_back(LocalMaterial{ mat });
         }
 
-        std::cout << "Done mats" << std::endl;
-
         m_MaterialBank->SetData(localMats);
 
-        std::cout << "Starting TLAS" << std::endl;
-        BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
-        std::cout << "Done TLAS" << std::endl;
-
-        std::vector<LocalTLASNode> TLASNodes;
-
-        for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
-            LocalTLASNode node{ };
-
-            node.min = structure.bank[i].bbox.min;
-            node.max = structure.bank[i].bbox.max;
-
-            node.node1 = structure.bank[i].node1ObjIndex;
-            node.node2 = structure.bank[i].node2;
-
-            TLASNodes.push_back(node);
-        }
-
-        m_TLASBank->SetData(TLASNodes);
-
-        m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
-
         std::vector<float> triangleData;
-        std::vector<LocalBLASNode> objBvhNodes;
+        std::vector<LocalBLASNode> blasNodes;
         std::vector<int> startingIndices;
 
         for (size_t i = 0; i < App::scene.geometryBank.Size(); ++i) {
@@ -370,7 +345,7 @@ namespace Rutile {
 
             auto nodes = TemplateBVHFactory<Triangle>::Construct(tris);
 
-            int startingIndex = (int)objBvhNodes.size();
+            int startingIndex = (int)blasNodes.size();
 
             startingIndices.push_back(startingIndex);
 
@@ -401,7 +376,7 @@ namespace Rutile {
                 int node2 = -1;
 
                 if (node.node1 != -1) {
-                    node1 = (int)node.node1 + (int)objBvhNodes.size();
+                    node1 = (int)node.node1 + (int)blasNodes.size();
                 } 
 
                 int triangleOffset = -1;
@@ -434,12 +409,32 @@ namespace Rutile {
 
             triangleData.insert(triangleData.end(), meshData.begin(), meshData.end());
 
-            objBvhNodes.insert(objBvhNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
+            blasNodes.insert(blasNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
         }
 
         m_MeshBank->SetData(triangleData);
 
-        m_BLASBank->SetData(objBvhNodes);
+        m_BLASBank->SetData(blasNodes);
+
+        BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
+
+        std::vector<LocalTLASNode> TLASNodes;
+
+        for (BVHIndex i = 0; i < (BVHIndex)structure.bank.Size(); ++i) {
+            LocalTLASNode node{ };
+
+            node.min = structure.bank[i].bbox.min;
+            node.max = structure.bank[i].bbox.max;
+
+            node.node1 = structure.bank[i].node1ObjIndex;
+            node.node2 = structure.bank[i].node2;
+
+            TLASNodes.push_back(node);
+        }
+
+        m_TLASBank->SetData(TLASNodes);
+
+        m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
 
         std::vector<LocalObject> localObjects{ };
         int i = 0;
