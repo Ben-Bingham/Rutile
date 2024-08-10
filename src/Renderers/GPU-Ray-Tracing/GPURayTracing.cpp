@@ -475,7 +475,7 @@ namespace Rutile {
                 (int)object.material,
                 geoType,
                 startingIndices[object.geometry]
-                });
+            });
 
             ++i;
         }
