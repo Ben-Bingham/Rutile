@@ -100,18 +100,6 @@ int main() {
             }
 
             App::lastRendererType = App::currentRendererType;
-
-            if (App::currentSceneType != App::lastSceneType) {
-                App::scene = SceneManager::GetScene(App::currentSceneType);
-
-                for (auto object : App::scene.objects) {
-                    App::scene.transformBank[object.transform].CalculateMatrix();
-                }
-
-                App::renderer->LoadScene();
-            }
-
-            App::lastSceneType = App::currentSceneType;
         }
 
         { // Rendering

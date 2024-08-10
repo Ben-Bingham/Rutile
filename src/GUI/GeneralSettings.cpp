@@ -78,8 +78,16 @@ namespace Rutile {
                 "Backpack",
                 "BVH Visualization"
             }, 
-            (int*)&App::currentSceneType, 
-            [] { App::renderer->LoadScene(); }
+            (int*)&App::sceneType, 
+            [] {
+                App::scene = SceneManager::GetScene(App::sceneType);
+
+                for (auto object : App::scene.objects) {
+                    App::scene.transformBank[object.transform].CalculateMatrix();
+                }
+
+                App::renderer->LoadScene();
+            }
         );
     }
 }
