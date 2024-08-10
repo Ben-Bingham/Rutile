@@ -7,7 +7,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "renderers/OpenGl/Utility/Shader.h"
+#include "Utility/OpenGl/Shader.h"
 
 namespace Rutile {
     class GPURayTracing : public Renderer {

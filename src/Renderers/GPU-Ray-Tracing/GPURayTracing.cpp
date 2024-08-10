@@ -9,12 +9,11 @@
 
 #include "GUI/ImGuiUtil.h"
 
-#include "renderers/OpenGl/Utility/GLDebug.h"
-
 #include "Settings/App.h"
 
 #include "Utility/GeometryFactory.h"
 #include "Utility/events/Events.h"
+#include "Utility/OpenGl/GLDebug.h"
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHBank.h"
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHFactory.h"
 

@@ -1,6 +1,5 @@
 #include "OpenGlRenderer.h"
 #include "Settings/App.h"
-#include "Utility/GLDebug.h"
 #include "imgui.h"
 
 #include <iostream>
@@ -15,6 +14,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "Utility/events/Events.h"
+#include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
     GLFWwindow* OpenGlRenderer::Init() {

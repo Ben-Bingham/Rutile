@@ -7,7 +7,7 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "Utility/Shader.h"
+#include "Utility/OpenGl/Shader.h"
 
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {

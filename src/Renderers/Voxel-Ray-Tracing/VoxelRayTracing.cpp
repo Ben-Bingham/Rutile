@@ -1,9 +1,9 @@
 #include "VoxelRayTracing.h"
 #include <iostream>
 
-#include "renderers/OpenGl/Utility/GLDebug.h"
-
 #include "Settings/App.h"
+
+#include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
     GLFWwindow* VoxelRayTracing::Init() {
