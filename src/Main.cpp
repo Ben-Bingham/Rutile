@@ -13,6 +13,7 @@
 
 #include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
 #include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
+#include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
 
 #include "Utility/CameraMovement.h"
 #include "Utility/events/Events.h"
@@ -29,6 +30,9 @@ void CreateCurrentRenderer(RendererType type) {
         break;
     case RendererType::GPU_RAY_TRACING:
         App::renderer = std::make_unique<GPURayTracing>();
+        break;
+    case RendererType::VOXEL_RAY_TRACING:
+        App::renderer = std::make_unique<VoxelRayTracing>();
         break;
     }
 
