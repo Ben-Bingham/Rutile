@@ -108,45 +108,11 @@ namespace Rutile {
         m_RayTracingShader->Bind();
         m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
 
-        // Material Bank
-        glGenBuffers(1, &m_MaterialBankSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MaterialBankSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_MaterialBankSSBO);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        // Objects
-        glGenBuffers(1, &m_ObjectSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_ObjectSSBO);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        // Meshes
-        glGenBuffers(1, &m_MeshSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_MeshSSBO);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        // Scene BVH
-        glGenBuffers(1, &m_TLASSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_TLASSSBO);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        // Object BVH
-        glGenBuffers(1, &m_BLASSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BLASSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_BLASSSBO);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        m_MaterialBank = std::make_unique<SSBO<LocalMaterial>>(0);
+        m_ObjectBank = std::make_unique<SSBO<LocalObject>>(1);
+        m_MeshBank = std::make_unique<SSBO<float>>(2);
+        m_TLASBank = std::make_unique<SSBO<LocalTLASNode>>(3);
+        m_BLASBank = std::make_unique<SSBO<LocalBLASNode>>(4);
 
         UploadObjectAndMaterialBuffers();
         ResetAccumulatedPixelData();
@@ -185,11 +151,11 @@ namespace Rutile {
     }
 
     void GPURayTracing::Cleanup(GLFWwindow* window) {
-        glDeleteBuffers(1, &m_TLASSSBO);
-        glDeleteBuffers(1, &m_TLASSSBO);
-        glDeleteBuffers(1, &m_MeshSSBO);
-        glDeleteBuffers(1, &m_ObjectSSBO);
-        glDeleteBuffers(1, &m_MaterialBankSSBO);
+        m_BLASBank.reset();
+        m_TLASBank.reset();
+        m_MeshBank.reset();
+        m_ObjectBank.reset();
+        m_MaterialBank.reset();
 
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);
@@ -340,42 +306,6 @@ namespace Rutile {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, clearData.data());
     }
 
-    struct LocalMaterial {
-        int type;
-        float fuzz;
-        float indexOfRefraction;
-        alignas(16) glm::vec4 color;
-    };
-
-    struct LocalObject {
-        glm::mat4 model;
-        glm::mat4 invModel;
-
-        glm::mat4 transposeInverseModel;
-        glm::mat4 transposeInverseInverseModel;
-
-        int materialIndex;
-        int geometryType;
-        int BVHStartIndex;
-        int meshSize;
-    };
-
-    struct LocalTLASNode {
-        glm::vec3 min;
-        glm::vec3 max;
-
-        BVHIndex node1;
-        BVHIndex node2;
-    };
-
-    struct LocalBLASNode {
-        glm::vec3 min;
-        glm::vec3 max;
-
-        BVHIndex node1Offset;
-        int triangleCount;
-    };
-
     void GPURayTracing::UploadObjectAndMaterialBuffers() {
         std::cout << "UploadObjectAndMaterialBuffers" << std::endl;
         m_RayTracingShader->Bind();
@@ -393,10 +323,7 @@ namespace Rutile {
 
         std::cout << "Done mats" << std::endl;
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MaterialBankSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localMats.size() * sizeof(LocalMaterial)), localMats.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
+        m_MaterialBank->SetData(localMats);
 
         std::cout << "Starting TLAS" << std::endl;
         BVHFactory::ReturnStructure structure = BVHFactory::Construct(App::scene);
@@ -416,10 +343,7 @@ namespace Rutile {
             TLASNodes.push_back(node);
         }
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_TLASSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(TLASNodes.size() * sizeof(LocalTLASNode)), TLASNodes.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
+        m_TLASBank->SetData(TLASNodes);
 
         m_RayTracingShader->SetInt("BVHStartIndex", (int)structure.startingIndex);
 
@@ -507,14 +431,9 @@ namespace Rutile {
             objBvhNodes.insert(objBvhNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
         }
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_MeshSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(triangleData.size() * sizeof(float)), triangleData.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        m_MeshBank->SetData(triangleData);
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_BLASSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(objBvhNodes.size() * sizeof(LocalBLASNode)), objBvhNodes.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
+        m_BLASBank->SetData(objBvhNodes);
 
         std::vector<LocalObject> localObjects{ };
         int i = 0;
@@ -539,8 +458,6 @@ namespace Rutile {
             ++i;
         }
 
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ObjectSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, (GLsizeiptr)(localObjects.size() * sizeof(LocalObject)), localObjects.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        m_ObjectBank->SetData(localObjects);
     }
 }
