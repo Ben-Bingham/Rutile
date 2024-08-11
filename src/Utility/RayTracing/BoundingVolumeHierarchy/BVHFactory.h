@@ -52,6 +52,8 @@ namespace Rutile {
     class BVHUtility {
     public:
         static glm::vec3 Center(const Triangle& triangle);
+        static glm::vec3 Center(const Object& object);
+        static glm::vec3 Center(const AABB& bbox);
     };
 
     template<typename T>
@@ -66,7 +68,7 @@ namespace Rutile {
             int count;
         };
 
-        static std::vector<Node> Construct(std::vector<T>& objects) {
+        static std::vector<Node> Construct(std::vector<T>& objects, int minObjectsPerNode = 2) {
             std::vector<Node> nodes{ };
             nodes.resize(1);
 
@@ -74,7 +76,7 @@ namespace Rutile {
                 std::cout << "ERROR: cannot create a BVH with no objects" << std::endl;
             }
 
-            const int rootNodeIndex = 0;
+            constexpr int rootNodeIndex = 0;
             Node& rootNode = nodes[rootNodeIndex];
             rootNode.node1 = -1;
 
@@ -83,7 +85,7 @@ namespace Rutile {
 
             rootNode.bbox = AABBFactory::Construct(objects);
 
-            Subdivide(rootNodeIndex, nodes, objects);
+            Subdivide(rootNodeIndex, nodes, objects, minObjectsPerNode);
 
             for (auto& node : nodes) {
                 node.bbox.AddPadding(0.01f);
@@ -157,15 +159,13 @@ namespace Rutile {
             return surfaceArea * node.count;
         }
 
-        static void Subdivide(int nodeIndex, std::vector<Node>& nodes, std::vector<T>& objects) {
-            Node& node = nodes[nodeIndex]; // TODO just pass the node to this function instead of the full list maybe? LOOK INTO THIS
-
-            if (node.count <= 2) { // TODO this should be customisable
+        static void Subdivide(int nodeIndex, std::vector<Node>& nodes, std::vector<T>& objects, int minObjectsPerNode) {
+            if (nodes[nodeIndex].count <= minObjectsPerNode) {
                 return;
             }
 
             std::vector<T> objs;
-            objs.insert(objs.end(), objects.begin() + node.offset, objects.begin() + node.offset + node.count);
+            objs.insert(objs.end(), objects.begin() + nodes[nodeIndex].offset, objects.begin() + nodes[nodeIndex].offset + nodes[nodeIndex].count);
             int axis;
             float splitPos;
 
@@ -177,8 +177,8 @@ namespace Rutile {
             }
 
             // Split objects, based on position
-            int i = node.offset;
-            int j = i + node.count - 1;
+            int i = nodes[nodeIndex].offset;
+            int j = i + nodes[nodeIndex].count - 1;
             while (i <= j) {
                 T& obj = objects[i];
 
@@ -192,8 +192,8 @@ namespace Rutile {
                 }
             }
 
-            const int lessCount = i - node.offset;
-            if (lessCount == 0 || lessCount == node.count) {
+            const int lessCount = i - nodes[nodeIndex].offset;
+            if (lessCount == 0 || lessCount == nodes[nodeIndex].count) {
                 return;
             }
 
@@ -202,17 +202,16 @@ namespace Rutile {
             const int node2Idx = node1Idx + 1;
 
             nodes.resize(nodes.size() + 2);
-            node = nodes[nodeIndex]; // Resizing the nodes can move the nodes in memory, which will make the reference invalid
 
-            node.node1 = node1Idx;
+            nodes[nodeIndex].node1 = node1Idx;
 
-            nodes[node1Idx].offset = node.offset;
+            nodes[node1Idx].offset = nodes[nodeIndex].offset;
             nodes[node1Idx].count = lessCount;
 
             nodes[node2Idx].offset = i;
-            nodes[node2Idx].count = node.count - lessCount;
+            nodes[node2Idx].count = nodes[nodeIndex].count - lessCount;
 
-            node.count = 0;
+            nodes[nodeIndex].count = 0;
 
             // Expand node AABBs
             Node& node1 = nodes[node1Idx];
@@ -226,8 +225,8 @@ namespace Rutile {
             node2.bbox = AABBFactory::Construct(node2Objs);
 
             // Recurse
-            Subdivide(node1Idx, nodes, objects);
-            Subdivide(node2Idx, nodes, objects);
+            Subdivide(node1Idx, nodes, objects, minObjectsPerNode);
+            Subdivide(node2Idx, nodes, objects, minObjectsPerNode);
         }
     };
 }

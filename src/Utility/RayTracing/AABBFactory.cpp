@@ -119,11 +119,15 @@ namespace Rutile {
         return AABB{ min, max };
     }
 
+    AABB AABBFactory::Construct(const Object object) {
+        return Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+    }
+
     AABB AABBFactory::Construct(const std::vector<Object>& objects) {
         AABB mainBbox{ };
 
         for (auto object : objects) {
-            AABB bbox = Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+            AABB bbox = Construct(object);
 
             mainBbox = Construct(mainBbox, bbox);
         }

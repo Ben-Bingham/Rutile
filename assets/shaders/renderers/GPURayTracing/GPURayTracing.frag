@@ -67,8 +67,8 @@ struct TLASNode {
     float maxY;
     float maxZ;
 
-    int node1ObjIndex;
-    int node2;
+    int node1Offset;
+    int objectCount;
 };
 
 struct BLASNode {
@@ -335,42 +335,44 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     
         TLASNode node = TLASNodes[nodeIndex];
     
-        if (node.node2 == -1) { // Is a leaf node, has an object
-            HitInfo backupHitInfo = hitInfo;
+        if (node.objectCount > 0) { // Is a leaf node, has multiple objects
+            for (int i = node.node1Offset; i < node.node1Offset + node.objectCount; ++i) {
+                HitInfo backupHitInfo = hitInfo;
     
-            int geoType = objects[node.node1ObjIndex].geometryType;
+                int geoType = objects[i].geometryType;
                 
-            if (geoType == SPHERE_TYPE) {
-                if (HitSphere(ray, node.node1ObjIndex, backupHitInfo)) {
-                    hitInfo = backupHitInfo;
-                    hitSomething = true;
-                }
-            } else if (geoType == MESH_TYPE) {
-                if (HitMesh(ray, node.node1ObjIndex, backupHitInfo)) {
-                    hitInfo = backupHitInfo;
-                    hitSomething = true;
+                if (geoType == SPHERE_TYPE) {
+                    if (HitSphere(ray, i, backupHitInfo)) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
+                } else if (geoType == MESH_TYPE) {
+                    if (HitMesh(ray, i, backupHitInfo)) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
                 }
             }
     
         } else { // Is a branch node, its children are other nodes
             float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(TLASNodes[node.node1ObjIndex].minX, TLASNodes[node.node1ObjIndex].minY, TLASNodes[node.node1ObjIndex].minZ);
-            vec3 maxBoundN1 = vec3(TLASNodes[node.node1ObjIndex].maxX, TLASNodes[node.node1ObjIndex].maxY, TLASNodes[node.node1ObjIndex].maxZ);
+            vec3 minBoundN1 = vec3(TLASNodes[node.node1Offset].minX, TLASNodes[node.node1Offset].minY, TLASNodes[node.node1Offset].minZ);
+            vec3 maxBoundN1 = vec3(TLASNodes[node.node1Offset].maxX, TLASNodes[node.node1Offset].maxY, TLASNodes[node.node1Offset].maxZ);
 
             AABB bbox = AABB(minBoundN1, maxBoundN1);
             bool hit1 = HitAABB(ray, bbox, distanceNode1);
             
             float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(TLASNodes[node.node2].minX, TLASNodes[node.node2].minY, TLASNodes[node.node2].minZ);
-            vec3 maxBoundN2 = vec3(TLASNodes[node.node2].maxX, TLASNodes[node.node2].maxY, TLASNodes[node.node2].maxZ);
+            vec3 minBoundN2 = vec3(TLASNodes[node.node1Offset + 1].minX, TLASNodes[node.node1Offset + 1].minY, TLASNodes[node.node1Offset + 1].minZ);
+            vec3 maxBoundN2 = vec3(TLASNodes[node.node1Offset + 1].maxX, TLASNodes[node.node1Offset + 1].maxY, TLASNodes[node.node1Offset + 1].maxZ);
 
             AABB bbox2 = AABB(minBoundN2, maxBoundN2);
             bool hit2 = HitAABB(ray, bbox2, distanceNode2);
     
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
-            int closeIndex = nearestIs1 ? node.node1ObjIndex : node.node2;
-            int farIndex = nearestIs1 ? node.node2 : node.node1ObjIndex;
+            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
+            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
             
             float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
             float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
@@ -521,12 +523,16 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
             float distanceNode1 = MAX_FLOAT;
             vec3 minBoundN1 = vec3(BLASNodes[node.node1Offset].minX, BLASNodes[node.node1Offset].minY, BLASNodes[node.node1Offset].minZ);
             vec3 maxBoundN1 = vec3(BLASNodes[node.node1Offset].maxX, BLASNodes[node.node1Offset].maxY, BLASNodes[node.node1Offset].maxZ);
-            bool hit1 = HitAABB(ray, AABB(minBoundN1, maxBoundN1), distanceNode1);
+            
+            vec3 o = (objects[objectIndex].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
+
+            vec3 d = (objects[objectIndex].invModel * vec4(ray.direction.xyz, 0.0)).xyz;
+            bool hit1 = HitAABB(Ray(o, d, 1.0 / d), AABB(minBoundN1, maxBoundN1), distanceNode1);
 
             float distanceNode2 = MAX_FLOAT;
             vec3 minBoundN2 = vec3(BLASNodes[node.node1Offset + 1].minX, BLASNodes[node.node1Offset + 1].minY, BLASNodes[node.node1Offset + 1].minZ);
             vec3 maxBoundN2 = vec3(BLASNodes[node.node1Offset + 1].maxX, BLASNodes[node.node1Offset + 1].maxY, BLASNodes[node.node1Offset + 1].maxZ);
-            bool hit2 = HitAABB(ray, AABB(minBoundN2, maxBoundN2), distanceNode2);
+            bool hit2 = HitAABB(Ray(o, d, 1.0 / d), AABB(minBoundN2, maxBoundN2), distanceNode2);
 
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
