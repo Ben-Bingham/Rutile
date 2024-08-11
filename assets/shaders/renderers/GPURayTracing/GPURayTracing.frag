@@ -621,7 +621,10 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 
         vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
         hitInfo.normal = normalize(getFaceNormal(Ray(o, d, 1.0 / d), normalWorldSpace));
-        hitInfo.frontFace = dot(ray.direction, hitInfo.normal) < 0.0;
+
+        vec3 outwardNormal = normalize(cross(triangle[1], triangle[2]));
+
+        hitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
 
         hitInfo.hitPosition = hitPointWorldSpace;
 
