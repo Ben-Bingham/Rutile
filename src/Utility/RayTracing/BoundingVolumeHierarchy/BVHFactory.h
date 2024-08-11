@@ -11,44 +11,6 @@
 #include "Utility/RayTracing/AABBFactory.h"
 
 namespace Rutile {
-    class BVHFactory {
-    public:
-        // TODO get rid of theses or clean them up a lot
-        struct ReturnStructure {
-            TLASBank bank;
-            BVHIndex startingIndex;
-
-            std::vector<float> triangles;
-            
-            struct ObjectTriangleData {
-                int triangleOffset;
-                int triangleCount;
-            };
-
-            std::vector<ObjectTriangleData> objTriData;
-        };
-
-        // TLAS BVH
-        static ReturnStructure Construct(const Scene& scene);
-
-    private:
-        static BVHIndex Construct(const std::vector<Object>& objects, TLASBank& bank, const Scene& scene);
-
-        static std::pair<std::vector<Object>, std::vector<Object>> DivideObjects(const std::vector<Object>& objects, const AABB& bbox, const Scene& scene);
-
-    public:
-        using BLAS = std::pair<std::vector<BLASNode>, std::vector<Triangle>>;
-
-        // BLAS BVH
-        static BLAS Construct(const Geometry& geometry);
-
-    private:
-        static float FindBestSplitPlane(BLASNode& node, int& bestAxis, float& bestPosition, const std::vector<Triangle>& triangles);
-        static float CalculateNodeCost(int nodeIndex, const std::vector<BLASNode>& nodes);
-
-        static void Subdivide(int nodeIndex, std::vector<BLASNode>& nodes, std::vector<Triangle>& triangles);
-    };
-
     class BVHUtility {
     public:
         static glm::vec3 Center(const Triangle& triangle);
@@ -151,8 +113,7 @@ namespace Rutile {
             return bestCost;
         }
 
-        static float CalculateNodeCost(int nodeIndex, const std::vector<Node>& nodes) {
-            const Node& node = nodes[nodeIndex];
+        static float CalculateNodeCost(const Node& node) {
             const glm::vec3 extent = node.bbox.max - node.bbox.min;
             const float surfaceArea = extent.x * extent.y + extent.y * extent.z + extent.z * extent.x;
 
@@ -170,7 +131,7 @@ namespace Rutile {
             float splitPos;
 
             const float cost = FindBestSplitPlane(nodes[nodeIndex], axis, splitPos, objs);
-            const float currentCostNoSplit = CalculateNodeCost(nodeIndex, nodes); // TODO only send in node, not whole list
+            const float currentCostNoSplit = CalculateNodeCost(nodes[nodeIndex]);
 
             if (currentCostNoSplit < cost) {
                 return;
