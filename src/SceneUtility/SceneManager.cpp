@@ -12,7 +12,6 @@
 #include "Utility/GeometryFactory.h"
 #include "Utility/Random.h"
 #include "Utility/RayTracing/AABBFactory.h"
-#include "Utility/RayTracing/BoundingVolumeHierarchy/BVHFactory.h"
 
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {
@@ -54,8 +53,8 @@ namespace Rutile {
             case SceneType::BACKPACK: {
                 return GetBackpackScene();
             }
-            case SceneType::BVH_VISUALIZATION: {
-                return GetBVHVisualizationScene();
+            case SceneType::CORNELL_BOX_VERSION_2: {
+                return GetCornellBoxVersion2();
             }
         }
     }
@@ -660,68 +659,99 @@ namespace Rutile {
         return sceneFactory.GetScene();
     }
 
-    Scene SceneManager::GetBVHVisualizationScene() {
-        SceneFactory sceneFactory{ };
+    Scene SceneManager::GetCornellBoxVersion2() {
+        SceneFactory sceneFactory;
 
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, Transform{ }, MaterialFactory::Color::RED);
+        Material red = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
+        red.phong.shininess = 0.0f;
+        red.type = Material::Type::MIRROR;
 
-        DirectionalLight dirLight{ };
-        sceneFactory.Add(dirLight);
+        Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
+        white.phong.shininess = 0.0f;
 
-        int k = 0;
-        for (auto object : sceneFactory.GetScene().objects) {
-            //BVHFactory::ReturnStructure2 structure2 = BVHFactory::Construct(sceneFactory.GetScene().geometryBank[object.geometry], sceneFactory.GetScene().transformBank[object.transform]);
+        Material backWhite = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
+        backWhite.phong.shininess = 0.0f;
+        backWhite.type = Material::Type::MIRROR;
 
-            //for (int i = 0; i < structure2.bank.Size(); ++i) {
+        Material frontWhite = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
+        frontWhite.phong.shininess = 0.0f;
+        frontWhite.type = Material::Type::ONE_WAY_MIRROR;
 
-            //    float y = 2.0f;
+        Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
+        green.phong.shininess = 0.0f;
+        green.type = Material::Type::MIRROR;
 
-            //    if (structure2.bank[i].triangleCount <= 0) {
-            //        y = 4.0f;
-            //    }
+        Material light = MaterialFactory::Construct(glm::vec3{ 100.0f });
+        light.phong.shininess = 0.0f;
+        light.type = Material::Type::EMISSIVE;
 
-            //    sceneFactory.Add(GeometryFactory::Construct(structure2.bank[i].bbox), Transform{ { 2.0f * i + 2.0f, y + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  0.0f,  0.0f },
+            glm::vec3{ 0.0f,  5.55f, 0.0f },
+            glm::vec3{ 5.55f, 5.55f, 0.0f },
+            glm::vec3{ 5.55,  0.0f,  0.0f }
+        ), Transform{}, backWhite, "Back Wall");
 
-            //    int offset = structure2.bank[i].triangleOffset;
-            //    int count = structure2.bank[i].triangleCount;
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  0.0f, 0.0f },
+            glm::vec3{ 5.55f, 0.0f, 0.0f },
+            glm::vec3{ 5.55f, 0.0f, 5.55f },
+            glm::vec3{ 0.0f,  0.0f, 5.55f }
+        ), Transform{}, white, "Floor");
 
-            //    if (structure2.bank[i].triangleCount <= 0) {
-            //        continue;
-            //    }
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  5.55f, 0.0f },
+            glm::vec3{ 0.0f,  5.55f, 5.55f },
+            glm::vec3{ 5.55f, 5.55f, 5.55f },
+            glm::vec3{ 5.55f, 5.55f, 0.0f }
+        ), Transform{}, white, "Roof");
 
-            //    std::vector<Triangle> tris;
-            //    for (int i = offset; i < offset + count; ++i) {
-            //        tris.push_back(structure2.triangles[i]);
-            //    }
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 5.55f, 0.0f,  0.0f },
+            glm::vec3{ 5.55f, 5.55f, 0.0f },
+            glm::vec3{ 5.55f, 5.55f, 5.55f },
+            glm::vec3{ 5.55f, 0.0f,  5.55f }
+        ), Transform{}, red, "Right Wall");
 
-            //    std::vector<Vertex> verts{ };
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f, 0.0f,  0.0f },
+            glm::vec3{ 0.0f, 0.0f,  5.55f },
+            glm::vec3{ 0.0f, 5.55f, 5.55f },
+            glm::vec3{ 0.0f, 5.55f, 0.0f }
+        ), Transform{}, green, "Left Wall");
 
-            //    for (auto tri : tris) {
-            //        Vertex v1 = { tri[0] };
-            //        Vertex v2 = { tri[1] };
-            //        Vertex v3 = { tri[2] };
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 1.55f, 5.549f, 1.55f },
+            glm::vec3{ 1.55f, 5.549f, 4.0f },
+            glm::vec3{ 4.0f,  5.549f, 4.0f },
+            glm::vec3{ 4.0f,  5.549f, 1.55f }
+        ), Transform{}, light, "Light");
 
-            //        verts.push_back(v1);
-            //        verts.push_back(v2);
-            //        verts.push_back(v3);
-            //    }
+        sceneFactory.Add(GeometryFactory::ConstructQuad(
+            glm::vec3{ 0.0f,  0.0f,  5.55f },
+            glm::vec3{ 5.55,  0.0f,  5.55f },
+            glm::vec3{ 5.55f, 5.55f, 5.55f },
+            glm::vec3{ 0.0f,  5.55f, 5.55f }
+        ), Transform{}, frontWhite, "Front Wall");
 
-            //    std::vector<Index> indices{ };
+        Transform smallBoxTransform{ };
+        smallBoxTransform.position = { 2.65f + 0.825f, 0.825f, 2.95f + 0.825f };
+        smallBoxTransform.scale = { 1.65f, 1.65f, 1.65f };
+        smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
 
-            //    int j = 0;
-            //    for (auto vert : verts) {
-            //        indices.push_back(j);
-            //        ++j;
-            //    }
-            //    Geometry geo;
+        Transform bigBoxTransform{ };
+        bigBoxTransform.position = { 1.3f + 0.825f, 1.65f, 0.65f + 0.825f };
+        bigBoxTransform.scale = { 1.65f, 3.3f, 1.65f };
+        bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
 
-            //    geo.vertices = verts;
-            //    geo.indices = indices;
+        App::camera.position = { 2.78f, 2.78f, 13.5f };
+        App::settings.fieldOfView = 40.0f;
 
-            //    sceneFactory.Add(geo, Transform{ { 2.0f * i + 2.0f, 0.0f + 4.0 * k, 0.0f } }, MaterialFactory::Construct(RandomVec3()));
-            //}
-            ++k;
-        }
+        PointLight pointLight;
+        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        sceneFactory.Add(pointLight);
 
         return sceneFactory.GetScene();
     }

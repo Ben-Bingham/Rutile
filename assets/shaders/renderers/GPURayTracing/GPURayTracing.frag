@@ -29,6 +29,7 @@ const int DIFFUSE_TYPE = 0;
 const int MIRROR_TYPE = 1;
 const int DIELECTRIC_TYPE = 2;
 const int EMMISIVE_TYPE = 3;
+const int ONE_WAY_MIRROR = 4;
 
 struct Material {
     int type;
@@ -163,9 +164,10 @@ struct ScatterInfo {
     vec3 throughput;
 };
 
-ScatterInfo DiffuseScatter   (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
-ScatterInfo MirrorScatter    (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
-ScatterInfo DielectricScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo DiffuseScatter     (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo MirrorScatter      (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo DielectricScatter  (ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
+ScatterInfo OneWayMirrorScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i);
 
 // Random Functions Keep seeds fractional, and ruffly in [0, 10]
 float RandomFloat(float seed);
@@ -297,6 +299,9 @@ vec3 FireRayIntoScene(Ray r) {
             else if (mat.type == EMMISIVE_TYPE) {
                 color += throughput * mat.color;
                 break;
+            }
+            else if (mat.type == ONE_WAY_MIRROR) {
+                scatterInfo = OneWayMirrorScatter(scatterInfo, mat, hitInfo, bounces);
             }
 
             scatterInfo.ray.origin = hitInfo.hitPosition;
@@ -616,6 +621,7 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 
         vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
         hitInfo.normal = normalize(getFaceNormal(Ray(o, d, 1.0 / d), normalWorldSpace));
+        hitInfo.frontFace = dot(ray.direction, hitInfo.normal) < 0.0;
 
         hitInfo.hitPosition = hitPointWorldSpace;
 
@@ -686,6 +692,24 @@ ScatterInfo DielectricScatter(ScatterInfo scatterInfo, Material mat, HitInfo hit
         // Can Refract
         scatterInfo.ray.direction = normalize(refract(normalize(scatterInfo.ray.direction), normalize(hitInfo.normal), ri));
     }
+
+    return scatterInfo;
+}
+
+ScatterInfo OneWayMirrorScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
+    if (hitInfo.frontFace) {
+        scatterInfo.ray.direction = normalize(reflect(scatterInfo.ray.direction, hitInfo.normal));
+        scatterInfo.ray.direction = normalize(scatterInfo.ray.direction + ((RandomUnitVec3(0.53424 * i) * vec3(mat.fuzz))));
+    
+        if (dot(scatterInfo.ray.direction, hitInfo.normal) > 0) {
+            scatterInfo.throughput = vec3(mat.color.rgb);
+        }
+        else {
+            scatterInfo.throughput = vec3(1.0, 1.0, 1.0);
+        }
+    }
+
+    scatterInfo.throughput = vec3(1.0, 1.0, 1.0);
 
     return scatterInfo;
 }

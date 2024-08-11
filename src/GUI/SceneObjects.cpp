@@ -45,7 +45,7 @@ namespace Rutile {
                         case MaterialType::RAY_TRACING: {
                             RadioButtons(
                                 "Type",
-                                { "Diffuse", "Mirror", "Dielectric", "Emissive" },
+                                { "Diffuse", "Mirror", "Dielectric", "Emissive", "One Way Mirror" },
                                 (int*)&App::scene.materialBank[object.material].type,
                                 [i] {
                                     App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i });

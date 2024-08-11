@@ -14,7 +14,7 @@ namespace Rutile {
         RAY_TRACING_IN_ONE_WEEKEND,
         CORNELL_BOX,
         BACKPACK,
-        BVH_VISUALIZATION
+        CORNELL_BOX_VERSION_2
     };
 
     class SceneManager {
@@ -33,6 +33,6 @@ namespace Rutile {
         static Scene GetRayTracingInOneWeekendScene();
         static Scene GetCornellBoxScene();
         static Scene GetBackpackScene();
-        static Scene GetBVHVisualizationScene();
+        static Scene GetCornellBoxVersion2();
     };
 }

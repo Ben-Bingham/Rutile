@@ -28,7 +28,8 @@ namespace Rutile {
             DIFFUSE,
             MIRROR,
             DIELECTRIC,
-            EMISSIVE
+            EMISSIVE,
+            ONE_WAY_MIRROR
         } type{ Type::DIFFUSE };
 
         float fuzz;
