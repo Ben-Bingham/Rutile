@@ -77,7 +77,7 @@ namespace Rutile {
         m_Scene.m_EnableDirectionalLight = true;
     }
 
-    void SceneFactory::Add(const std::string& path, TransformIndex transform) {
+    void SceneFactory::Add(const std::string& path, TransformIndex transform, MaterialIndex materialIndex) {
         Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
 
         std::string fileName = path.substr(path.find_last_of("\\"), path.end() - path.begin());
@@ -115,16 +115,24 @@ namespace Rutile {
             }
         }
 
-        LoadAssimpNode(scene->mRootNode, scene, transform);
+        LoadAssimpNode(scene->mRootNode, scene, transform, materialIndex);
 
         Assimp::DefaultLogger::kill();
     }
 
     void SceneFactory::Add(const std::string& path, const Transform& transform) {
-        Add(path, m_Scene.transformBank.Add(transform));
+        Add(path, m_Scene.transformBank.Add(transform), -1);
     }
 
-    void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform) {
+    void SceneFactory::Add(const std::string& path, const Transform& transform, const Material& material) {
+        Add(path, m_Scene.transformBank.Add(transform), m_Scene.materialBank.Add(material));
+    }
+
+    void SceneFactory::Add(const std::string& path, const Transform& transform, MaterialIndex material) {
+        Add(path, m_Scene.transformBank.Add(transform), material);
+    }
+
+    void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform, MaterialIndex materialIndex) {
         for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
@@ -162,14 +170,16 @@ namespace Rutile {
                 }
             }
 
-            const GeometryIndex geoIndex = m_Scene.geometryBank.Add(Geometry{ "filler", vertices, indices, Geometry::GeometryType::MODEL }); // TODO change name
-            const MaterialIndex materialIndex = m_Scene.materialBank.Add(MaterialFactory::Construct(RandomVec3()));
+            const GeometryIndex geoIndex = m_Scene.geometryBank.Add(Geometry{ "Custom Model Geometry", vertices, indices, Geometry::GeometryType::MODEL }); // TODO change name
+            if (materialIndex == std::numeric_limits<size_t>::max()) {
+                materialIndex = m_Scene.materialBank.Add(MaterialFactory::Construct(RandomVec3()));
+            }
 
             Add(geoIndex, transform, materialIndex);
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-            LoadAssimpNode(node->mChildren[i], scene, transform);
+            LoadAssimpNode(node->mChildren[i], scene, transform, materialIndex);
         }
     }
 }

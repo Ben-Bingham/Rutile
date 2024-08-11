@@ -33,11 +33,13 @@ namespace Rutile {
 		void Add(const PointLight& pointLight);
 		void Add(const DirectionalLight& light);
 
-		void Add(const std::string& path, TransformIndex transform);
+		void Add(const std::string& path, TransformIndex transform, MaterialIndex materialIndex);
 		void Add(const std::string& path, const Transform& transform);
+		void Add(const std::string& path, const Transform& transform, const Material& material);
+		void Add(const std::string& path, const Transform& transform, MaterialIndex material);
 
 	private:
-		void LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform);
+		void LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform, MaterialIndex materialIndex = std::numeric_limits<size_t>::max());
 
 		Scene m_Scene;
 

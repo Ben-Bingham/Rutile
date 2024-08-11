@@ -652,9 +652,7 @@ namespace Rutile {
         SceneFactory sceneFactory;
 
         Transform t{ };
-        t.scale = glm::vec3{ 0.1f };
-        //t.rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-        sceneFactory.Add("assets\\models\\teapot\\teapot.obj", t);
+        sceneFactory.Add("assets\\models\\backpack\\backpack.obj", t);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
@@ -665,35 +663,43 @@ namespace Rutile {
     Scene SceneManager::GetCornellBoxVersion2() {
         SceneFactory sceneFactory;
 
+        App::camera.pitch = -6.4f;
+        App::camera.yaw = -45.0f;
+        App::camera.position = { -7.0f, 4.0f, 12.55f };
+        App::settings.fieldOfView = 31.4f;
+        App::updateCameraVectors = true;
+
         Material red = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
         red.phong.shininess = 0.0f;
-        red.type = Material::Type::MIRROR;
+
+        Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
+        green.phong.shininess = 0.0f;
 
         Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
         white.phong.shininess = 0.0f;
 
-        Material backWhite = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
-        backWhite.phong.shininess = 0.0f;
-        backWhite.type = Material::Type::MIRROR;
-
-        Material frontWhite = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
-        frontWhite.phong.shininess = 0.0f;
-        frontWhite.type = Material::Type::ONE_WAY_MIRROR;
-
-        Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
-        green.phong.shininess = 0.0f;
-        green.type = Material::Type::MIRROR;
+        Material oneWayMirror = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
+        oneWayMirror.phong.shininess = 0.0f;
+        oneWayMirror.type = Material::Type::ONE_WAY_MIRROR;
 
         Material light = MaterialFactory::Construct(glm::vec3{ 100.0f });
         light.phong.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
+
+        Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
+
+        Material teapotMaterial = MaterialFactory::Construct(glm::vec3{ 199.0f / 255.0f, 197.0f / 255.0f, 193.0f / 255.0f });
+        teapotMaterial.type = Material::Type::MIRROR;
+        teapotMaterial.fuzz = 0.1f;
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f,  0.0f },
             glm::vec3{ 0.0f,  5.55f, 0.0f },
             glm::vec3{ 5.55f, 5.55f, 0.0f },
             glm::vec3{ 5.55,  0.0f,  0.0f }
-        ), Transform{}, backWhite, "Back Wall");
+        ), Transform{}, oneWayMirror, "Back Wall");
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f, 0.0f },
@@ -714,14 +720,14 @@ namespace Rutile {
             glm::vec3{ 5.55f, 5.55f, 0.0f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 5.55f, 0.0f,  5.55f }
-        ), Transform{}, red, "Right Wall");
+        ), Transform{}, oneWayMirror, "Right Wall");
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f, 0.0f,  0.0f },
             glm::vec3{ 0.0f, 0.0f,  5.55f },
             glm::vec3{ 0.0f, 5.55f, 5.55f },
             glm::vec3{ 0.0f, 5.55f, 0.0f }
-        ), Transform{}, green, "Left Wall");
+        ), Transform{}, oneWayMirror, "Left Wall");
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 1.55f, 5.549f, 1.55f },
@@ -735,34 +741,31 @@ namespace Rutile {
             glm::vec3{ 5.55,  0.0f,  5.55f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 0.0f,  5.55f, 5.55f }
-        ), Transform{}, frontWhite, "Front Wall");
+        ), Transform{}, oneWayMirror, "Front Wall");
 
         Transform smallBoxTransform{ };
         smallBoxTransform.position = { 2.65f + 0.825f, 0.5f, 2.95f + 0.825f };
         smallBoxTransform.scale = { 1.65f, 1.0f, 1.65f };
         smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, red, "Small Box");
 
         Transform teapotTransform{ };
         teapotTransform.scale = glm::vec3{ 0.02f };
         teapotTransform.position = { 3.44f, 0.99f, 3.69f };
         teapotTransform.rotation = glm::angleAxis(glm::radians(-50.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add("assets\\models\\teapot\\teapot.obj", teapotTransform);
+        sceneFactory.Add("assets\\models\\teapot\\teapot.obj", teapotTransform, teapotMaterial);
 
         Transform bigBoxTransform{ };
         bigBoxTransform.position = { 1.3f + 0.825f, 1.3, 0.65f + 0.825f };
         bigBoxTransform.scale = { 1.65f, 2.6f, 1.65f };
         bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, green, "Big Box");
 
         Transform dragonTransform{ };
         dragonTransform.position = { 2.15f, 3.15f, 1.47f };
         dragonTransform.scale = glm::vec3{ 2.0f };
         dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform);
-
-        App::camera.position = { 2.78f, 2.78f, 13.5f };
-        App::settings.fieldOfView = 40.0f;
+        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform, dragonMaterial);
 
         PointLight pointLight;
         pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };

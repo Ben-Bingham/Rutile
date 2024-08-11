@@ -628,26 +628,14 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
 
     if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
         hitInfo.closestDistance = lengthAlongRayWorldSpace;
-        hitInfo.hitObjectIndex = objectIndex;
-
-        vec3 v1 = Q;
-        vec3 v2 = Q + u;
-        vec3 v3 = Q + v;
-
-        vec3 outwardNormal = normalize(cross(v2 - v1, v3 - v1));
-        //hitInfo.normal = outwardNormal;
-        vec3 normalWorldSpace = (object.model * vec4(outwardNormal, 0.0)).xyz;
-        hitInfo.normal = outwardNormal;
-        //hitInfo.normal = normalize(getFaceNormal(Ray(o, d, normalize(1.0 / d)), normalWorldSpace));
-        //
-        //hitInfo.normal = normalize(normalWorldSpace);
-
-
-        hitInfo.frontFace = dot(d, hitInfo.normal) < 0.0;
-
-        //hitInfo.normal = ray.direction;
-
         hitInfo.hitPosition = hitPointWorldSpace;
+        hitInfo.hitObjectIndex = objectIndex;
+        
+        vec3 normalWorldSpace = normalize((object.transposeInverseModel * vec4(normal, 0.0)).xyz);
+        
+        bool frontFace = dot(ray.direction, normalWorldSpace) < 0.0;
+        hitInfo.normal = frontFace ? normalWorldSpace : -normalWorldSpace;
+        hitInfo.frontFace = frontFace;
 
         return true;
     }

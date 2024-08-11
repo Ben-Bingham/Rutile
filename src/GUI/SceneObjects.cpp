@@ -59,7 +59,7 @@ namespace Rutile {
                                 if (ImGui::ColorEdit3(("Color##materialRay" + std::to_string(object.material)).c_str(), glm::value_ptr(App::scene.materialBank[object.material].solid.color))) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
                             }
 
-                            if (App::scene.materialBank[object.material].type == Material::Type::MIRROR) {
+                            if (App::scene.materialBank[object.material].type == Material::Type::MIRROR || App::scene.materialBank[object.material].type == Material::Type::ONE_WAY_MIRROR) {
                                 if (ImGui::DragFloat(("Fuzz##materialRay" + std::to_string(object.material)).c_str(), &App::scene.materialBank[object.material].fuzz, 0.001f, 0.0f, 1.0f)) { App::eventManager.Notify(new ObjectMaterialUpdate{ (ObjectIndex)i }); }
                             }
 
