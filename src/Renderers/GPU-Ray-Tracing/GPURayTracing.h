@@ -84,10 +84,19 @@ namespace Rutile {
             int triangleCount;
         };
 
+        struct LocalVertex {
+            glm::vec3 position;
+            glm::vec3 normal;
+
+            float pad1;
+            float pad2;
+        };
+
         std::unique_ptr<SSBO<LocalMaterial>> m_MaterialBank;
         std::unique_ptr<SSBO<LocalObject>> m_ObjectBank;
         std::unique_ptr<SSBO<float>> m_MeshBank;
         std::unique_ptr<SSBO<LocalTLASNode>> m_TLASBank;
         std::unique_ptr<SSBO<LocalBLASNode>> m_BLASBank;
+        std::unique_ptr<SSBO<LocalVertex>> m_VertexDataBank;
     };
 }

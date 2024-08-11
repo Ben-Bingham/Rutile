@@ -113,6 +113,7 @@ namespace Rutile {
         m_MeshBank = std::make_unique<SSBO<float>>(2);
         m_TLASBank = std::make_unique<SSBO<LocalTLASNode>>(3);
         m_BLASBank = std::make_unique<SSBO<LocalBLASNode>>(4);
+        m_VertexDataBank = std::make_unique<SSBO<LocalVertex>>(5);
 
         ResetAccumulatedPixelData();
         return window;
@@ -155,6 +156,7 @@ namespace Rutile {
         m_MeshBank.reset();
         m_ObjectBank.reset();
         m_MaterialBank.reset();
+        m_VertexDataBank.reset();
 
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);
@@ -447,6 +449,20 @@ namespace Rutile {
 
             blasNodes.insert(blasNodes.end(), localObjBvhNodes.begin(), localObjBvhNodes.end());
         }
+
+        std::vector<LocalVertex> vertices;
+
+        for (int i = 0; i < triangleData.size(); i += 3) {
+            LocalVertex v{ };
+
+            v.position.x = triangleData[i + 0];
+            v.position.y = triangleData[i + 1];
+            v.position.z = triangleData[i + 2];
+
+            vertices.push_back(v);
+        }
+
+        m_VertexDataBank->SetData(vertices);
 
         m_MeshBank->SetData(triangleData);
 

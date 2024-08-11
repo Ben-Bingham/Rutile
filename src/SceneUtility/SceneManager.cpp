@@ -62,7 +62,7 @@ namespace Rutile {
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, Transform{ }, MaterialFactory::Color::RED);
+        sceneFactory.Add(GeometryFactory::Primitive::TRIANGLE, Transform{ }, MaterialFactory::Color::RED);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);

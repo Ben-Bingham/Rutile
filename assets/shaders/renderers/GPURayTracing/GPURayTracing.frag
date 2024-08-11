@@ -85,6 +85,19 @@ struct BLASNode {
     int triangleCount;
 };
 
+struct Vertex {
+    //float posX;
+    //float posY;
+    //float posZ;
+    //
+    //float normX;
+    //float normY;
+    //float normZ;
+
+    vec3 position;
+    vec3 normal;
+};
+
 layout(std430, binding = 0) readonly buffer materialBuffer {
     Material materialBank[];
 };
@@ -103,6 +116,10 @@ layout(std430, binding = 3) readonly buffer TLASBuffer {
 
 layout(std430, binding = 4) readonly buffer BLASBuffer {
     BLASNode BLASNodes[];
+};
+
+layout(std430, binding = 5) readonly buffer vertexDataBuffer {
+    Vertex vertexData[];
 };
 
 uniform int objectCount;
@@ -507,14 +524,18 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
         BLASNode node = BLASNodes[nodeIndex];
 
         if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            for (int i = node.node1Offset; i < node.node1Offset + node.triangleCount; i += 9) {
+            for (int i = node.node1Offset / 3; i < (node.node1Offset + node.triangleCount) / 3; i += 3) {
                 HitInfo backupHitInfo = hitInfo;
-            
-                vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
-                vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
-                vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
-            
-                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+
+                Vertex v1 = vertexData[i + 0];
+                Vertex v2 = vertexData[i + 1];
+                Vertex v3 = vertexData[i + 2];
+
+                vec3 triangle[3] = vec3[3](
+                    v1.position,
+                    v2.position - v1.position, 
+                    v3.position - v1.position
+                );
             
                 if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
                     if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
