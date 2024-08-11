@@ -418,8 +418,8 @@ bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo) {
     // Transform the ray into the local space of the object
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
-    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-    //vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
+    vec3 d = (object.invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz; // TODO pick a direction transformation
+    //vec3 d = mat3(object.transposeInverseInverseModel) * normalize(ray.direction.xyz);
     d = normalize(d);
 
     // Intersection test
@@ -514,7 +514,7 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
                 vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
                 vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
             
-                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1);
+                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1); // TODO move to CPU
             
                 if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
                     if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
@@ -531,13 +531,19 @@ bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
             
             vec3 o = (objects[objectIndex].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
-            vec3 d = (objects[objectIndex].invModel * vec4(ray.direction.xyz, 0.0)).xyz;
-            bool hit1 = HitAABB(Ray(o, d, 1.0 / d), AABB(minBoundN1, maxBoundN1), distanceNode1);
+            vec3 d = (objects[objectIndex].invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz;
+            //vec3 d = mat3(objects[objectIndex].transposeInverseInverseModel) * normalize(ray.direction.xyz);
+            d = normalize(d);
+            bool hit1 = HitAABB(Ray(o, d, normalize(1.0 / d)), AABB(minBoundN1, maxBoundN1), distanceNode1);
+
+            distanceNode1 = (objects[objectIndex].model * vec4(distanceNode1, 0.0, 0.0, 0.0)).x;
 
             float distanceNode2 = MAX_FLOAT;
             vec3 minBoundN2 = vec3(BLASNodes[node.node1Offset + 1].minX, BLASNodes[node.node1Offset + 1].minY, BLASNodes[node.node1Offset + 1].minZ);
             vec3 maxBoundN2 = vec3(BLASNodes[node.node1Offset + 1].maxX, BLASNodes[node.node1Offset + 1].maxY, BLASNodes[node.node1Offset + 1].maxZ);
-            bool hit2 = HitAABB(Ray(o, d, 1.0 / d), AABB(minBoundN2, maxBoundN2), distanceNode2);
+            bool hit2 = HitAABB(Ray(o, d, normalize(1.0 / d)), AABB(minBoundN2, maxBoundN2), distanceNode2);
+
+            distanceNode2 = (objects[objectIndex].model * vec4(distanceNode2, 0.0, 0.0, 0.0)).x;
 
             bool nearestIs1 = distanceNode1 < distanceNode2;
             
@@ -571,10 +577,15 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
     Object object = objects[objectIndex];
 
     // Transform the ray into the local space of the object
+
+    //vec3 o = ray.origin;
+    //vec3 d = ray.direction;
+
+
     vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
 
-    vec3 d = (object.invModel * vec4(ray.direction.xyz, 0.0)).xyz; // TODO pick a direction transformation
-    //vec3 d = mat3(object.transposeInverseInverseModel) * ray.direction.xyz;
+    vec3 d = (object.invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz; // TODO pick a direction transformation
+    //vec3 d = mat3(object.transposeInverseInverseModel) * normalize(ray.direction.xyz);
     d = normalize(d);
 
     // Quad definition
@@ -619,12 +630,22 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[
         hitInfo.closestDistance = lengthAlongRayWorldSpace;
         hitInfo.hitObjectIndex = objectIndex;
 
-        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * normal;
-        hitInfo.normal = normalize(getFaceNormal(Ray(o, d, 1.0 / d), normalWorldSpace));
+        vec3 v1 = Q;
+        vec3 v2 = Q + u;
+        vec3 v3 = Q + v;
 
-        vec3 outwardNormal = normalize(cross(triangle[1], triangle[2]));
+        vec3 outwardNormal = normalize(cross(v2 - v1, v3 - v1));
+        //hitInfo.normal = outwardNormal;
+        vec3 normalWorldSpace = (object.model * vec4(outwardNormal, 0.0)).xyz;
+        hitInfo.normal = outwardNormal;
+        //hitInfo.normal = normalize(getFaceNormal(Ray(o, d, normalize(1.0 / d)), normalWorldSpace));
+        //
+        //hitInfo.normal = normalize(normalWorldSpace);
 
-        hitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
+
+        hitInfo.frontFace = dot(d, hitInfo.normal) < 0.0;
+
+        //hitInfo.normal = ray.direction;
 
         hitInfo.hitPosition = hitPointWorldSpace;
 

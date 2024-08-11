@@ -148,6 +148,8 @@ void main() {
         result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
     }
     
+    result = norm;
+
     outFragColor = vec4(result, 1.0);
 }
 

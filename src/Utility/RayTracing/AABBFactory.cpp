@@ -119,7 +119,7 @@ namespace Rutile {
         return AABB{ min, max };
     }
 
-    AABB AABBFactory::Construct(const Object object) {
+    AABB AABBFactory::Construct(const Object& object) {
         return Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
     }
 

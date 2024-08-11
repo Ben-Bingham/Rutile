@@ -62,7 +62,7 @@ namespace Rutile {
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, Transform{ }, MaterialFactory::Color::RED);
+        sceneFactory.Add(GeometryFactory::Primitive::TRIANGLE, Transform{ }, MaterialFactory::Color::RED);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
@@ -627,7 +627,7 @@ namespace Rutile {
         ), Transform{}, light, "Light");
 
         Transform smallBoxTransform{ };
-        smallBoxTransform.position = { 2.65f + 0.825f, 0.825f, 2.95f + 0.825f };
+        smallBoxTransform.position = { 2.65f + 0.825f, 1.65f / 2.0f, 2.95f + 0.825f };
         smallBoxTransform.scale = { 1.65f, 1.65f, 1.65f };
         smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
@@ -651,7 +651,10 @@ namespace Rutile {
     Scene SceneManager::GetBackpackScene() {
         SceneFactory sceneFactory;
 
-        sceneFactory.Add("assets\\models\\backpack\\backpack.obj", Transform{ });
+        Transform t{ };
+        t.scale = glm::vec3{ 0.1f };
+        //t.rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+        sceneFactory.Add("assets\\models\\teapot\\teapot.obj", t);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
@@ -735,16 +738,28 @@ namespace Rutile {
         ), Transform{}, frontWhite, "Front Wall");
 
         Transform smallBoxTransform{ };
-        smallBoxTransform.position = { 2.65f + 0.825f, 0.825f, 2.95f + 0.825f };
-        smallBoxTransform.scale = { 1.65f, 1.65f, 1.65f };
+        smallBoxTransform.position = { 2.65f + 0.825f, 0.5f, 2.95f + 0.825f };
+        smallBoxTransform.scale = { 1.65f, 1.0f, 1.65f };
         smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
 
+        Transform teapotTransform{ };
+        teapotTransform.scale = glm::vec3{ 0.02f };
+        teapotTransform.position = { 3.44f, 0.99f, 3.69f };
+        teapotTransform.rotation = glm::angleAxis(glm::radians(-50.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add("assets\\models\\teapot\\teapot.obj", teapotTransform);
+
         Transform bigBoxTransform{ };
-        bigBoxTransform.position = { 1.3f + 0.825f, 1.65f, 0.65f + 0.825f };
-        bigBoxTransform.scale = { 1.65f, 3.3f, 1.65f };
+        bigBoxTransform.position = { 1.3f + 0.825f, 1.3, 0.65f + 0.825f };
+        bigBoxTransform.scale = { 1.65f, 2.6f, 1.65f };
         bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
+
+        Transform dragonTransform{ };
+        dragonTransform.position = { 2.15f, 3.15f, 1.47f };
+        dragonTransform.scale = glm::vec3{ 2.0f };
+        dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform);
 
         App::camera.position = { 2.78f, 2.78f, 13.5f };
         App::settings.fieldOfView = 40.0f;

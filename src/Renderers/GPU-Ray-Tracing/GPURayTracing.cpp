@@ -467,7 +467,7 @@ namespace Rutile {
                 App::scene.transformBank[object.transform].matrix,
                 glm::inverse(App::scene.transformBank[object.transform].matrix),
                 glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix })) },
-                glm::mat4{ glm::transpose(glm::inverse(glm::inverse(glm::mat3{ App::scene.transformBank[object.transform].matrix }))) },
+                glm::mat4{ glm::transpose(glm::mat3{ App::scene.transformBank[object.transform].matrix }) },
                 (int)object.material,
                 geoType,
                 startingIndices[object.geometry]
