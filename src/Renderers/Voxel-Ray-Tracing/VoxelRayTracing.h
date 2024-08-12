@@ -1,5 +1,12 @@
 #pragma once
+#include <chrono>
+#include <memory>
+
 #include "renderers/Renderer.h"
+
+#include "Utility/OpenGl/Shader.h"
+#include "Utility/OpenGl/SSBO.h"
+#include "Utility/Voxels/Chunk.h"
 
 namespace Rutile {
     class VoxelRayTracing : public Renderer {
@@ -10,5 +17,34 @@ namespace Rutile {
         void Notify(Event* event) override;
         void Render() override;
         void LoadScene() override;
+
+        constexpr static size_t xSize = 8;
+        constexpr static size_t ySize = 8;
+        constexpr static size_t zSize = 8;
+        constexpr static size_t materialCount = 16;
+
+        //using Chunk = Chunk<xSize, ySize, zSize, materialCount>;
+
+    private:
+        void ResetAccumulatedPixelData();
+
+        std::chrono::time_point<std::chrono::steady_clock> m_RendererLoadTime;
+
+        std::unique_ptr<Shader> m_VoxelRayTracingShader;
+        std::unique_ptr<Shader> m_RenderingShader;
+
+        unsigned int m_VAO;
+        unsigned int m_VBO;
+        unsigned int m_EBO;
+
+        size_t m_FrameCount{ 0 };
+
+        unsigned int m_AccumulationFrameBuffer{ 0 };
+        unsigned int m_AccumulationTexture{ 0 };
+        unsigned int m_AccumulationRBO{ 0 };
+
+        Chunk m_Chunk;
+
+        std::unique_ptr<SSBO<unsigned char>> m_BlockData;
     };
 }
