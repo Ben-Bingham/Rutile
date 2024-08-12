@@ -124,6 +124,17 @@ uniform int shadowMapPcfMode;
 
 //float shadowCalculationForOmnidirectionalShadowMaps(vec3 fragPosition);
 
+float LinearToGamma(float component) {
+    if (component > 0.0) {
+        return sqrt(component);
+    }
+    return 0.0;
+}
+
+vec3 LinearToGamma(vec3 color) {
+    return vec3(LinearToGamma(color.r), LinearToGamma(color.g), LinearToGamma(color.b));
+}
+
 void main() {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
@@ -148,7 +159,7 @@ void main() {
         result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
     }
     
-    result = norm;
+    result = LinearToGamma(result);
 
     outFragColor = vec4(result, 1.0);
 }

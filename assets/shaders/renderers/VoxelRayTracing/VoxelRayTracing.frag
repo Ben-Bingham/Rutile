@@ -185,7 +185,7 @@ vec3 RandomInUnitDisk(float seed);
 vec2 randomState;
 
 float LinearToGamma(float component) {
-    if (component > 0.0f) {
+    if (component > 0.0) {
         return sqrt(component);
     }
     return 0.0f;
