@@ -682,7 +682,7 @@ namespace Rutile {
         oneWayMirror.phong.shininess = 0.0f;
         oneWayMirror.type = Material::Type::ONE_WAY_MIRROR;
 
-        Material light = MaterialFactory::Construct(glm::vec3{ 100.0f });
+        Material light = MaterialFactory::Construct(glm::vec3{ 10.0f });
         light.phong.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
 
