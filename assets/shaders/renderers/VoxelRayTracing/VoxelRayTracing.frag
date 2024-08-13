@@ -266,9 +266,259 @@ float reflectance(float cosine, float refractionIndex) {
     return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
+int HitChunk(Ray ray, vec3 offset, inout float closestHit) {
+    int density = 8;
+
+    float w = 1.0 / float(density);
+
+    int closestIndex = -1;
+
+    for (int x = 0; x < density; ++x) {
+        for (int y = 0; y < density; ++y) {
+            for (int z = 0; z < density; ++z) {
+                vec3 m = vec3(x * w, y * w, z * w) + offset;
+                vec3 M = vec3(w + x * w, w + y * w, w + z * w) + offset;
+
+                AABB bbox = AABB(m, M);
+
+                float dist;
+
+                if (HitAABB(ray, bbox, dist) && dist < closestHit) {
+                    closestHit = dist;
+                    closestIndex = x + y + z;
+                }
+            }
+        }
+    }
+
+    return closestIndex;
+}
+
+uniform int octTreeX;
+uniform int octTreeY;
+uniform int octTreeZ;
+
+uniform int octTreeXL2;
+uniform int octTreeYL2;
+uniform int octTreeZL2;
+
+struct Octree {
+    bool a;
+    bool b;
+    bool c;
+    bool d;
+    bool e;
+    bool f;
+    bool g;
+    bool h;
+
+    int index;
+};
+
+int SetBit(inout int value, int n) {
+    return value |= (1 << n);
+}
+
+bool GetBit(int value, int n) {
+    return bool((value >> n) & 1);
+}
+
+int GetOctreeIndex(int octree) {
+    int index = octree << 8;
+    index = index >> 8;
+
+    return index;
+}
+
+// Returns true if the octree has at least 1 child
+bool OctreeHasKids(int octree) {
+    return bool(octree >> 24);
+}
+
+const int OCT_CHILD_0 = 24;
+const int OCT_CHILD_1 = 25;
+const int OCT_CHILD_2 = 26;
+const int OCT_CHILD_3 = 27;
+
+const int OCT_CHILD_4 = 28;
+const int OCT_CHILD_5 = 29;
+const int OCT_CHILD_6 = 30;
+const int OCT_CHILD_7 = 31;
+
+uniform int octTreeNoKids;
+
+uniform int octree;
+
 vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
+
+    bool hitSomething = false;
+
+    float maxOctantWidth = 1.0;
+
+    // root, is the root, and so we know its size:
+    vec3 octTreeMin = vec3(-maxOctantWidth);
+    vec3 octTreeMax = vec3(maxOctantWidth);
+
+    float dist;
+    if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
+        if (!OctreeHasKids(octree)) {
+            // The octree has NO children
+
+            if (GetOctreeIndex(octree) == 0) {
+                // Octree is empty
+                hitSomething = false;
+                // Break out of loop
+            } else {
+                // Octree is solid, index points to the material
+                hitSomething = true;
+                // Break out of loop
+            }
+        } else {
+            // Octree has at least one child
+            // We need the sizes of the children octants themselves, we then need to hit test them, and if we hit them, we add them to the stack
+            vec3 minA = vec3(-maxOctantWidth);
+            vec3 maxA = vec3(0.0);
+
+            vec3 minB = vec3(0.0, -maxOctantWidth, -maxOctantWidth);
+            vec3 maxB = vec3(maxOctantWidth, 0.0, 0.0);
+
+            vec3 minC = vec3(-maxOctantWidth, -maxOctantWidth, 0.0);
+            vec3 maxC = vec3(0.0, 0.0, maxOctantWidth);
+
+            vec3 minD = vec3(0.0, -maxOctantWidth, 0.0);
+            vec3 maxD = vec3(maxOctantWidth, 0.0, maxOctantWidth);
+
+            vec3 minE = vec3(-maxOctantWidth, 0.0, -maxOctantWidth);
+            vec3 maxE = vec3(0.0, maxOctantWidth, 0.0);
+
+            vec3 minF = vec3(0.0, 0.0, -maxOctantWidth);
+            vec3 maxF = vec3(maxOctantWidth, maxOctantWidth, 0.0);
+
+            vec3 minG = vec3(-maxOctantWidth, 0.0, 0.0);
+            vec3 maxG = vec3(0.0, maxOctantWidth, maxOctantWidth);
+
+            vec3 minH = vec3(0.0);
+            vec3 maxH = vec3(maxOctantWidth);
+
+            vec3 chosenMin;
+            vec3 chosenMax;
+
+            if (GetBit(octree, OCT_CHILD_0)) {
+                chosenMin = minA;
+                chosenMax = maxA;
+            }
+
+            if (GetBit(octree, OCT_CHILD_1)) {
+                chosenMin = minB;
+                chosenMax = maxB;
+            }
+
+            if (GetBit(octree, OCT_CHILD_2)) {
+                chosenMin = minC;
+                chosenMax = maxC;
+            }
+
+            if (GetBit(octree, OCT_CHILD_3)) {
+                chosenMin = minD;
+                chosenMax = maxD;
+            }
+
+            if (GetBit(octree, OCT_CHILD_4)) {
+                chosenMin = minE;
+                chosenMax = maxE;
+            }
+
+            if (GetBit(octree, OCT_CHILD_5)) {
+                chosenMin = minF;
+                chosenMax = maxF;
+            }
+
+            if (GetBit(octree, OCT_CHILD_6)) {
+                chosenMin = minG;
+                chosenMax = maxG;
+            }
+
+            if (GetBit(octree, OCT_CHILD_7)) {
+                chosenMin = minH;
+                chosenMax = maxH;
+            }
+
+            if (HitAABB(r, AABB(chosenMin, chosenMax), dist)) {
+                hitSomething = true;
+            }
+        }
+    }
+
+    if (hitSomething) {
+        return vec3(0.0, 1.0, 0.0);
+    }
+
+    return vec3(1.0, 0.0, 0.0);
+
+
+
+
+
+
+    //int density = 8;
+    //
+    //// width
+    //float w = 1.0 / float(density);
+    //
+    //float closestHit = MAX_FLOAT;
+    //
+    //vec3 offset = vec3(3.0, 0.0, -2.0);
+    //int closestIndex = HitChunk(r, offset, closestHit);
+    //
+    //if (closestIndex == -1) {
+    //    vec3 offset2 = vec3(2.0, 0.0, -2.0);
+    //    closestIndex = HitChunk(r, offset2, closestHit);
+    //}
+    //
+    //if (closestIndex != -1) {
+    //    if (closestIndex % 2 == 0) {
+    //        return vec3(0.0, 1.0, 0.0);
+    //    } else {
+    //        return vec3(0.0, 0.0, 1.0);
+    //    }
+    //} else {
+    //    return vec3(1.0, 0.0, 0.0);
+    //}
+
+
+    //int octTreeX = 0;
+    //int octTreeY = 0;
+    //int octTreeZ = 0;
+
+    float octtantWidth = 1.0;
+
+    // These are the min and max of the fully negative oct tree octant
+    //vec3 octTreeMin = vec3(-octtantWidth);
+    //vec3 octTreeMax = vec3(0.0);
+
+    vec3 offset = vec3(octTreeX * octtantWidth, octTreeY * octtantWidth, octTreeZ * octtantWidth);
+
+    float halfOctantWidth = octtantWidth / 2.0;
+
+    offset += vec3(octTreeXL2 * halfOctantWidth, octTreeYL2 * halfOctantWidth, octTreeZL2 * halfOctantWidth);
+
+    vec3 m = octTreeMin + offset;
+    vec3 M = m + vec3(halfOctantWidth);
+
+    //float dist;
+
+    if (HitAABB(r, AABB(m, M), dist)) {
+        return vec3(0.0, 1.0, 0.0);
+    } else {
+        return vec3(1.0, 0.0, 0.0);
+    }
+
+
+
+
+
 
     Ray ray = r;
 
@@ -281,6 +531,8 @@ vec3 FireRayIntoScene(Ray r) {
         HitInfo hitInfo;
         if (HitScene(ray, hitInfo)) { // Scatter the ray
             
+            return vec3(0.0, 1.0, 0.0);
+
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
@@ -319,6 +571,8 @@ vec3 FireRayIntoScene(Ray r) {
         ++bounces;
     }
 
+    return vec3(1.0, 0.0, 0.0);
+
     return color;
 }
 
@@ -329,6 +583,37 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
  
+    //AABB aabbs[8] = AABB[8](
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0)),
+    //    AABB(vec3(0.0), vec3(1.0))
+    //);
+
+
+    int density = 8;
+
+    // width
+    float w = 1.0 / float(density);
+
+    bool hit = false;
+    for (int i = 0; i < density; ++i) {
+        vec3 m = vec3(0.0 + i * w, 0.0, 0.0);
+        vec3 M = vec3(w + i * w, w, w);
+
+        AABB bbox = AABB(m, M);
+
+        float dist;
+        hit = HitAABB(ray, bbox, dist);
+    }
+    
+    return hit;
+
+    /*
     int stack[32];
     int stackIndex = 1;
     
@@ -394,7 +679,8 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             }
         }
     }
-    
+    */
+
     return hitSomething;
 }
 

@@ -18,6 +18,8 @@ namespace Rutile {
         void Render() override;
         void LoadScene() override;
 
+        void ProvideLocalRendererSettings() override;
+
         constexpr static size_t xSize = 8;
         constexpr static size_t ySize = 8;
         constexpr static size_t zSize = 8;
@@ -26,6 +28,16 @@ namespace Rutile {
         //using Chunk = Chunk<xSize, ySize, zSize, materialCount>;
 
     private:
+        bool m_OctTreeX{ false };
+        bool m_OctTreeY{ false };
+        bool m_OctTreeZ{ false };
+
+        bool m_OctTreeNoKids{ false };
+
+        bool m_OctTreeXL2{ false };
+        bool m_OctTreeYL2{ false };
+        bool m_OctTreeZL2{ false };
+
         void ResetAccumulatedPixelData();
 
         std::chrono::time_point<std::chrono::steady_clock> m_RendererLoadTime;
