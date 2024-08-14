@@ -3,6 +3,8 @@
 #include <bitset>
 #include <iostream>
 
+#include "GUI/ImGuiUtil.h"
+
 #include "Settings/App.h"
 
 #include "Utility/events/Events.h"
@@ -186,6 +188,13 @@ namespace Rutile {
         m_VoxelRayTracingShader->SetInt("child1", m_Child1);
         m_VoxelRayTracingShader->SetInt("child2", m_Child2);
         m_VoxelRayTracingShader->SetInt("child3", m_Child3);
+        m_VoxelRayTracingShader->SetInt("child4", m_Child4);
+        m_VoxelRayTracingShader->SetInt("child5", m_Child5);
+        m_VoxelRayTracingShader->SetInt("child6", m_Child6);
+        m_VoxelRayTracingShader->SetInt("child7", m_Child7);
+        m_VoxelRayTracingShader->SetInt("child8", m_Child8);
+
+        m_VoxelRayTracingShader->SetFloat("startingWidth", m_StartingWidth);
 
         ++m_FrameCount;
 
@@ -277,6 +286,13 @@ namespace Rutile {
         if (ImGui::DragInt("Child #1", &m_Child1, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
         if (ImGui::DragInt("Child #2", &m_Child2, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
         if (ImGui::DragInt("Child #3", &m_Child3, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #4", &m_Child4, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #5", &m_Child5, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #6", &m_Child6, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #7", &m_Child7, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #8", &m_Child8, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+
+        if (ImGui::DragFloat("Starting width", &m_StartingWidth, 0.1f, 0.0001f, 100000000.0f)) { ResetAccumulatedPixelData(); }
 
         if (ImGui::Checkbox("No Kids", &m_OctTreeNoKids)) { ResetAccumulatedPixelData(); }
 
@@ -296,6 +312,13 @@ namespace Rutile {
         m_VoxelRayTracingShader->SetInt("child1", m_Child1);
         m_VoxelRayTracingShader->SetInt("child2", m_Child2);
         m_VoxelRayTracingShader->SetInt("child3", m_Child3);
+        m_VoxelRayTracingShader->SetInt("child4", m_Child4);
+        m_VoxelRayTracingShader->SetInt("child5", m_Child5);
+        m_VoxelRayTracingShader->SetInt("child6", m_Child6);
+        m_VoxelRayTracingShader->SetInt("child7", m_Child7);
+        m_VoxelRayTracingShader->SetInt("child8", m_Child8);
+
+        m_VoxelRayTracingShader->SetFloat("startingWidth", m_StartingWidth);
 
         m_VoxelRayTracingShader->SetInt("octTreeX", m_OctTreeX);
         m_VoxelRayTracingShader->SetInt("octTreeY", m_OctTreeY);
@@ -392,6 +415,67 @@ namespace Rutile {
         }
 
         m_VoxelRayTracingShader->SetInt("octreeChild", octreeChild);
+
+        static int maxBboxChecks = 100;
+        static int maxSphereChecks = 100;
+        static int maxTriangleChecks = 100;
+        static int maxMeshChecks = 100;
+
+        static int mode = 0;
+
+        RadioButtons("Stats mode", std::vector<std::string>{
+            "Bounding Boxes",
+            "Spheres",
+            "Triangles",
+            "Meshes"
+        },
+            & mode
+        );
+
+        int bbox = -1;
+        int sphere = -1;
+        int tri = -1;
+        int mesh = -1;
+
+        switch (mode) {
+        case 0:
+            if (ImGui::DragInt("Max Bounding Box Checks", &maxBboxChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            bbox = maxBboxChecks;
+            break;
+
+        case 1:
+            if (ImGui::DragInt("Max Sphere Checks", &maxSphereChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            sphere = maxSphereChecks;
+            break;
+
+        case 2:
+            if (ImGui::DragInt("Max Triangle Checks", &maxTriangleChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            tri = maxTriangleChecks;
+            break;
+
+        case 3:
+            if (ImGui::DragInt("Max Mesh Checks", &maxMeshChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            mesh = maxMeshChecks;
+            break;
+
+        default:
+            std::cout << "ERROR: Unknown mode" << std::endl;
+            break;
+        }
+
+        m_VoxelRayTracingShader->Bind();
+        m_VoxelRayTracingShader->SetInt("maxBboxChecks", bbox);
+        m_VoxelRayTracingShader->SetInt("maxSphereChecks", sphere);
+        m_VoxelRayTracingShader->SetInt("maxTriangleChecks", tri);
+        m_VoxelRayTracingShader->SetInt("maxMeshChecks", mesh);
     }
 
     void VoxelRayTracing::ResetAccumulatedPixelData() {

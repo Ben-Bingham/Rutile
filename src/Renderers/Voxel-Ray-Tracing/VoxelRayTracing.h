@@ -38,9 +38,16 @@ namespace Rutile {
         bool m_OctTreeYL2{ false };
         bool m_OctTreeZL2{ false };
 
+        float m_StartingWidth{ 1.0f };
+
         int m_Child1{ 0 };
-        int m_Child2{ 3 };
-        int m_Child3{ 6 };
+        int m_Child2{ 0 };
+        int m_Child3{ 0 };
+        int m_Child4{ 0 };
+        int m_Child5{ 0 };
+        int m_Child6{ 0 };
+        int m_Child7{ 0 };
+        int m_Child8{ 0 };
 
         void ResetAccumulatedPixelData();
 
