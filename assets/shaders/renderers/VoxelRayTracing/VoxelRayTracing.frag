@@ -348,21 +348,387 @@ const int OCT_CHILD_7 = 31;
 uniform int octTreeNoKids;
 
 uniform int octree;
+uniform int octreeChild;
+
+uniform int child1;
+uniform int child2;
+uniform int child3;
 
 vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    int rootOctree = 1;
+
+    rootOctree = SetBit(rootOctree, OCT_CHILD_0);
+    rootOctree = SetBit(rootOctree, OCT_CHILD_5);
+
+    //int octreeChild0 = 1;
+    //int octreeChild5 = 2;
 
     bool hitSomething = false;
 
     float maxOctantWidth = 1.0;
 
     // root, is the root, and so we know its size:
-    vec3 octTreeMin = vec3(-maxOctantWidth);
-    vec3 octTreeMax = vec3(maxOctantWidth);
+    vec3 octreeCenter = vec3(0.0, 0.0, 0.0);
+    //vec3 currentOctantWidth3 = vec3(maxOctantWidth);
+    float currentOctantWidth = maxOctantWidth;
+
+    //vec3 octTreeMin = vec3(-maxOctantWidth);
+    //vec3 octTreeMax = vec3(maxOctantWidth);
+
+    // We need to do a special hit function here because its the root node. All other octrees are only even considerd if we hit there surounding bbox,
+    // But the root node needs to be checked manualy first
+    float closestHit = MAX_FLOAT;
+    int closestHitIndex = -1;
+
+    vec3 finalColor = vec3(0.0);
 
     float dist;
-    if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
+    if (HitAABB(r, AABB(octreeCenter - currentOctantWidth, octreeCenter + currentOctantWidth), dist)) {
+        // We have hit the over arching containment of the octree
+
+        finalColor = vec3(1.0, 1.0, 1.0);
+
+        float dist0 = MAX_FLOAT;
+        float dist1 = MAX_FLOAT;
+        float dist2 = MAX_FLOAT;
+        float dist3 = MAX_FLOAT;
+        float dist4 = MAX_FLOAT;
+        float dist5 = MAX_FLOAT;
+        float dist6 = MAX_FLOAT;
+        float dist7 = MAX_FLOAT;
+
+        AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
+        AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
+        AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
+        AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
+        AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
+        AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
+        AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
+        AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
+
+        if (HitAABB(r, bbox0, dist0)) {
+            if (dist0 < closestHit) {
+                closestHit = dist0;
+                closestHitIndex = 0;
+            }
+        }
+
+        if (HitAABB(r, bbox1, dist1)) {        
+            if (dist1 < closestHit) {
+                closestHit = dist1;
+                closestHitIndex = 1;
+            }
+        }
+        
+        if (HitAABB(r, bbox2, dist2)) {        
+            if (dist2 < closestHit) {
+                closestHit = dist2;
+                closestHitIndex = 2;
+            }
+        }
+        
+        if (HitAABB(r, bbox3, dist3)) {        
+            if (dist3 < closestHit) {
+                closestHit = dist3;
+                closestHitIndex = 3;
+            }
+        }
+        
+        if (HitAABB(r, bbox4, dist4)) {        
+            if (dist4 < closestHit) {
+                closestHit = dist4;
+                closestHitIndex = 4;
+            }
+        }
+        
+        if (HitAABB(r, bbox5, dist5)) {        
+            if (dist5 < closestHit) {
+                closestHit = dist5;
+                closestHitIndex = 5;
+            }
+        }
+        
+        if (HitAABB(r, bbox6, dist6)) {        
+            if (dist6 < closestHit) {
+                closestHit = dist6;
+                closestHitIndex = 6;
+            }
+        }
+        
+        if (HitAABB(r, bbox7, dist7)) {        
+            if (dist7 < closestHit) {
+                closestHit = dist7;
+                closestHitIndex = 7;
+            }
+        }
+
+        if (closestHitIndex == child1) {
+            closestHitIndex = -1;
+            closestHit = MAX_FLOAT;
+
+            currentOctantWidth /= 2;
+
+            switch (child1) {
+            case 0:
+                octreeCenter -= currentOctantWidth;
+                break;
+            case 1:
+                octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, -currentOctantWidth);
+                break;
+            case 2:
+                octreeCenter += vec3(-currentOctantWidth, -currentOctantWidth, currentOctantWidth);
+                break;
+            case 3:
+                octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, currentOctantWidth);
+                break;
+            case 4:
+                octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, -currentOctantWidth);
+                break;
+            case 5:
+                octreeCenter += vec3(currentOctantWidth, currentOctantWidth, -currentOctantWidth);
+                break;
+            case 6:
+                octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, currentOctantWidth);
+                break;
+            case 7:
+                octreeCenter += currentOctantWidth;
+                break;
+            };
+
+            float dist0 = MAX_FLOAT;
+            float dist1 = MAX_FLOAT;
+            float dist2 = MAX_FLOAT;
+            float dist3 = MAX_FLOAT;
+            float dist4 = MAX_FLOAT;
+            float dist5 = MAX_FLOAT;
+            float dist6 = MAX_FLOAT;
+            float dist7 = MAX_FLOAT;
+
+            AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
+            AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
+            AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
+            AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
+            AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
+            AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
+            AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
+            AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
+
+            if (HitAABB(r, bbox0, dist0)) {
+                if (dist0 < closestHit) {
+                    closestHit = dist0;
+                    closestHitIndex = 0;
+                }
+            }
+
+            if (HitAABB(r, bbox1, dist1)) {        
+                if (dist1 < closestHit) {
+                    closestHit = dist1;
+                    closestHitIndex = 1;
+                }
+            }
+        
+            if (HitAABB(r, bbox2, dist2)) {        
+                if (dist2 < closestHit) {
+                    closestHit = dist2;
+                    closestHitIndex = 2;
+                }
+            }
+        
+            if (HitAABB(r, bbox3, dist3)) {        
+                if (dist3 < closestHit) {
+                    closestHit = dist3;
+                    closestHitIndex = 3;
+                }
+            }
+        
+            if (HitAABB(r, bbox4, dist4)) {        
+                if (dist4 < closestHit) {
+                    closestHit = dist4;
+                    closestHitIndex = 4;
+                }
+            }
+        
+            if (HitAABB(r, bbox5, dist5)) {        
+                if (dist5 < closestHit) {
+                    closestHit = dist5;
+                    closestHitIndex = 5;
+                }
+            }
+        
+            if (HitAABB(r, bbox6, dist6)) {        
+                if (dist6 < closestHit) {
+                    closestHit = dist6;
+                    closestHitIndex = 6;
+                }
+            }
+        
+            if (HitAABB(r, bbox7, dist7)) {        
+                if (dist7 < closestHit) {
+                    closestHit = dist7;
+                    closestHitIndex = 7;
+                }
+            }
+
+            if (closestHitIndex == child2) {
+                    closestHitIndex = -1;
+                    closestHit = MAX_FLOAT;
+
+                    currentOctantWidth /= 2;
+
+                    switch (child2) {
+                    case 0:
+                        octreeCenter -= currentOctantWidth;
+                        break;
+                    case 1:
+                        octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, -currentOctantWidth);
+                        break;
+                    case 2:
+                        octreeCenter += vec3(-currentOctantWidth, -currentOctantWidth, currentOctantWidth);
+                        break;
+                    case 3:
+                        octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, currentOctantWidth);
+                        break;
+                    case 4:
+                        octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, -currentOctantWidth);
+                        break;
+                    case 5:
+                        octreeCenter += vec3(currentOctantWidth, currentOctantWidth, -currentOctantWidth);
+                        break;
+                    case 6:
+                        octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, currentOctantWidth);
+                        break;
+                    case 7:
+                        octreeCenter += currentOctantWidth;
+                        break;
+                    };
+
+                    float dist0 = MAX_FLOAT;
+                    float dist1 = MAX_FLOAT;
+                    float dist2 = MAX_FLOAT;
+                    float dist3 = MAX_FLOAT;
+                    float dist4 = MAX_FLOAT;
+                    float dist5 = MAX_FLOAT;
+                    float dist6 = MAX_FLOAT;
+                    float dist7 = MAX_FLOAT;
+
+                    AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
+                    AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
+                    AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
+                    AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
+                    AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
+                    AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
+                    AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
+                    AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
+
+                    if (HitAABB(r, bbox0, dist0)) {
+                        if (dist0 < closestHit) {
+                            closestHit = dist0;
+                            closestHitIndex = 0;
+                        }
+                    }
+
+                    if (HitAABB(r, bbox1, dist1)) {        
+                        if (dist1 < closestHit) {
+                            closestHit = dist1;
+                            closestHitIndex = 1;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox2, dist2)) {        
+                        if (dist2 < closestHit) {
+                            closestHit = dist2;
+                            closestHitIndex = 2;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox3, dist3)) {        
+                        if (dist3 < closestHit) {
+                            closestHit = dist3;
+                            closestHitIndex = 3;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox4, dist4)) {        
+                        if (dist4 < closestHit) {
+                            closestHit = dist4;
+                            closestHitIndex = 4;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox5, dist5)) {        
+                        if (dist5 < closestHit) {
+                            closestHit = dist5;
+                            closestHitIndex = 5;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox6, dist6)) {        
+                        if (dist6 < closestHit) {
+                            closestHit = dist6;
+                            closestHitIndex = 6;
+                        }
+                    }
+        
+                    if (HitAABB(r, bbox7, dist7)) {        
+                        if (dist7 < closestHit) {
+                            closestHit = dist7;
+                            closestHitIndex = 7;
+                        }
+                    }
+
+                    if (closestHitIndex == child3) {
+                        return vec3(0.0, 1.0, 0.0);
+                    }
+                else {
+                    finalColor = vec3(0.0, 0.0, 1.0);
+                }
+            }
+        }   
+        else {
+            finalColor = vec3(0.0, 0.0, 1.0);
+        }
+    } 
+
+    return finalColor;
+
+
+    //return vec3(0.0, 0.0, 0.0);
+
+    const int rootNodeIndex = 0;
+
+
+
+
+    /*
+    //float dist;
+    //if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
+    while (stackIndex >= 0) {
+        int index = stack[stackIndex];
+        --stackIndex;
+
+        int octree = octrees[index];
+
         if (!OctreeHasKids(octree)) {
             // The octree has NO children
 
@@ -375,7 +741,8 @@ vec3 FireRayIntoScene(Ray r) {
                 hitSomething = true;
                 // Break out of loop
             }
-        } else {
+        } 
+        else {
             // Octree has at least one child
             // We need the sizes of the children octants themselves, we then need to hit test them, and if we hit them, we add them to the stack
             vec3 minA = vec3(-maxOctantWidth);
@@ -405,9 +772,16 @@ vec3 FireRayIntoScene(Ray r) {
             vec3 chosenMin;
             vec3 chosenMax;
 
+            int indexOffset = 0;
+
             if (GetBit(octree, OCT_CHILD_0)) {
                 chosenMin = minA;
                 chosenMax = maxA;
+
+                // TODO this chunk adds them all in the ssame order, find out how to add them based on which is closest.
+                //++stackIndex;
+                //stack[stackIndex] = index + indexOffset;
+                //++indexOffset;
             }
 
             if (GetBit(octree, OCT_CHILD_1)) {
@@ -450,6 +824,7 @@ vec3 FireRayIntoScene(Ray r) {
             }
         }
     }
+    //}
 
     if (hitSomething) {
         return vec3(0.0, 1.0, 0.0);
@@ -458,6 +833,181 @@ vec3 FireRayIntoScene(Ray r) {
     return vec3(1.0, 0.0, 0.0);
 
 
+
+    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    bool hitSomething = false;
+
+    float maxOctantWidth = 1.0;
+
+    // root, is the root, and so we know its size:
+    vec3 octTreeMin = vec3(-maxOctantWidth);
+    vec3 octTreeMax = vec3(maxOctantWidth);
+
+    // We need to do a special hit function here because its the root node. All other octrees are only even considerd if we hit there surounding bbox,
+    // But the root node needs to be checked manualy first
+    float dist;
+    if (!HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
+        hitSomething = false;
+        return vec3(1.0, 0.0, 0.0);
+        // Return from the function
+    }
+
+    const int rootNodeIndex = 0;
+
+    // This list will eventually be passed by an SSBO
+    int[64] octrees;
+    octrees[rootNodeIndex] = octree;
+
+    int[32] stack;
+    int stackIndex = 0;
+
+    stack[stackIndex] = rootNodeIndex;
+
+    //float dist;
+    //if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
+    while (stackIndex >= 0) {
+        int index = stack[stackIndex];
+        --stackIndex;
+
+        int octree = octrees[index];
+
+        if (!OctreeHasKids(octree)) {
+            // The octree has NO children
+
+            if (GetOctreeIndex(octree) == 0) {
+                // Octree is empty
+                hitSomething = false;
+                // Break out of loop
+            } else {
+                // Octree is solid, index points to the material
+                hitSomething = true;
+                // Break out of loop
+            }
+        } 
+        else {
+            // Octree has at least one child
+            // We need the sizes of the children octants themselves, we then need to hit test them, and if we hit them, we add them to the stack
+            vec3 minA = vec3(-maxOctantWidth);
+            vec3 maxA = vec3(0.0);
+
+            vec3 minB = vec3(0.0, -maxOctantWidth, -maxOctantWidth);
+            vec3 maxB = vec3(maxOctantWidth, 0.0, 0.0);
+
+            vec3 minC = vec3(-maxOctantWidth, -maxOctantWidth, 0.0);
+            vec3 maxC = vec3(0.0, 0.0, maxOctantWidth);
+
+            vec3 minD = vec3(0.0, -maxOctantWidth, 0.0);
+            vec3 maxD = vec3(maxOctantWidth, 0.0, maxOctantWidth);
+
+            vec3 minE = vec3(-maxOctantWidth, 0.0, -maxOctantWidth);
+            vec3 maxE = vec3(0.0, maxOctantWidth, 0.0);
+
+            vec3 minF = vec3(0.0, 0.0, -maxOctantWidth);
+            vec3 maxF = vec3(maxOctantWidth, maxOctantWidth, 0.0);
+
+            vec3 minG = vec3(-maxOctantWidth, 0.0, 0.0);
+            vec3 maxG = vec3(0.0, maxOctantWidth, maxOctantWidth);
+
+            vec3 minH = vec3(0.0);
+            vec3 maxH = vec3(maxOctantWidth);
+
+            vec3 chosenMin;
+            vec3 chosenMax;
+
+            int indexOffset = 0;
+
+            if (GetBit(octree, OCT_CHILD_0)) {
+                chosenMin = minA;
+                chosenMax = maxA;
+
+                // TODO this chunk adds them all in the ssame order, find out how to add them based on which is closest.
+                //++stackIndex;
+                //stack[stackIndex] = index + indexOffset;
+                //++indexOffset;
+            }
+
+            if (GetBit(octree, OCT_CHILD_1)) {
+                chosenMin = minB;
+                chosenMax = maxB;
+            }
+
+            if (GetBit(octree, OCT_CHILD_2)) {
+                chosenMin = minC;
+                chosenMax = maxC;
+            }
+
+            if (GetBit(octree, OCT_CHILD_3)) {
+                chosenMin = minD;
+                chosenMax = maxD;
+            }
+
+            if (GetBit(octree, OCT_CHILD_4)) {
+                chosenMin = minE;
+                chosenMax = maxE;
+            }
+
+            if (GetBit(octree, OCT_CHILD_5)) {
+                chosenMin = minF;
+                chosenMax = maxF;
+            }
+
+            if (GetBit(octree, OCT_CHILD_6)) {
+                chosenMin = minG;
+                chosenMax = maxG;
+            }
+
+            if (GetBit(octree, OCT_CHILD_7)) {
+                chosenMin = minH;
+                chosenMax = maxH;
+            }
+
+            if (HitAABB(r, AABB(chosenMin, chosenMax), dist)) {
+                hitSomething = true;
+            }
+        }
+    }
+    //}
+
+    if (hitSomething) {
+        return vec3(0.0, 1.0, 0.0);
+    }
+
+    return vec3(1.0, 0.0, 0.0);
+
+    */
 
 
 
@@ -504,16 +1054,16 @@ vec3 FireRayIntoScene(Ray r) {
 
     offset += vec3(octTreeXL2 * halfOctantWidth, octTreeYL2 * halfOctantWidth, octTreeZL2 * halfOctantWidth);
 
-    vec3 m = octTreeMin + offset;
-    vec3 M = m + vec3(halfOctantWidth);
+    //vec3 m = octTreeMin + offset;
+    //vec3 M = m + vec3(halfOctantWidth);
 
     //float dist;
 
-    if (HitAABB(r, AABB(m, M), dist)) {
-        return vec3(0.0, 1.0, 0.0);
-    } else {
-        return vec3(1.0, 0.0, 0.0);
-    }
+    //if (HitAABB(r, AABB(m, M), dist)) {
+    //    return vec3(0.0, 1.0, 0.0);
+    //} else {
+    //    return vec3(1.0, 0.0, 0.0);
+    //}
 
 
 

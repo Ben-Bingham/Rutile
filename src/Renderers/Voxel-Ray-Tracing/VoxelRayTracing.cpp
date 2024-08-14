@@ -181,6 +181,12 @@ namespace Rutile {
         }
     }
     void VoxelRayTracing::Render() {
+        m_VoxelRayTracingShader->Bind();
+
+        m_VoxelRayTracingShader->SetInt("child1", m_Child1);
+        m_VoxelRayTracingShader->SetInt("child2", m_Child2);
+        m_VoxelRayTracingShader->SetInt("child3", m_Child3);
+
         ++m_FrameCount;
 
         // Render into accumulation framebuffer
@@ -268,6 +274,10 @@ namespace Rutile {
     }
 
     void VoxelRayTracing::ProvideLocalRendererSettings() {
+        if (ImGui::DragInt("Child #1", &m_Child1, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #2", &m_Child2, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+        if (ImGui::DragInt("Child #3", &m_Child3, 0.1f, 0, 7)) { ResetAccumulatedPixelData(); }
+
         if (ImGui::Checkbox("No Kids", &m_OctTreeNoKids)) { ResetAccumulatedPixelData(); }
 
         ImGui::Text("Level 1");
@@ -282,6 +292,10 @@ namespace Rutile {
         if (ImGui::Checkbox("Z##L2", &m_OctTreeZL2)) { ResetAccumulatedPixelData(); }
 
         m_VoxelRayTracingShader->Bind();
+
+        m_VoxelRayTracingShader->SetInt("child1", m_Child1);
+        m_VoxelRayTracingShader->SetInt("child2", m_Child2);
+        m_VoxelRayTracingShader->SetInt("child3", m_Child3);
 
         m_VoxelRayTracingShader->SetInt("octTreeX", m_OctTreeX);
         m_VoxelRayTracingShader->SetInt("octTreeY", m_OctTreeY);
@@ -340,6 +354,44 @@ namespace Rutile {
         }
 
         m_VoxelRayTracingShader->SetInt("octree", octree);
+
+        int octreeChild = 1;
+
+        if (!m_OctTreeNoKids) {
+            if (!m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_0);
+            }
+
+            if (m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_1);
+            }
+
+            if (!m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_2);
+            }
+
+            if (m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_3);
+            }
+
+            if (!m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_4);
+            }
+
+            if (m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_5);
+            }
+
+            if (!m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_6);
+            }
+
+            if (m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
+                octreeChild = SetBit(octreeChild, OCT_CHILD_7);
+            }
+        }
+
+        m_VoxelRayTracingShader->SetInt("octreeChild", octreeChild);
     }
 
     void VoxelRayTracing::ResetAccumulatedPixelData() {

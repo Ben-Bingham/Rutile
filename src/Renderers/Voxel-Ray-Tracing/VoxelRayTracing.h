@@ -38,6 +38,10 @@ namespace Rutile {
         bool m_OctTreeYL2{ false };
         bool m_OctTreeZL2{ false };
 
+        int m_Child1{ 0 };
+        int m_Child2{ 3 };
+        int m_Child3{ 6 };
+
         void ResetAccumulatedPixelData();
 
         std::chrono::time_point<std::chrono::steady_clock> m_RendererLoadTime;
