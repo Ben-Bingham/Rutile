@@ -27,6 +27,26 @@ namespace Rutile {
 
         //using Chunk = Chunk<xSize, ySize, zSize, materialCount>;
 
+        void CreateOctree();
+
+        struct Voxel {
+            glm::vec3 minBound;
+            glm::vec3 maxBound;
+
+            int k0{ -1 };
+            int k1{ -1 };
+            int k2{ -1 };
+            int k3{ -1 };
+            int k4{ -1 };
+            int k5{ -1 };
+            int k6{ -1 };
+            int k7{ -1 };
+
+            int hasKids{ 0 };
+        };
+
+        std::vector<Voxel> voxels;
+
     private:
         bool m_OctTreeX{ false };
         bool m_OctTreeY{ false };
@@ -40,14 +60,16 @@ namespace Rutile {
 
         float m_StartingWidth{ 1.0f };
 
-        int m_Child1{ 0 };
-        int m_Child2{ 0 };
-        int m_Child3{ 0 };
-        int m_Child4{ 0 };
-        int m_Child5{ 0 };
-        int m_Child6{ 0 };
-        int m_Child7{ 0 };
-        int m_Child8{ 0 };
+        bool m_Child0{ false };
+        bool m_Child1{ false };
+        bool m_Child2{ false };
+        bool m_Child3{ false };
+        bool m_Child4{ false };
+        bool m_Child5{ false };
+        bool m_Child6{ false };
+        bool m_Child7{ false };
+
+        int hardCodedOctree;
 
         void ResetAccumulatedPixelData();
 
@@ -69,5 +91,6 @@ namespace Rutile {
         Chunk m_Chunk;
 
         std::unique_ptr<SSBO<unsigned char>> m_BlockData;
+        std::unique_ptr<SSBO<Voxel>> m_VoxelSSBO;
     };
 }

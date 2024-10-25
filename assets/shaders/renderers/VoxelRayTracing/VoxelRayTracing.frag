@@ -518,551 +518,6 @@ vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
 
-
-
-
-
-
-    int stack[32];
-    int stackIndex = 0;
-
-    stack[stackIndex] = 0;
-
-    while (stackIndex >= 0) {
-        int tree;
-
-        // TODO this switch is temporary before i swap in an array
-        // DO HARDCODED ARRAY TESTING BEFORE SSBO TeSTInG
-        switch (stack[stackIndex]) {
-        case 0: // Root
-            tree = octree;
-            break;
-        };
-        --stackIndex;
-
-        /*
-        if (dont hit octree) { 
-            modify octree center and width
-            continue 
-        }
-
-        for (child : octree children) {
-            if (octree has ith child) {
-                if (we hit octress ith child) {
-                    Add the child to the stack
-                }
-            }
-        }
-
-        modify octree center and width
-        */
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    bool hitSomething = false;
-
-    float maxOctantWidth = startingWidth;
-
-    // root, is the root, and so we know its size:
-    vec3 octreeCenter = vec3(0.0, 0.0, 0.0);
-    //vec3 currentOctantWidth3 = vec3(maxOctantWidth);
-    float currentOctantWidth = maxOctantWidth;
-
-    //vec3 octTreeMin = vec3(-maxOctantWidth);
-    //vec3 octTreeMax = vec3(maxOctantWidth);
-
-    // We need to do a special hit function here because its the root node. All other octrees are only even considerd if we hit there surounding bbox,
-    // But the root node needs to be checked manualy first
-    float closestHit = MAX_FLOAT;
-    int closestHitIndex = -1;
-
-    vec3 finalColor = vec3(0.0);
-
-    float dist;
-    if (HitAABB(r, AABB(octreeCenter - currentOctantWidth, octreeCenter + currentOctantWidth), dist)) {
-        finalColor = vec3(1.0);
-    }
-
-    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, 0, true, octree);
-    // We now have the index of the closest child of this octree. If this index is equal to any of the bits toggled in the first 8 bits of an octree
-    // than we want to continue, and check the next octree (usualy this would be done with the index system). If instead the hit octant dosent have
-    // the bit for the hit child set, than we check if any of the child bits are set. If none of the child bits are set, and the index is 0, the octree
-    // is empty, and we can break out. But if there is an index, than we have a hit, and the index is a material index.
-
-
-
-
-    if (closestHitIndex != -1 && GetBit(octree, OCT_CHILD_0 + closestHitIndex)) {
-    //if () {
-        //int childOctree = 0;
-        //childOctree = SetBit(childOctree, OCT_CHILD_0);
-        //closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, closestHitIndex, false, childOctree);
-        //
-        //if (closestHitIndex == 0) {
-        //    return vec3(0.0, 1.0, 0.0);
-        //} else {
-        //    return vec3(0.0, 0.0, 1.0);
-        //}
-        return vec3(0.0, 1.0, 0.0);
-
-    } else {
-        return vec3(1.0, 0.0, 0.0);
-    }
-
-
-
-
-
-
-
-
-
-
-
-    if (closestHitIndex == child1) {
-        // Hit the child
-        finalColor = vec3(1.0, 0.0, 0.0);
-
-        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child1, false, 0);
-
-        if (closestHitIndex == child2) {
-            // Hit the child
-            finalColor = vec3(0.0, 1.0, 0.0);
-
-            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child2, false, 0);
-
-            if (closestHitIndex == child3) {
-                // Hit the child
-                finalColor = vec3(0.0, 0.0, 1.0);
-
-                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child3, false, 0);
-
-                if (closestHitIndex == child4) {
-                    // Hit the child
-                    finalColor = vec3(1.0, 1.0, 0.0);
-
-                    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child4, false, 0);
-
-                    if (closestHitIndex == child5) {
-                        // Hit the child
-                        finalColor = vec3(0.0, 1.0, 1.0);
-
-                        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child5, false, 0);
-
-                        if (closestHitIndex == child6) {
-                            // Hit the child
-                            finalColor = vec3(1.0, 0.0, 1.0);
-                        
-                            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child6, false, 0);
-                        
-                            if (closestHitIndex == child7) {
-                                // Hit the child
-                                finalColor = vec3(1.0, 0.5, 0.5);
-                        
-                                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child7, false, 0);
-                        
-                                if (closestHitIndex == child8) {
-                                    // Hit the child
-                                    finalColor = vec3(0.5, 0.5, 1.0);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }   
-    //else {
-        // Did not hit anything
-        //finalColor = vec3(0.0, 0.0, 0.0);
-    //}
-    //} 
-
-    return finalColor;
-
-
-    //return vec3(0.0, 0.0, 0.0);
-
-    const int rootNodeIndex = 0;
-
-
-
-
-    /*
-    //float dist;
-    //if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
-    while (stackIndex >= 0) {
-        int index = stack[stackIndex];
-        --stackIndex;
-
-        int octree = octrees[index];
-
-        if (!OctreeHasKids(octree)) {
-            // The octree has NO children
-
-            if (GetOctreeIndex(octree) == 0) {
-                // Octree is empty
-                hitSomething = false;
-                // Break out of loop
-            } else {
-                // Octree is solid, index points to the material
-                hitSomething = true;
-                // Break out of loop
-            }
-        } 
-        else {
-            // Octree has at least one child
-            // We need the sizes of the children octants themselves, we then need to hit test them, and if we hit them, we add them to the stack
-            vec3 minA = vec3(-maxOctantWidth);
-            vec3 maxA = vec3(0.0);
-
-            vec3 minB = vec3(0.0, -maxOctantWidth, -maxOctantWidth);
-            vec3 maxB = vec3(maxOctantWidth, 0.0, 0.0);
-
-            vec3 minC = vec3(-maxOctantWidth, -maxOctantWidth, 0.0);
-            vec3 maxC = vec3(0.0, 0.0, maxOctantWidth);
-
-            vec3 minD = vec3(0.0, -maxOctantWidth, 0.0);
-            vec3 maxD = vec3(maxOctantWidth, 0.0, maxOctantWidth);
-
-            vec3 minE = vec3(-maxOctantWidth, 0.0, -maxOctantWidth);
-            vec3 maxE = vec3(0.0, maxOctantWidth, 0.0);
-
-            vec3 minF = vec3(0.0, 0.0, -maxOctantWidth);
-            vec3 maxF = vec3(maxOctantWidth, maxOctantWidth, 0.0);
-
-            vec3 minG = vec3(-maxOctantWidth, 0.0, 0.0);
-            vec3 maxG = vec3(0.0, maxOctantWidth, maxOctantWidth);
-
-            vec3 minH = vec3(0.0);
-            vec3 maxH = vec3(maxOctantWidth);
-
-            vec3 chosenMin;
-            vec3 chosenMax;
-
-            int indexOffset = 0;
-
-            if (GetBit(octree, OCT_CHILD_0)) {
-                chosenMin = minA;
-                chosenMax = maxA;
-
-                // TODO this chunk adds them all in the ssame order, find out how to add them based on which is closest.
-                //++stackIndex;
-                //stack[stackIndex] = index + indexOffset;
-                //++indexOffset;
-            }
-
-            if (GetBit(octree, OCT_CHILD_1)) {
-                chosenMin = minB;
-                chosenMax = maxB;
-            }
-
-            if (GetBit(octree, OCT_CHILD_2)) {
-                chosenMin = minC;
-                chosenMax = maxC;
-            }
-
-            if (GetBit(octree, OCT_CHILD_3)) {
-                chosenMin = minD;
-                chosenMax = maxD;
-            }
-
-            if (GetBit(octree, OCT_CHILD_4)) {
-                chosenMin = minE;
-                chosenMax = maxE;
-            }
-
-            if (GetBit(octree, OCT_CHILD_5)) {
-                chosenMin = minF;
-                chosenMax = maxF;
-            }
-
-            if (GetBit(octree, OCT_CHILD_6)) {
-                chosenMin = minG;
-                chosenMax = maxG;
-            }
-
-            if (GetBit(octree, OCT_CHILD_7)) {
-                chosenMin = minH;
-                chosenMax = maxH;
-            }
-
-            if (HitAABB(r, AABB(chosenMin, chosenMax), dist)) {
-                hitSomething = true;
-            }
-        }
-    }
-    //}
-
-    if (hitSomething) {
-        return vec3(0.0, 1.0, 0.0);
-    }
-
-    return vec3(1.0, 0.0, 0.0);
-
-
-
-    */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    bool hitSomething = false;
-
-    float maxOctantWidth = 1.0;
-
-    // root, is the root, and so we know its size:
-    vec3 octTreeMin = vec3(-maxOctantWidth);
-    vec3 octTreeMax = vec3(maxOctantWidth);
-
-    // We need to do a special hit function here because its the root node. All other octrees are only even considerd if we hit there surounding bbox,
-    // But the root node needs to be checked manualy first
-    float dist;
-    if (!HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
-        hitSomething = false;
-        return vec3(1.0, 0.0, 0.0);
-        // Return from the function
-    }
-
-    const int rootNodeIndex = 0;
-
-    // This list will eventually be passed by an SSBO
-    int[64] octrees;
-    octrees[rootNodeIndex] = octree;
-
-    int[32] stack;
-    int stackIndex = 0;
-
-    stack[stackIndex] = rootNodeIndex;
-
-    //float dist;
-    //if (HitAABB(r, AABB(octTreeMin, octTreeMax), dist)) {
-    while (stackIndex >= 0) {
-        int index = stack[stackIndex];
-        --stackIndex;
-
-        int octree = octrees[index];
-
-        if (!OctreeHasKids(octree)) {
-            // The octree has NO children
-
-            if (GetOctreeIndex(octree) == 0) {
-                // Octree is empty
-                hitSomething = false;
-                // Break out of loop
-            } else {
-                // Octree is solid, index points to the material
-                hitSomething = true;
-                // Break out of loop
-            }
-        } 
-        else {
-            // Octree has at least one child
-            // We need the sizes of the children octants themselves, we then need to hit test them, and if we hit them, we add them to the stack
-            vec3 minA = vec3(-maxOctantWidth);
-            vec3 maxA = vec3(0.0);
-
-            vec3 minB = vec3(0.0, -maxOctantWidth, -maxOctantWidth);
-            vec3 maxB = vec3(maxOctantWidth, 0.0, 0.0);
-
-            vec3 minC = vec3(-maxOctantWidth, -maxOctantWidth, 0.0);
-            vec3 maxC = vec3(0.0, 0.0, maxOctantWidth);
-
-            vec3 minD = vec3(0.0, -maxOctantWidth, 0.0);
-            vec3 maxD = vec3(maxOctantWidth, 0.0, maxOctantWidth);
-
-            vec3 minE = vec3(-maxOctantWidth, 0.0, -maxOctantWidth);
-            vec3 maxE = vec3(0.0, maxOctantWidth, 0.0);
-
-            vec3 minF = vec3(0.0, 0.0, -maxOctantWidth);
-            vec3 maxF = vec3(maxOctantWidth, maxOctantWidth, 0.0);
-
-            vec3 minG = vec3(-maxOctantWidth, 0.0, 0.0);
-            vec3 maxG = vec3(0.0, maxOctantWidth, maxOctantWidth);
-
-            vec3 minH = vec3(0.0);
-            vec3 maxH = vec3(maxOctantWidth);
-
-            vec3 chosenMin;
-            vec3 chosenMax;
-
-            int indexOffset = 0;
-
-            if (GetBit(octree, OCT_CHILD_0)) {
-                chosenMin = minA;
-                chosenMax = maxA;
-
-                // TODO this chunk adds them all in the ssame order, find out how to add them based on which is closest.
-                //++stackIndex;
-                //stack[stackIndex] = index + indexOffset;
-                //++indexOffset;
-            }
-
-            if (GetBit(octree, OCT_CHILD_1)) {
-                chosenMin = minB;
-                chosenMax = maxB;
-            }
-
-            if (GetBit(octree, OCT_CHILD_2)) {
-                chosenMin = minC;
-                chosenMax = maxC;
-            }
-
-            if (GetBit(octree, OCT_CHILD_3)) {
-                chosenMin = minD;
-                chosenMax = maxD;
-            }
-
-            if (GetBit(octree, OCT_CHILD_4)) {
-                chosenMin = minE;
-                chosenMax = maxE;
-            }
-
-            if (GetBit(octree, OCT_CHILD_5)) {
-                chosenMin = minF;
-                chosenMax = maxF;
-            }
-
-            if (GetBit(octree, OCT_CHILD_6)) {
-                chosenMin = minG;
-                chosenMax = maxG;
-            }
-
-            if (GetBit(octree, OCT_CHILD_7)) {
-                chosenMin = minH;
-                chosenMax = maxH;
-            }
-
-            if (HitAABB(r, AABB(chosenMin, chosenMax), dist)) {
-                hitSomething = true;
-            }
-        }
-    }
-    //}
-
-    if (hitSomething) {
-        return vec3(0.0, 1.0, 0.0);
-    }
-
-    return vec3(1.0, 0.0, 0.0);
-
-    */
-
-
-
-
-    //int density = 8;
-    //
-    //// width
-    //float w = 1.0 / float(density);
-    //
-    //float closestHit = MAX_FLOAT;
-    //
-    //vec3 offset = vec3(3.0, 0.0, -2.0);
-    //int closestIndex = HitChunk(r, offset, closestHit);
-    //
-    //if (closestIndex == -1) {
-    //    vec3 offset2 = vec3(2.0, 0.0, -2.0);
-    //    closestIndex = HitChunk(r, offset2, closestHit);
-    //}
-    //
-    //if (closestIndex != -1) {
-    //    if (closestIndex % 2 == 0) {
-    //        return vec3(0.0, 1.0, 0.0);
-    //    } else {
-    //        return vec3(0.0, 0.0, 1.0);
-    //    }
-    //} else {
-    //    return vec3(1.0, 0.0, 0.0);
-    //}
-
-
-    //int octTreeX = 0;
-    //int octTreeY = 0;
-    //int octTreeZ = 0;
-
-    float octtantWidth = 1.0;
-
-    // These are the min and max of the fully negative oct tree octant
-    //vec3 octTreeMin = vec3(-octtantWidth);
-    //vec3 octTreeMax = vec3(0.0);
-
-    vec3 offset = vec3(octTreeX * octtantWidth, octTreeY * octtantWidth, octTreeZ * octtantWidth);
-
-    float halfOctantWidth = octtantWidth / 2.0;
-
-    offset += vec3(octTreeXL2 * halfOctantWidth, octTreeYL2 * halfOctantWidth, octTreeZL2 * halfOctantWidth);
-
-    //vec3 m = octTreeMin + offset;
-    //vec3 M = m + vec3(halfOctantWidth);
-
-    //float dist;
-
-    //if (HitAABB(r, AABB(m, M), dist)) {
-    //    return vec3(0.0, 1.0, 0.0);
-    //} else {
-    //    return vec3(1.0, 0.0, 0.0);
-    //}
-
-
-
-
-
-
     Ray ray = r;
 
     int bounces = 0;
@@ -1122,10 +577,216 @@ vec3 FireRayIntoScene(Ray r) {
 // Stack concept, and some optimzations taken from:
 // https://github.com/SebLague/Ray-Tracing/tree/main
 
+uniform bool hardCoded0;
+uniform bool hardCoded1;
+uniform bool hardCoded2;
+uniform bool hardCoded3;
+uniform bool hardCoded4;
+uniform bool hardCoded5;
+uniform bool hardCoded6;
+uniform bool hardCoded7;
+
+uniform int hardCodedOctree;
+
+struct Voxel {
+    float minX;
+    float minY;
+    float minZ;
+    
+    float maxX;
+    float maxY;
+    float maxZ;
+
+    int k0;
+    int k1;
+    int k2;
+    int k3;
+    int k4;
+    int k5;
+    int k6;
+    int k7;
+
+    bool hasKids;
+};
+
+layout(std430, binding = 5) readonly buffer VoxelBuffer {
+    Voxel voxels[];
+};
+
+
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
  
+
+
+
+
+
+
+    int stack[128];
+    int stackIndex = 1;
+    
+    stack[stackIndex] = 0;
+    
+    while (stackIndex > 0) {
+        int nodeIndex = stack[stackIndex];
+        --stackIndex;
+    
+        Voxel voxel = voxels[nodeIndex];
+
+        if (voxel.hasKids) {
+            if (voxel.k0 != -1) {
+                stack[stackIndex += 1] = voxel.k0;
+            }
+
+            if (voxel.k1 != -1) {
+                stack[stackIndex += 1] = voxel.k1;
+            }
+
+            if (voxel.k2 != -1) {
+                stack[stackIndex += 1] = voxel.k2;
+            }
+
+            if (voxel.k3 != -1) {
+                stack[stackIndex += 1] = voxel.k3;
+            }
+
+            if (voxel.k4 != -1) {
+                stack[stackIndex += 1] = voxel.k4;
+            }
+
+            if (voxel.k5 != -1) {
+                stack[stackIndex += 1] = voxel.k5;
+            }
+
+            if (voxel.k6 != -1) {
+                stack[stackIndex += 1] = voxel.k6;
+            }
+
+            if (voxel.k7 != -1) {
+                stack[stackIndex += 1] = voxel.k7;
+            }
+        }
+        else { // No kids, we should shoot a ray at it
+            float dist;
+            if (HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+                if (dist < hitInfo.closestDistance) {
+                    hitInfo.closestDistance = dist;
+                    hitSomething = true;
+                }
+            }
+        }
+
+        /*
+        if (node.objectCount > 0) { // Is a leaf node, has multiple objects
+            for (int i = node.node1Offset; i < node.node1Offset + node.objectCount; ++i) {
+                HitInfo backupHitInfo = hitInfo;
+    
+                int geoType = objects[i].geometryType;
+                
+                if (geoType == SPHERE_TYPE) {
+                    if (HitSphere(ray, i, backupHitInfo)) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
+                } else if (geoType == MESH_TYPE) {
+                    if (HitMesh(ray, i, backupHitInfo)) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
+                }
+            }
+    
+        } else 
+        { // Is a branch node, its children are other nodes
+            float distanceNode1 = MAX_FLOAT;
+            vec3 minBoundN1 = vec3(TLASNodes[node.node1Offset].minX, TLASNodes[node.node1Offset].minY, TLASNodes[node.node1Offset].minZ);
+            vec3 maxBoundN1 = vec3(TLASNodes[node.node1Offset].maxX, TLASNodes[node.node1Offset].maxY, TLASNodes[node.node1Offset].maxZ);
+
+            AABB bbox = AABB(minBoundN1, maxBoundN1);
+            bool hit1 = HitAABB(ray, bbox, distanceNode1);
+            
+            float distanceNode2 = MAX_FLOAT;
+            vec3 minBoundN2 = vec3(TLASNodes[node.node1Offset + 1].minX, TLASNodes[node.node1Offset + 1].minY, TLASNodes[node.node1Offset + 1].minZ);
+            vec3 maxBoundN2 = vec3(TLASNodes[node.node1Offset + 1].maxX, TLASNodes[node.node1Offset + 1].maxY, TLASNodes[node.node1Offset + 1].maxZ);
+
+            AABB bbox2 = AABB(minBoundN2, maxBoundN2);
+            bool hit2 = HitAABB(ray, bbox2, distanceNode2);
+    
+            bool nearestIs1 = distanceNode1 < distanceNode2;
+            
+            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
+            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
+            
+            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
+            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
+            
+            bool closeHit = nearestIs1 ? hit1 : hit2;
+            bool farHit = nearestIs1 ? hit2 : hit1;
+            
+            if (farHit && farDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = farIndex;
+            }
+            
+            if (closeHit && closeDistance < hitInfo.closestDistance) {
+                stack[stackIndex += 1] = closeIndex;
+            }
+        }
+        */
+    }
+
+    return hitSomething;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //AABB bbox;
+    //bbox.minBound = vec3(0.0);
+    //bbox.maxBound = vec3(1.0);
+    float dist;
+    //return HitAABB(ray, bbox, dist);
+    vec3 octreeCenter = vec3(0.0);
+    float currentOctantWidth = 1.0;
+
+    AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
+    AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
+    AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
+    AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
+    AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
+    AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
+    AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
+    AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
+
+    return (HitAABB(ray, bbox0, dist) && GetBit(hardCodedOctree, 0)) || 
+           (HitAABB(ray, bbox1, dist) && GetBit(hardCodedOctree, 1)) ||
+           (HitAABB(ray, bbox2, dist) && GetBit(hardCodedOctree, 2)) ||
+           (HitAABB(ray, bbox3, dist) && GetBit(hardCodedOctree, 3)) ||
+           (HitAABB(ray, bbox4, dist) && GetBit(hardCodedOctree, 4)) ||
+           (HitAABB(ray, bbox5, dist) && GetBit(hardCodedOctree, 5)) ||
+           (HitAABB(ray, bbox6, dist) && GetBit(hardCodedOctree, 6)) ||
+           (HitAABB(ray, bbox7, dist) && GetBit(hardCodedOctree, 7));
+    /*
+    if () {
+        return vec3(0.0, 1.0, 0.0);
+    } else {
+        return vec3(1.0, 0.0, 0.0);
+    }
+    */
+
     //AABB aabbs[8] = AABB[8](
     //    AABB(vec3(0.0), vec3(1.0)),
     //    AABB(vec3(0.0), vec3(1.0)),
