@@ -340,81 +340,46 @@ namespace Rutile {
         const int OCT_CHILD_6 = 30;
         const int OCT_CHILD_7 = 31;
 
-        int octree = 1;
+        int octree = 0;
 
-        if (!m_OctTreeNoKids) {
-            if (!m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_0);
-            }
+        static bool r0 = false;
+        static bool r1 = false;
+        static bool r2 = false;
+        static bool r3 = false;
+        static bool r4 = false;
+        static bool r5 = false;
+        static bool r6 = false;
+        static bool r7 = false;
 
-            if (m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_1);
-            }
+        ImGui::Separator();
 
-            if (!m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_2);
-            }
+        if (ImGui::Checkbox("0", &r0)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("1", &r1)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("2", &r2)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("3", &r3)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("4", &r4)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("5", &r5)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("6", &r6)) { ResetAccumulatedPixelData(); } ImGui::SameLine();
+        if (ImGui::Checkbox("7", &r7)) { ResetAccumulatedPixelData(); }
 
-            if (m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_3);
-            }
-
-            if (!m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_4);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_5);
-            }
-
-            if (!m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_6);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_7);
-            }
-        }
+        if (r0) { octree = SetBit(octree, OCT_CHILD_0); }
+        if (r1) { octree = SetBit(octree, OCT_CHILD_1); }
+        if (r2) { octree = SetBit(octree, OCT_CHILD_2); }
+        if (r3) { octree = SetBit(octree, OCT_CHILD_3); }
+        if (r4) { octree = SetBit(octree, OCT_CHILD_4); }
+        if (r5) { octree = SetBit(octree, OCT_CHILD_5); }
+        if (r6) { octree = SetBit(octree, OCT_CHILD_6); }
+        if (r7) { octree = SetBit(octree, OCT_CHILD_7); }
 
         m_VoxelRayTracingShader->SetInt("octree", octree);
 
-        int octreeChild = 1;
+        int octreeChild0 = 0;
 
-        if (!m_OctTreeNoKids) {
-            if (!m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_0);
-            }
+        //m_VoxelRayTracingShader->SetInt("octreeChild", octreeChild);
 
-            if (m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_1);
-            }
 
-            if (!m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_2);
-            }
 
-            if (m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_3);
-            }
 
-            if (!m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_4);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_5);
-            }
-
-            if (!m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_6);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octreeChild = SetBit(octreeChild, OCT_CHILD_7);
-            }
-        }
-
-        m_VoxelRayTracingShader->SetInt("octreeChild", octreeChild);
 
         static int maxBboxChecks = 100;
         static int maxSphereChecks = 100;

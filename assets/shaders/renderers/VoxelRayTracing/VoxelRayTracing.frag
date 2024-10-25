@@ -361,8 +361,23 @@ uniform int child8;
 
 uniform float startingWidth;
 
-// Returns the number of the block it hit, or -1 if it did not hit the block
-int HitOctree(Ray ray, inout float currentOctantWidth, inout vec3 octreeCenter, int targetChild, bool root) {
+// OLD Returns the number of the block it hit, or -1 if it did not hit the block OLD
+
+struct Ret {
+    int mask;
+
+    float dist0;
+    float dist1;
+    float dist2;
+    float dist3;
+    float dist4;
+    float dist5;
+    float dist6;
+    float dist7;
+};
+
+// Returns a mask where all bits set represent a child hit
+int HitOctree(Ray ray, inout float currentOctantWidth, inout vec3 octreeCenter, int targetChild, bool root, int octree) {
     float dist = MAX_FLOAT;
     if (!HitAABB(ray, AABB(octreeCenter - currentOctantWidth, octreeCenter + currentOctantWidth), dist)) {
         // We did not even hit the octant that this octree is inside of
@@ -421,56 +436,72 @@ int HitOctree(Ray ray, inout float currentOctantWidth, inout vec3 octreeCenter, 
     AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
     AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
 
-    if (HitAABB(ray, bbox0, dist0)) {
+    if (GetBit(octree, OCT_CHILD_0) && HitAABB(ray, bbox0, dist0)) {
+        //ret = SetBit(ret, OCT_CHILD_0);
+
         if (dist0 < closestHit) {
             closestHit = dist0;
             closestHitIndex = 0;
         }
     }
 
-    if (HitAABB(ray, bbox1, dist1)) {        
+    if (GetBit(octree, OCT_CHILD_1) && HitAABB(ray, bbox1, dist1)) {     
+        //ret = SetBit(ret, OCT_CHILD_1);
+
         if (dist1 < closestHit) {
             closestHit = dist1;
             closestHitIndex = 1;
         }
     }
         
-    if (HitAABB(ray, bbox2, dist2)) {        
+    if (GetBit(octree, OCT_CHILD_2) && HitAABB(ray, bbox2, dist2)) {
+        //ret = SetBit(ret, OCT_CHILD_2);
+
         if (dist2 < closestHit) {
             closestHit = dist2;
             closestHitIndex = 2;
         }
     }
         
-    if (HitAABB(ray, bbox3, dist3)) {        
+    if (GetBit(octree, OCT_CHILD_3) && HitAABB(ray, bbox3, dist3)) {        
+        //ret = SetBit(ret, OCT_CHILD_3);
+
         if (dist3 < closestHit) {
             closestHit = dist3;
             closestHitIndex = 3;
         }
     }
         
-    if (HitAABB(ray, bbox4, dist4)) {        
+    if (GetBit(octree, OCT_CHILD_4) && HitAABB(ray, bbox4, dist4)) {     
+        //ret = SetBit(ret, OCT_CHILD_4);
+
         if (dist4 < closestHit) {
             closestHit = dist4;
             closestHitIndex = 4;
         }
     }
         
-    if (HitAABB(ray, bbox5, dist5)) {        
+    if (GetBit(octree, OCT_CHILD_5) && HitAABB(ray, bbox5, dist5)) {   
+        //ret = SetBit(ret, OCT_CHILD_5);
+
         if (dist5 < closestHit) {
             closestHit = dist5;
             closestHitIndex = 5;
         }
     }
         
-    if (HitAABB(ray, bbox6, dist6)) {        
+    if (GetBit(octree, OCT_CHILD_6) && HitAABB(ray, bbox6, dist6)) {       
+        //ret = SetBit(ret, OCT_CHILD_6);
+
         if (dist6 < closestHit) {
             closestHit = dist6;
             closestHitIndex = 6;
         }
     }
         
-    if (HitAABB(ray, bbox7, dist7)) {        
+    if (GetBit(octree, OCT_CHILD_7) && HitAABB(ray, bbox7, dist7)) {     
+        //ret = SetBit(ret, OCT_CHILD_7);
+
         if (dist7 < closestHit) {
             closestHit = dist7;
             closestHitIndex = 7;
@@ -478,10 +509,10 @@ int HitOctree(Ray ray, inout float currentOctantWidth, inout vec3 octreeCenter, 
     }
 
     return closestHitIndex;
+    //return ret;
 }
 
-
-
+uniform int rootOctreeChildren[8];
 
 vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
@@ -492,6 +523,40 @@ vec3 FireRayIntoScene(Ray r) {
 
 
 
+    int stack[32];
+    int stackIndex = 0;
+
+    stack[stackIndex] = 0;
+
+    while (stackIndex >= 0) {
+        int tree;
+
+        // TODO this switch is temporary before i swap in an array
+        // DO HARDCODED ARRAY TESTING BEFORE SSBO TeSTInG
+        switch (stack[stackIndex]) {
+        case 0: // Root
+            tree = octree;
+            break;
+        };
+        --stackIndex;
+
+        /*
+        if (dont hit octree) { 
+            modify octree center and width
+            continue 
+        }
+
+        for (child : octree children) {
+            if (octree has ith child) {
+                if (we hit octress ith child) {
+                    Add the child to the stack
+                }
+            }
+        }
+
+        modify octree center and width
+        */
+    }
 
 
 
@@ -505,13 +570,19 @@ vec3 FireRayIntoScene(Ray r) {
 
 
 
-    int rootOctree = 1;
 
-    rootOctree = SetBit(rootOctree, OCT_CHILD_0);
-    rootOctree = SetBit(rootOctree, OCT_CHILD_5);
 
-    //int octreeChild0 = 1;
-    //int octreeChild5 = 2;
+
+
+
+
+
+
+
+
+
+
+
 
     bool hitSomething = false;
 
@@ -537,50 +608,84 @@ vec3 FireRayIntoScene(Ray r) {
         finalColor = vec3(1.0);
     }
 
-    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, 0, true);
+    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, 0, true, octree);
+    // We now have the index of the closest child of this octree. If this index is equal to any of the bits toggled in the first 8 bits of an octree
+    // than we want to continue, and check the next octree (usualy this would be done with the index system). If instead the hit octant dosent have
+    // the bit for the hit child set, than we check if any of the child bits are set. If none of the child bits are set, and the index is 0, the octree
+    // is empty, and we can break out. But if there is an index, than we have a hit, and the index is a material index.
+
+
+
+
+    if (closestHitIndex != -1 && GetBit(octree, OCT_CHILD_0 + closestHitIndex)) {
+    //if () {
+        //int childOctree = 0;
+        //childOctree = SetBit(childOctree, OCT_CHILD_0);
+        //closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, closestHitIndex, false, childOctree);
+        //
+        //if (closestHitIndex == 0) {
+        //    return vec3(0.0, 1.0, 0.0);
+        //} else {
+        //    return vec3(0.0, 0.0, 1.0);
+        //}
+        return vec3(0.0, 1.0, 0.0);
+
+    } else {
+        return vec3(1.0, 0.0, 0.0);
+    }
+
+
+
+
+
+
+
+
+
+
 
     if (closestHitIndex == child1) {
         // Hit the child
         finalColor = vec3(1.0, 0.0, 0.0);
 
-        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child1, false);
+        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child1, false, 0);
 
         if (closestHitIndex == child2) {
             // Hit the child
             finalColor = vec3(0.0, 1.0, 0.0);
 
-            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child2, false);
+            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child2, false, 0);
 
             if (closestHitIndex == child3) {
                 // Hit the child
                 finalColor = vec3(0.0, 0.0, 1.0);
 
-                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child3, false);
+                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child3, false, 0);
 
                 if (closestHitIndex == child4) {
                     // Hit the child
                     finalColor = vec3(1.0, 1.0, 0.0);
 
-                    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child4, false);
+                    closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child4, false, 0);
 
                     if (closestHitIndex == child5) {
                         // Hit the child
                         finalColor = vec3(0.0, 1.0, 1.0);
 
-                        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child5, false);
+                        closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child5, false, 0);
 
                         if (closestHitIndex == child6) {
                             // Hit the child
                             finalColor = vec3(1.0, 0.0, 1.0);
-
-                            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child6, false);
-
+                        
+                            closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child6, false, 0);
+                        
                             if (closestHitIndex == child7) {
                                 // Hit the child
                                 finalColor = vec3(1.0, 0.5, 0.5);
-
-                                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child7, false);
-
+                        
+                                closestHitIndex = HitOctree(r, currentOctantWidth, octreeCenter, child7, false, 0);
+                        
                                 if (closestHitIndex == child8) {
                                     // Hit the child
                                     finalColor = vec3(0.5, 0.5, 1.0);
