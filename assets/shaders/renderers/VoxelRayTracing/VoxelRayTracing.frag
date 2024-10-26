@@ -38,78 +38,15 @@ struct Material {
     vec3 color;
 };
 
-const int SPHERE_TYPE = 0;
-const int MESH_TYPE = 1;
-
-struct Object {
-    mat4 model;
-    mat4 invModel;
-
-    mat4 transposeInverseModel;        // transpose(inverse(model));
-    mat4 transposeInverseInverseModel; // transpose(inverse(invModel));
-
-    int materialIndex;
-
-    int geometryType;
-    int BVHStartIndex;
-};
-
 struct AABB {
     vec3 minBound;
     vec3 maxBound;
 };
 
-struct TLASNode {
-    float minX;
-    float minY;
-    float minZ;
-    
-    float maxX;
-    float maxY;
-    float maxZ;
-
-    int node1Offset;
-    int objectCount;
-};
-
-struct BLASNode {
-    float minX;
-    float minY;
-    float minZ;
-    
-    float maxX;
-    float maxY;
-    float maxZ;
-
-    int node1Offset;
-    int triangleCount;
-};
 
 layout(std430, binding = 0) readonly buffer materialBuffer {
     Material materialBank[];
 };
-
-layout(std430, binding = 1) readonly buffer objectBuffer {
-    Object objects[];
-};
-
-layout(std430, binding = 2) readonly buffer meshBuffer {
-    float meshData[];
-};
-
-layout(std430, binding = 3) readonly buffer TLASBuffer {
-    TLASNode TLASNodes[];
-};
-
-layout(std430, binding = 4) readonly buffer BLASBuffer {
-    BLASNode BLASNodes[];
-};
-
-uniform int objectCount;
-
-uniform int BVHStartIndex;
-
-uniform int objectBVHStartIndex;
 
 struct HitInfo {
     vec3 normal;
@@ -151,14 +88,9 @@ vec3 FireRayIntoScene(Ray ray);
 
 // Scene hitting functions
 bool HitScene(Ray ray, inout HitInfo hitInfo);
-bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo);
-
-bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3[3] triangle);
-bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo);
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection);
 bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo);
-
 
 // Materials
 struct ScatterInfo {
@@ -268,116 +200,6 @@ float reflectance(float cosine, float refractionIndex) {
     return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
-int HitChunk(Ray ray, vec3 offset, inout float closestHit) {
-    int density = 8;
-
-    float w = 1.0 / float(density);
-
-    int closestIndex = -1;
-
-    for (int x = 0; x < density; ++x) {
-        for (int y = 0; y < density; ++y) {
-            for (int z = 0; z < density; ++z) {
-                vec3 m = vec3(x * w, y * w, z * w) + offset;
-                vec3 M = vec3(w + x * w, w + y * w, w + z * w) + offset;
-
-                AABB bbox = AABB(m, M);
-
-                float dist;
-
-                if (HitAABB(ray, bbox, dist) && dist < closestHit) {
-                    closestHit = dist;
-                    closestIndex = x + y + z;
-                }
-            }
-        }
-    }
-
-    return closestIndex;
-}
-
-uniform int octTreeX;
-uniform int octTreeY;
-uniform int octTreeZ;
-
-uniform int octTreeXL2;
-uniform int octTreeYL2;
-uniform int octTreeZL2;
-
-struct Octree {
-    bool a;
-    bool b;
-    bool c;
-    bool d;
-    bool e;
-    bool f;
-    bool g;
-    bool h;
-
-    int index;
-};
-
-int SetBit(inout int value, int n) {
-    return value |= (1 << n);
-}
-
-bool GetBit(int value, int n) {
-    return bool((value >> n) & 1);
-}
-
-int GetOctreeIndex(int octree) {
-    int index = octree << 8;
-    index = index >> 8;
-
-    return index;
-}
-
-// Returns true if the octree has at least 1 child
-bool OctreeHasKids(int octree) {
-    return bool(octree >> 24);
-}
-
-const int OCT_CHILD_0 = 24;
-const int OCT_CHILD_1 = 25;
-const int OCT_CHILD_2 = 26;
-const int OCT_CHILD_3 = 27;
-
-const int OCT_CHILD_4 = 28;
-const int OCT_CHILD_5 = 29;
-const int OCT_CHILD_6 = 30;
-const int OCT_CHILD_7 = 31;
-
-uniform int octTreeNoKids;
-
-uniform int octree;
-uniform int octreeChild;
-
-uniform int child1;
-uniform int child2;
-uniform int child3;
-uniform int child4;
-uniform int child5;
-uniform int child6;
-uniform int child7;
-uniform int child8;
-
-uniform float startingWidth;
-
-// OLD Returns the number of the block it hit, or -1 if it did not hit the block OLD
-
-struct Ret {
-    int mask;
-
-    float dist0;
-    float dist1;
-    float dist2;
-    float dist3;
-    float dist4;
-    float dist5;
-    float dist6;
-    float dist7;
-};
-
 vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
@@ -395,8 +217,6 @@ vec3 FireRayIntoScene(Ray r) {
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
-
-            //return hitInfo.normal;
 
             // Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex]; TODO
             Material mat;
@@ -422,27 +242,6 @@ vec3 FireRayIntoScene(Ray r) {
                 scatterInfo = OneWayMirrorScatter(scatterInfo, mat, hitInfo, bounces);
             }
 
-
-
-
-
-
-
-
-
-
-
-            //return scatterInfo.ray.direction; // TODO remove
-
-
-
-
-
-
-
-
-
-
             scatterInfo.ray.origin = hitInfo.hitPosition;
             scatterInfo.ray.inverseDirection = 1.0 / scatterInfo.ray.direction;
 
@@ -457,8 +256,6 @@ vec3 FireRayIntoScene(Ray r) {
 
         ++bounces;
     }
-
-    //return vec3(1.0, 0.0, 0.0);
 
     return color;
 }
@@ -553,215 +350,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                 }
             }
         }
-
-        /*
-        if (node.objectCount > 0) { // Is a leaf node, has multiple objects
-            for (int i = node.node1Offset; i < node.node1Offset + node.objectCount; ++i) {
-                HitInfo backupHitInfo = hitInfo;
-    
-                int geoType = objects[i].geometryType;
-                
-                if (geoType == SPHERE_TYPE) {
-                    if (HitSphere(ray, i, backupHitInfo)) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                } else if (geoType == MESH_TYPE) {
-                    if (HitMesh(ray, i, backupHitInfo)) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                }
-            }
-    
-        } else 
-        { // Is a branch node, its children are other nodes
-            float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(TLASNodes[node.node1Offset].minX, TLASNodes[node.node1Offset].minY, TLASNodes[node.node1Offset].minZ);
-            vec3 maxBoundN1 = vec3(TLASNodes[node.node1Offset].maxX, TLASNodes[node.node1Offset].maxY, TLASNodes[node.node1Offset].maxZ);
-
-            AABB bbox = AABB(minBoundN1, maxBoundN1);
-            bool hit1 = HitAABB(ray, bbox, distanceNode1);
-            
-            float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(TLASNodes[node.node1Offset + 1].minX, TLASNodes[node.node1Offset + 1].minY, TLASNodes[node.node1Offset + 1].minZ);
-            vec3 maxBoundN2 = vec3(TLASNodes[node.node1Offset + 1].maxX, TLASNodes[node.node1Offset + 1].maxY, TLASNodes[node.node1Offset + 1].maxZ);
-
-            AABB bbox2 = AABB(minBoundN2, maxBoundN2);
-            bool hit2 = HitAABB(ray, bbox2, distanceNode2);
-    
-            bool nearestIs1 = distanceNode1 < distanceNode2;
-            
-            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
-            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
-            
-            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
-            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
-            
-            bool closeHit = nearestIs1 ? hit1 : hit2;
-            bool farHit = nearestIs1 ? hit2 : hit1;
-            
-            if (farHit && farDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = farIndex;
-            }
-            
-            if (closeHit && closeDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = closeIndex;
-            }
-        }
-        */
     }
-
-    return hitSomething;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //AABB bbox;
-    //bbox.minBound = vec3(0.0);
-    //bbox.maxBound = vec3(1.0);
-    float dist;
-    /*
-    //return HitAABB(ray, bbox, dist);
-    vec3 octreeCenter = vec3(0.0);
-    float currentOctantWidth = 1.0;
-
-    AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
-    AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
-    AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
-    AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
-    AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
-    AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
-    AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
-    AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
-
-    return (HitAABB(ray, bbox0, dist) && GetBit(hardCodedOctree, 0)) || 
-           (HitAABB(ray, bbox1, dist) && GetBit(hardCodedOctree, 1)) ||
-           (HitAABB(ray, bbox2, dist) && GetBit(hardCodedOctree, 2)) ||
-           (HitAABB(ray, bbox3, dist) && GetBit(hardCodedOctree, 3)) ||
-           (HitAABB(ray, bbox4, dist) && GetBit(hardCodedOctree, 4)) ||
-           (HitAABB(ray, bbox5, dist) && GetBit(hardCodedOctree, 5)) ||
-           (HitAABB(ray, bbox6, dist) && GetBit(hardCodedOctree, 6)) ||
-           (HitAABB(ray, bbox7, dist) && GetBit(hardCodedOctree, 7));
-    */
-    /*
-    if () {
-        return vec3(0.0, 1.0, 0.0);
-    } else {
-        return vec3(1.0, 0.0, 0.0);
-    }
-    */
-
-    //AABB aabbs[8] = AABB[8](
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0)),
-    //    AABB(vec3(0.0), vec3(1.0))
-    //);
-
-
-    int density = 8;
-
-    // width
-    float w = 1.0 / float(density);
-
-    bool hit = false;
-    for (int i = 0; i < density; ++i) {
-        vec3 m = vec3(0.0 + i * w, 0.0, 0.0);
-        vec3 M = vec3(w + i * w, w, w);
-
-        AABB bbox = AABB(m, M);
-
-        float dist;
-        hit = HitAABB(ray, bbox, dist);
-    }
-    
-    return hit;
-
-    /*
-    int stack[32];
-    int stackIndex = 1;
-    
-    stack[stackIndex] = BVHStartIndex;
-    
-    while (stackIndex > 0) {
-        int nodeIndex = stack[stackIndex];
-        --stackIndex;
-    
-        TLASNode node = TLASNodes[nodeIndex];
-    
-        if (node.objectCount > 0) { // Is a leaf node, has multiple objects
-            for (int i = node.node1Offset; i < node.node1Offset + node.objectCount; ++i) {
-                HitInfo backupHitInfo = hitInfo;
-    
-                int geoType = objects[i].geometryType;
-                
-                if (geoType == SPHERE_TYPE) {
-                    if (HitSphere(ray, i, backupHitInfo)) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                } else if (geoType == MESH_TYPE) {
-                    if (HitMesh(ray, i, backupHitInfo)) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                }
-            }
-    
-        } else { // Is a branch node, its children are other nodes
-            float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(TLASNodes[node.node1Offset].minX, TLASNodes[node.node1Offset].minY, TLASNodes[node.node1Offset].minZ);
-            vec3 maxBoundN1 = vec3(TLASNodes[node.node1Offset].maxX, TLASNodes[node.node1Offset].maxY, TLASNodes[node.node1Offset].maxZ);
-
-            AABB bbox = AABB(minBoundN1, maxBoundN1);
-            bool hit1 = HitAABB(ray, bbox, distanceNode1);
-            
-            float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(TLASNodes[node.node1Offset + 1].minX, TLASNodes[node.node1Offset + 1].minY, TLASNodes[node.node1Offset + 1].minZ);
-            vec3 maxBoundN2 = vec3(TLASNodes[node.node1Offset + 1].maxX, TLASNodes[node.node1Offset + 1].maxY, TLASNodes[node.node1Offset + 1].maxZ);
-
-            AABB bbox2 = AABB(minBoundN2, maxBoundN2);
-            bool hit2 = HitAABB(ray, bbox2, distanceNode2);
-    
-            bool nearestIs1 = distanceNode1 < distanceNode2;
-            
-            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
-            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
-            
-            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
-            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
-            
-            bool closeHit = nearestIs1 ? hit1 : hit2;
-            bool farHit = nearestIs1 ? hit2 : hit1;
-            
-            if (farHit && farDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = farIndex;
-            }
-            
-            if (closeHit && closeDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = closeIndex;
-            }
-        }
-    }
-    */
 
     return hitSomething;
 }
@@ -773,242 +362,8 @@ vec3 getFaceNormal(Ray ray, vec3 outwardNormal) {
     return normal;
 }
 
-bool HitSphere(Ray ray, int objectIndex, inout HitInfo hitInfo) {
-#ifdef STATS
-    ++stats.sphereChecks;
-#endif
-
-    //float r = 1.0; // Sphere radius in local space
-    //vec3 spherePos = { 0.0, 0.0, 0.0 }; // Sphere position in local space
-
-    Object object = objects[objectIndex];
-
-    // Transform the ray into the local space of the object
-    vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-
-    vec3 d = (object.invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz; // TODO pick a direction transformation
-    //vec3 d = mat3(object.transposeInverseInverseModel) * normalize(ray.direction.xyz);
-    d = normalize(d);
-
-    // Intersection test
-    vec3 co = -o; // Should be: vec3 co = spherePos - o;, but spherePos is (0.0, 0.0, 0.0)
-
-    //float a = 1.0;
-    float h = dot(d, co);
-    float c = dot(co, co) - 1.0; // Should be: float c = dot(co, co) - r * r;, but radius is always 1.0
-    
-    float discriminant = h * h - 1.0 * c;
-
-    if (discriminant < 0.0) {
-        return false;
-    }
-
-    float sqrtDiscriminant = sqrt(discriminant);
-
-    // Because we subtract the discriminant, this root will always be smaller than the other one
-    float t = h - sqrtDiscriminant; // Should be: float t = (h - sqrtDiscriminant) / a;, but a is 1.0
-
-    // Both t values are in the LOCAL SPACE of the object, so they can be compared to each other,
-    // but they cannot be compared to the t values of other objects
-    if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
-        t = h + sqrtDiscriminant; // Should be: t = (h + sqrtDiscriminant) / a;, but a is 1.0
-        if (t <= MIN_RAY_DISTANCE || t >= MAX_FLOAT) {
-            return false;
-        }
-    }
-
-    // At this point, no matter what t will be the closest hit for THIS object
-
-    // Here we calculate the WORLD SPACE distance between the hit point and the ray for THIS object,
-    // this can than be compared against other objects
-    vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
-
-    float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
-
-    if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-        hitInfo.closestDistance = lengthAlongRayWorldSpace;
-        hitInfo.hitObjectIndex = objectIndex;
-
-        vec3 hitPointLocalSpace = o + t * d;
-
-        hitInfo.normal = normalize(hitPointLocalSpace); // Should be: outHitInfo.normal = normalize(hitPointLocalSpace - spherePos);, but spherePos is (0.0, 0.0, 0.0)
-
-        vec3 outwardNormal = hitPointLocalSpace; // Should be: vec3 outwardNormal = (hitPointLocalSpace - spherePos) / r;, but sphere pos is 0 and r is 1
-        hitInfo.frontFace = dot(ray.direction, outwardNormal) < 0.0;
-
-        if (!hitInfo.frontFace) {
-            hitInfo.normal = -hitInfo.normal;
-        }
-
-        // Transform normal back to world space
-        vec3 normalWorldSpace = mat3(object.transposeInverseModel) * hitInfo.normal;
-        hitInfo.normal = normalize(normalWorldSpace);
-
-        hitInfo.hitPosition = (object.model * vec4(hitPointLocalSpace, 1.0)).xyz;
-
-        return true;
-    }
-
-    return false;
-}
-
 bool IsInterior(float alpha, float beta) {
     return alpha > 0 && beta > 0 && alpha + beta < 1;
-}
-
-bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo) {
-#ifdef STATS
-    ++stats.meshChecks;
-#endif
-
-    bool hitSomething = false;
-
-    int stack[32];
-    int stackIndex = 1;
-
-    stack[stackIndex] = objects[objectIndex].BVHStartIndex;
-
-    while (stackIndex > 0) {
-        int nodeIndex = stack[stackIndex];
-        --stackIndex;
-
-        BLASNode node = BLASNodes[nodeIndex];
-
-        if (node.triangleCount > 0) { // Is a leaf node, has triangles
-            for (int i = node.node1Offset; i < node.node1Offset + node.triangleCount; i += 9) {
-                HitInfo backupHitInfo = hitInfo;
-            
-                vec3 v1 = vec3(meshData[i + 0], meshData[i + 1], meshData[i + 2]);
-                vec3 v2 = vec3(meshData[i + 3], meshData[i + 4], meshData[i + 5]);
-                vec3 v3 = vec3(meshData[i + 6], meshData[i + 7], meshData[i + 8]);
-            
-                vec3 triangle[3] = vec3[3](v1, v2 - v1, v3 - v1); // TODO move to CPU
-            
-                if(HitTriangle(ray, objectIndex, backupHitInfo, triangle)) {
-                    if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
-                        hitInfo = backupHitInfo;
-                        hitSomething = true;
-                    }
-                }
-            }
-
-        } else { // Is a branch node, its children are other nodes
-            float distanceNode1 = MAX_FLOAT;
-            vec3 minBoundN1 = vec3(BLASNodes[node.node1Offset].minX, BLASNodes[node.node1Offset].minY, BLASNodes[node.node1Offset].minZ);
-            vec3 maxBoundN1 = vec3(BLASNodes[node.node1Offset].maxX, BLASNodes[node.node1Offset].maxY, BLASNodes[node.node1Offset].maxZ);
-            
-            vec3 o = (objects[objectIndex].invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-
-            vec3 d = (objects[objectIndex].invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz;
-            //vec3 d = mat3(objects[objectIndex].transposeInverseInverseModel) * normalize(ray.direction.xyz);
-            d = normalize(d);
-            bool hit1 = HitAABB(Ray(o, d, normalize(1.0 / d)), AABB(minBoundN1, maxBoundN1), distanceNode1);
-
-            distanceNode1 = (objects[objectIndex].model * vec4(distanceNode1, 0.0, 0.0, 0.0)).x;
-
-            float distanceNode2 = MAX_FLOAT;
-            vec3 minBoundN2 = vec3(BLASNodes[node.node1Offset + 1].minX, BLASNodes[node.node1Offset + 1].minY, BLASNodes[node.node1Offset + 1].minZ);
-            vec3 maxBoundN2 = vec3(BLASNodes[node.node1Offset + 1].maxX, BLASNodes[node.node1Offset + 1].maxY, BLASNodes[node.node1Offset + 1].maxZ);
-            bool hit2 = HitAABB(Ray(o, d, normalize(1.0 / d)), AABB(minBoundN2, maxBoundN2), distanceNode2);
-
-            distanceNode2 = (objects[objectIndex].model * vec4(distanceNode2, 0.0, 0.0, 0.0)).x;
-
-            bool nearestIs1 = distanceNode1 < distanceNode2;
-            
-            int closeIndex = nearestIs1 ? node.node1Offset : node.node1Offset + 1;
-            int farIndex = nearestIs1 ? node.node1Offset + 1 : node.node1Offset;
-            
-            float closeDistance = nearestIs1 ? distanceNode1 : distanceNode2;
-            float farDistance = nearestIs1 ? distanceNode2 : distanceNode1;
-            
-            bool closeHit = nearestIs1 ? hit1 : hit2;
-            bool farHit = nearestIs1 ? hit2 : hit1;
-            
-            if (farHit && farDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = farIndex;
-            }
-            
-            if (closeHit && closeDistance < hitInfo.closestDistance) {
-                stack[stackIndex += 1] = closeIndex;
-            }
-        }
-    }
-    
-    return hitSomething;
-}
-
-bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3 triangle[3]) {
-#ifdef STATS
-    ++stats.triangleChecks;
-#endif
-
-    Object object = objects[objectIndex];
-
-    // Transform the ray into the local space of the object
-
-    //vec3 o = ray.origin;
-    //vec3 d = ray.direction;
-
-
-    vec3 o = (object.invModel * vec4(ray.origin.xyz, 1.0)).xyz;
-
-    vec3 d = (object.invModel * vec4(normalize(ray.direction.xyz), 0.0)).xyz; // TODO pick a direction transformation
-    //vec3 d = mat3(object.transposeInverseInverseModel) * normalize(ray.direction.xyz);
-    d = normalize(d);
-
-    // Quad definition
-    vec3 Q = triangle[0];
-    vec3 u = triangle[1];
-    vec3 v = triangle[2];
-
-    vec3 n = cross(u, v);
-    vec3 normal = normalize(n);
-    float D = dot(normal, Q);
-    vec3 w = n / dot(n, n);
-
-    // Plane intersection
-    float denom = dot(normal, d);
-    if (abs(denom) < 1e-8) {
-        return false;
-    }
-
-    float t = (D - dot(normal, o)) / denom;
-
-    if (t < MIN_RAY_DISTANCE) {
-        return false;
-    }
-
-    // t is the closest point in object space
-
-    vec3 intersection = o + d * t;
-
-    // This check happens in object space
-    vec3 planarHitPoint = intersection - Q;
-    float alpha = dot(w, cross(planarHitPoint, v));
-    float beta = dot(w, cross(u, planarHitPoint));
-
-    if (!IsInterior(alpha, beta)) {
-        return false;
-    }
-
-    vec3 hitPointWorldSpace = (object.model * vec4(o + t * normalize(d), 1.0)).xyz;
-    float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
-
-    if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-        hitInfo.closestDistance = lengthAlongRayWorldSpace;
-        hitInfo.hitPosition = hitPointWorldSpace;
-        hitInfo.hitObjectIndex = objectIndex;
-        
-        vec3 normalWorldSpace = normalize((object.transposeInverseModel * vec4(normal, 0.0)).xyz);
-        
-        bool frontFace = dot(ray.direction, normalWorldSpace) < 0.0;
-        hitInfo.normal = frontFace ? normalWorldSpace : -normalWorldSpace;
-        hitInfo.frontFace = frontFace;
-
-        return true;
-    }
-
-    return false;
 }
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
@@ -1061,8 +416,6 @@ bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo) {
 
     hitInfo.normal = getFaceNormal(ray, hitNormal);
 
-    //hitInfo.hitPosition = vec3(1.0, 0.0, 0.0);
-
     hitInfo.hitObjectIndex = 0;
 
     return true;
@@ -1076,17 +429,6 @@ ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInf
     }
 
     scatterInfo.throughput = vec3(mat.color.rgb);
-
-
-
-
-
-    // scatterInfo.ray.direction = hitInfo.hitPosition; // TODO remove
-
-
-
-
-
 
     return scatterInfo;
 }
