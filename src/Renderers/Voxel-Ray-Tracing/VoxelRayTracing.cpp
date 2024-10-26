@@ -1,54 +1,19 @@
 #include "VoxelRayTracing.h"
 #include "imgui.h"
+#include <array>
 #include <bitset>
 #include <iostream>
 
+#include "GUI/ImGuiUtil.h"
+
 #include "Settings/App.h"
 
+#include "Utility/Random.h"
 #include "Utility/events/Events.h"
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    uint32_t SetBit(uint32_t value, size_t n) {
-        return value |= (1 << n);
-    }
-
     GLFWwindow* VoxelRayTracing::Init() {
-        uint32_t i = 293;
-        std::cout << "I: " << std::bitset<32>(i) << std::endl;
-
-        //uint32_t l = SetBit(i, 0);
-        //std::cout << "L: " << std::bitset<32>(l) << std::endl;
-
-        //uint32_t r = SetBit(i, 31);;
-        //std::cout << "R: " << std::bitset<32>(r) << std::endl;
-
-
-
-        // The blocks of the chunk
-        //i = SetBit(i, 24);
-        //i = SetBit(i, 26);
-        //i = SetBit(i, 29);
-        //i = SetBit(i, 31);
-
-        //std::cout << "I: " << std::bitset<32>(i) << std::endl;
-
-        //std::cout << std::bitset<32>(i >> 24) << std::endl;
-
-        //uint32_t index = i << 8;
-        //index = index >> 8;
-        //std::cout << "Index: " << std::bitset<32>(index) << std::endl;
-
-        //std::cout << index << std::endl;
-
-
-
-
-
-
-
-
-
         m_RendererLoadTime = std::chrono::steady_clock::now();
 
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -74,7 +39,7 @@ namespace Rutile {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
 
-        m_BlockData = std::make_unique<SSBO<unsigned char>>(0);
+        m_VoxelSSBO = std::make_unique<SSBO<Voxel>>(5);
 
         std::vector<float> vertices = {
             // Positions
@@ -139,20 +104,187 @@ namespace Rutile {
 
         m_VoxelRayTracingShader->Bind();
 
-        m_VoxelRayTracingShader->SetInt("octTreeX", m_OctTreeX);
-        m_VoxelRayTracingShader->SetInt("octTreeY", m_OctTreeY);
-        m_VoxelRayTracingShader->SetInt("octTreeZ", m_OctTreeZ);
-
         ResetAccumulatedPixelData();
 
+        CreateOctree();
+
         return window;
+    }
+
+    /*
+     * Min bound and Max bound: the size of the current voxel
+     */
+    template<int N>
+    void Voxelify(std::array<std::array<std::array<bool, N>, N>, N> grid, glm::vec3 minBound, glm::vec3 maxBound, std::vector<VoxelRayTracing::Voxel>& voxels) {
+        int voxelsFound = 0;
+
+        for (int x = 0; x < N; ++x) {
+            for (int y = 0; y < N; ++y) {
+                for (int z = 0; z < N; ++z) {
+                    if (grid[x][y][z]) {
+                        ++voxelsFound;
+                    }
+                }
+            }
+        }
+
+        VoxelRayTracing::Voxel voxel{ };
+
+        voxel.minBound = minBound;
+        voxel.maxBound = maxBound;
+
+        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0])) {
+            voxel.hasKids = false;
+            voxel.shouldDraw = true;
+
+        }
+        else {
+            if (voxelsFound != 0) {
+                voxel.hasKids = true;
+                voxel.shouldDraw = false;
+
+                float kidWidth = (maxBound.x - minBound.x) / 2.0f;
+                constexpr int hN = N / 2;
+
+                // Disect the grid into 8 pieces properly, recurse 8 differnt times, once for each octant
+                for (int i = 0; i < 8; ++i) {
+                    std::array<std::array<std::array<bool, hN>, hN>, hN> g{ };
+
+                    glm::vec3 minB{ };
+                    glm::vec3 maxB{ };
+
+                    glm::ivec3 sourceOffset{ };
+
+                    switch (i) {
+                    case 0:
+                        minB = minBound;
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0 };
+
+                        break;
+
+                    case 1:
+                        minB = minBound + glm::vec3{ kidWidth, 0.0f, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, 0, 0 };
+
+                        break;
+                    case 2:
+                        minB = minBound + glm::vec3{ 0.0f, 0.0f, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, 0, hN };
+
+                        break;
+                    case 3:
+                        minB = minBound + glm::vec3{ kidWidth, 0.0f, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, 0, hN };
+
+                        break;
+                    case 4:
+                        minB = minBound + glm::vec3{ 0.0f, kidWidth, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, hN, 0 };
+
+                        break;
+                    case 5:
+                        minB = minBound + glm::vec3{ kidWidth, kidWidth, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, hN, 0 };
+
+                        break;
+                    case 6:
+                        minB = minBound + glm::vec3{ 0.0f, kidWidth, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, hN, hN };
+
+                        break;
+                    case 7:
+                        minB = minBound + glm::vec3{ kidWidth, kidWidth, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, hN, hN };
+
+                        break;
+                    }
+
+                    for (int x = 0; x < hN; ++x) {
+                        for (int y = 0; y < hN; ++y) {
+                            for (int z = 0; z < hN; ++z) {
+                                g[x][y][z] = grid[x + sourceOffset.x][y + sourceOffset.y][z + sourceOffset.z];
+                            }
+                        }
+                    }
+
+                    Voxelify<N / 2>(g, minB, maxB, voxels);
+
+                    int index = (int)voxels.size() - 1;
+
+                    switch (i) {
+                    case 0: voxel.k0 = index; break;
+                    case 1: voxel.k1 = index; break;
+                    case 2: voxel.k2 = index; break;
+                    case 3: voxel.k3 = index; break;
+                    case 4: voxel.k4 = index; break;
+                    case 5: voxel.k5 = index; break;
+                    case 6: voxel.k6 = index; break;
+                    case 7: voxel.k7 = index; break;
+                    }
+
+                }
+
+            }
+            else {
+                voxel.hasKids = false;
+                voxel.shouldDraw = false;
+            }
+        }
+
+        voxels.push_back(voxel);
+    }
+
+    void VoxelRayTracing::CreateOctree() {
+        /*
+         *   ---------        ---------
+         *   | 0 | 1 |        | 4 | 5 |
+         *   ---------> +X    ---------> +X
+         *   | 2 | 3 |        | 6 | 7 |
+         *   ---------        ---------
+         *       V                V
+         *       +Z               +Z
+         */
+
+        constexpr int n = 8;
+        std::array<std::array<std::array<bool, n>, n>, n> grid{ };
+
+        for (int x = 0; x < n; ++x) {
+            for (int y = 0; y < n; ++y) {
+                for (int z = 0; z < n; ++z) {
+                    grid[x][y][z] = (x + y + z) % 3 == 0;
+                }
+            }
+        }
+
+        voxels.clear();
+        Voxelify(grid, glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, voxels);
+
+        m_VoxelSSBO->SetData(voxels);
+
+        m_VoxelRayTracingShader->SetInt("octreeRootIndex", (int)voxels.size() - 1);
     }
 
     void VoxelRayTracing::Cleanup(GLFWwindow* window) {
         m_VoxelRayTracingShader.reset();
         m_RenderingShader.reset();
 
-        m_BlockData.reset();
+        m_VoxelSSBO.reset();
 
         glfwDestroyWindow(window);
     }
@@ -181,6 +313,8 @@ namespace Rutile {
         }
     }
     void VoxelRayTracing::Render() {
+        m_VoxelRayTracingShader->Bind();
+
         ++m_FrameCount;
 
         // Render into accumulation framebuffer
@@ -228,39 +362,6 @@ namespace Rutile {
 
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        /*
-         * Method for finding out what block we hit:
-         *
-         * Materials:
-         *      An array of `oct trees`
-         *      `Oct tree`: 1 int. first 8 bits dictate which children the octree has. bit 1 will always corospond to the same octant
-         *      the next 24 bits will be the index into the oct tree array of the first child of the octree, the next children will follow that index.
-         *          Rules for the first 8 bits.
-         *              Using right hand rule, look down the negative Y axis. Starting with the smallest Y, the order goes in clockwise order:
-         *                    Closer to y = 0 (lower)       Closer to y = inf (higher)
-         *                    ---------                     ---------
-         *                    | 0 | 1 |                     | 4 | 5 |
-         *                    ---------> +X                 ---------> +X
-         *                    | 2 | 3 |                     | 6 | 7 |
-         *                    ---------                     ---------
-         *                        V                             V
-         *                        +Z                            +Z
-         *
-         *      There will than be an array of materials, probably quite small ( < 100), but who knows, the order can be arbirtrary, but constant.
-         *      And there will be an array, that is filled with indices into the material array.
-         *
-         *      After N levels, the index will become the index of the first childs material in the array that has indices into the material array.
-         *      Then the indices of the next materials will be in order in the array of indices into the material array.
-         *
-         *      For the octrees, if the first 8 bits are all 0, AND the index is 0, than that octree is empty.
-         *      BUT if the index is non 0 (and the first 8 bits are all 0), than that index is a material index, and the area is solid
-         *          The index being 0 will never be valid, because 0 is the index of thr Root octree, and octress dont circle back
-         *
-         *  To find the total number of blocks that a nested octree can hold, do 8^n, where n is the number of levels.
-         *      8^8 = 16777216 total blocks = 256 blocks per side
-         *     
-         */
     }
 
     void VoxelRayTracing::LoadScene() {
@@ -268,78 +369,7 @@ namespace Rutile {
     }
 
     void VoxelRayTracing::ProvideLocalRendererSettings() {
-        if (ImGui::Checkbox("No Kids", &m_OctTreeNoKids)) { ResetAccumulatedPixelData(); }
 
-        ImGui::Text("Level 1");
-        if (ImGui::Checkbox("X##L1", &m_OctTreeX)) { ResetAccumulatedPixelData(); }
-        if (ImGui::Checkbox("Y##L1", &m_OctTreeY)) { ResetAccumulatedPixelData(); }
-        if (ImGui::Checkbox("Z##L1", &m_OctTreeZ)) { ResetAccumulatedPixelData(); }
-
-        ImGui::Separator();
-        ImGui::Text("Level 2");
-        if (ImGui::Checkbox("X##L2", &m_OctTreeXL2)) { ResetAccumulatedPixelData(); }
-        if (ImGui::Checkbox("Y##L2", &m_OctTreeYL2)) { ResetAccumulatedPixelData(); }
-        if (ImGui::Checkbox("Z##L2", &m_OctTreeZL2)) { ResetAccumulatedPixelData(); }
-
-        m_VoxelRayTracingShader->Bind();
-
-        m_VoxelRayTracingShader->SetInt("octTreeX", m_OctTreeX);
-        m_VoxelRayTracingShader->SetInt("octTreeY", m_OctTreeY);
-        m_VoxelRayTracingShader->SetInt("octTreeZ", m_OctTreeZ);
-
-        m_VoxelRayTracingShader->SetInt("octTreeXL2", m_OctTreeXL2);
-        m_VoxelRayTracingShader->SetInt("octTreeYL2", m_OctTreeYL2);
-        m_VoxelRayTracingShader->SetInt("octTreeZL2", m_OctTreeZL2);
-
-        m_VoxelRayTracingShader->SetInt("octTreeNoKids", m_OctTreeNoKids);
-
-        const int OCT_CHILD_0 = 24;
-        const int OCT_CHILD_1 = 25;
-        const int OCT_CHILD_2 = 26;
-        const int OCT_CHILD_3 = 27;
-
-        const int OCT_CHILD_4 = 28;
-        const int OCT_CHILD_5 = 29;
-        const int OCT_CHILD_6 = 30;
-        const int OCT_CHILD_7 = 31;
-
-        int octree = 1;
-
-        if (!m_OctTreeNoKids) {
-            if (!m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_0);
-            }
-
-            if (m_OctTreeX && !m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_1);
-            }
-
-            if (!m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_2);
-            }
-
-            if (m_OctTreeX && !m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_3);
-            }
-
-            if (!m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_4);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && !m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_5);
-            }
-
-            if (!m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_6);
-            }
-
-            if (m_OctTreeX && m_OctTreeY && m_OctTreeZ) {
-                octree = SetBit(octree, OCT_CHILD_7);
-            }
-        }
-
-        m_VoxelRayTracingShader->SetInt("octree", octree);
     }
 
     void VoxelRayTracing::ResetAccumulatedPixelData() {
