@@ -7,6 +7,7 @@
 
 #include "Settings/App.h"
 
+#include "Utility/Random.h"
 #include "Utility/events/Events.h"
 #include "Utility/OpenGl/GLDebug.h"
 
@@ -149,6 +150,145 @@ namespace Rutile {
         return window;
     }
 
+    /*
+     * Min bound and Max bound: the size of the current voxel
+     */
+    template<int N>
+    void Voxelify(std::array<std::array<std::array<bool, N>, N>, N> grid, glm::vec3 minBound, glm::vec3 maxBound, std::vector<VoxelRayTracing::Voxel>& voxels) {
+        int voxelsFound = 0;
+
+        for (int x = 0; x < N; ++x) {
+            for (int y = 0; y < N; ++y) {
+                for (int z = 0; z < N; ++z) {
+                    if (grid[x][y][z]) {
+                        ++voxelsFound;
+                    }
+                }
+            }
+        }
+
+        VoxelRayTracing::Voxel voxel{ };
+
+        voxel.minBound = minBound;
+        voxel.maxBound = maxBound;
+
+        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0])) {
+            voxel.hasKids = false;
+            voxel.shouldDraw = true;
+
+        }
+        else {
+            if (voxelsFound != 0) {
+                voxel.hasKids = true;
+                voxel.shouldDraw = false;
+
+                float kidWidth = (maxBound.x - minBound.x) / 2.0f;
+                constexpr int hN = N / 2;
+
+                // Disect the grid into 8 pieces properly, recurse 8 differnt times, once for each octant
+                for (int i = 0; i < 8; ++i) {
+                    std::array<std::array<std::array<bool, hN>, hN>, hN> g{ };
+
+                    glm::vec3 minB{ };
+                    glm::vec3 maxB{ };
+
+                    glm::ivec3 sourceOffset{ };
+
+                    switch (i) {
+                    case 0:
+                        minB = minBound;
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0 };
+
+                        break;
+
+                    case 1:
+                        minB = minBound + glm::vec3{ kidWidth, 0.0f, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, 0, 0 };
+
+                        break;
+                    case 2:
+                        minB = minBound + glm::vec3{ 0.0f, 0.0f, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, 0, hN };
+
+                        break;
+                    case 3:
+                        minB = minBound + glm::vec3{ kidWidth, 0.0f, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, 0, hN };
+
+                        break;
+                    case 4:
+                        minB = minBound + glm::vec3{ 0.0f, kidWidth, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, hN, 0 };
+
+                        break;
+                    case 5:
+                        minB = minBound + glm::vec3{ kidWidth, kidWidth, 0.0f };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, hN, 0 };
+
+                        break;
+                    case 6:
+                        minB = minBound + glm::vec3{ 0.0f, kidWidth, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ 0, hN, hN };
+
+                        break;
+                    case 7:
+                        minB = minBound + glm::vec3{ kidWidth, kidWidth, kidWidth };
+                        maxB = minB + kidWidth;
+
+                        sourceOffset = glm::vec3{ hN, hN, hN };
+
+                        break;
+                    }
+
+                    for (int x = 0; x < hN; ++x) {
+                        for (int y = 0; y < hN; ++y) {
+                            for (int z = 0; z < hN; ++z) {
+                                g[x][y][z] = grid[x + sourceOffset.x][y + sourceOffset.y][z + sourceOffset.z];
+                            }
+                        }
+                    }
+
+                    Voxelify<N / 2>(g, minB, maxB, voxels);
+
+                    int index = (int)voxels.size() - 1;
+
+                    switch (i) {
+                    case 0: voxel.k0 = index; break;
+                    case 1: voxel.k1 = index; break;
+                    case 2: voxel.k2 = index; break;
+                    case 3: voxel.k3 = index; break;
+                    case 4: voxel.k4 = index; break;
+                    case 5: voxel.k5 = index; break;
+                    case 6: voxel.k6 = index; break;
+                    case 7: voxel.k7 = index; break;
+                    }
+
+                }
+
+            }
+            else {
+                voxel.hasKids = false;
+                voxel.shouldDraw = false;
+            }
+        }
+
+        voxels.push_back(voxel);
+    }
+
     void VoxelRayTracing::CreateOctree() {
         /*
          *   ---------                     ---------
@@ -160,88 +300,108 @@ namespace Rutile {
          *       +Z                            +Z
          */
 
-        voxels.clear();
-        Voxel root{ glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, 1, 2, 3, 4, 5, 6, 7, 8, true };
+        constexpr int n = 8;
+        std::array<std::array<std::array<bool, n>, n>, n> grid{ };
 
-        if (!m_Child0) { root.k0 = -1; }
-        if (!m_Child1) { root.k1 = -1; }
-        if (!m_Child2) { root.k2 = -1; }
-        if (!m_Child3) { root.k3 = -1; }
-        if (!m_Child4) { root.k4 = -1; }
-        if (!m_Child5) { root.k5 = -1; }
-        if (!m_Child6) { root.k6 = -1; }
-        if (!m_Child7) { root.k7 = -1; }
+        // Create a random grid of blocks
+        //for (int x = 0; x < n; ++x) {
+        //    for (int y = 0; y < n; ++y) {
+        //        for (int z = 0; z < n; ++z) {
+        //            grid[x][y][z] = RandomFloat() > 0.9f;
+        //        }
+        //    }
+        //}
 
-        voxels.push_back(root);
-
-        for (int i = 0; i < 8; ++i) {
-            Voxel vox{};
-
-            vox.hasKids = false;
-
-            glm::vec3 minB;
-            glm::vec3 maxB;
-
-            float width = root.maxBound.x - root.minBound.x; // Needs to be the same regardless of what coord is used, but this is just easy
-            float halfW = width / 2.0f;
-
-            switch (i) {
-            case 0:
-                minB = root.minBound;
-                maxB = minB + halfW;
-                break;
-            case 1:
-                minB = root.minBound + glm::vec3{ halfW, 0.0f, 0.0f };
-                maxB = minB + halfW;
-                break;
-            case 2:
-                minB = root.minBound + glm::vec3{ 0.0f, 0.0f, halfW };
-                maxB = minB + halfW;
-                break;
-            case 3:
-                minB = root.minBound + glm::vec3{ halfW, 0.0f, halfW };
-                maxB = minB + halfW;
-                break;
-            case 4:
-                minB = root.minBound + glm::vec3{ 0.0f, halfW, 0.0f };
-                maxB = minB + halfW;
-                break;
-            case 5:
-                minB = root.minBound + glm::vec3{ halfW, halfW, 0.0f };
-                maxB = minB + halfW;
-                break;
-            case 6:
-                minB = root.minBound + glm::vec3{ 0.0f, halfW, halfW };
-                maxB = minB + halfW;
-                break;
-            case 7:
-                minB = root.minBound + glm::vec3{ halfW, halfW, halfW };
-                maxB = minB + halfW;
-                break;
+        for (int x = 0; x < n; ++x) {
+            for (int y = 0; y < n; ++y) {
+                for (int z = 0; z < n; ++z) {
+                    //grid[x][y][z] = y == x ? true : y == z ? true : false;
+                    grid[x][y][z] = (x + y + z) % 2 == 0;
+                }
             }
-
-            vox.minBound = minB;
-            vox.maxBound = maxB;
-
-            voxels.push_back(vox);
         }
 
-        //Voxel k0{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k1{ glm::vec3{ 0.5f }, glm::vec3{ 1.0f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k2{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k3{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k4{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k5{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k6{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-        //Voxel k7{ glm::vec3{ 0.0f }, glm::vec3{ 0.5f }, -1, -1, -1, -1, -1, -1, -1, -1, false };
-
-
-        //voxels.resize(3);
-        //voxels[0] = root;
-        //voxels[1] = k0;
-        //voxels[2] = k1;
+        voxels.clear();
+        Voxelify(grid, glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, voxels);
 
         m_VoxelSSBO->SetData(voxels);
+
+        m_VoxelRayTracingShader->SetInt("octreeRootIndex", (int)voxels.size() - 1);
+
+
+
+
+
+
+        //voxels.clear();
+
+        //Voxel root{ glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, 1, 2, 3, 4, 5, 6, 7, 8, true };
+
+        //if (!m_Child0) { root.k0 = -1; }
+        //if (!m_Child1) { root.k1 = -1; }
+        //if (!m_Child2) { root.k2 = -1; }
+        //if (!m_Child3) { root.k3 = -1; }
+        //if (!m_Child4) { root.k4 = -1; }
+        //if (!m_Child5) { root.k5 = -1; }
+        //if (!m_Child6) { root.k6 = -1; }
+        //if (!m_Child7) { root.k7 = -1; }
+
+        //voxels.push_back(root);
+
+        //for (int i = 0; i < 8; ++i) {
+        //    Voxel vox{};
+
+        //    vox.hasKids = false;
+        //    vox.shouldDraw = true;
+
+        //    glm::vec3 minB;
+        //    glm::vec3 maxB;
+
+        //    float width = root.maxBound.x - root.minBound.x; // Needs to be the same regardless of what coord is used, but this is just easy
+        //    float halfW = width / 2.0f;
+
+        //    switch (i) {
+        //    case 0:
+        //        minB = root.minBound;
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 1:
+        //        minB = root.minBound + glm::vec3{ halfW, 0.0f, 0.0f };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 2:
+        //        minB = root.minBound + glm::vec3{ 0.0f, 0.0f, halfW };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 3:
+        //        minB = root.minBound + glm::vec3{ halfW, 0.0f, halfW };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 4:
+        //        minB = root.minBound + glm::vec3{ 0.0f, halfW, 0.0f };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 5:
+        //        minB = root.minBound + glm::vec3{ halfW, halfW, 0.0f };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 6:
+        //        minB = root.minBound + glm::vec3{ 0.0f, halfW, halfW };
+        //        maxB = minB + halfW;
+        //        break;
+        //    case 7:
+        //        minB = root.minBound + glm::vec3{ halfW, halfW, halfW };
+        //        maxB = minB + halfW;
+        //        break;
+        //    }
+
+        //    vox.minBound = minB;
+        //    vox.maxBound = maxB;
+
+        //    voxels.push_back(vox);
+        //}
+
+        //m_VoxelSSBO->SetData(voxels);
     }
 
     void VoxelRayTracing::Cleanup(GLFWwindow* window) {
@@ -323,7 +483,7 @@ namespace Rutile {
 
         m_VoxelRayTracingShader->SetInt("hardCodedOctree", hardCodedOctree);
 
-        CreateOctree();
+        //CreateOctree();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);

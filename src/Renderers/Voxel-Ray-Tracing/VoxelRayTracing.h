@@ -42,7 +42,8 @@ namespace Rutile {
             int k6{ -1 };
             int k7{ -1 };
 
-            int hasKids{ 0 };
+            int hasKids{ false };
+            int shouldDraw{ false };
         };
 
         std::vector<Voxel> voxels;

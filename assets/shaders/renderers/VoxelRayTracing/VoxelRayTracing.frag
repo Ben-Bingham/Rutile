@@ -157,6 +157,8 @@ bool HitTriangle(Ray ray, int objectIndex, inout HitInfo hitInfo, vec3[3] triang
 bool HitMesh(Ray ray, int objectIndex, inout HitInfo hitInfo);
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection);
+bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo);
+
 
 // Materials
 struct ScatterInfo {
@@ -376,144 +378,6 @@ struct Ret {
     float dist7;
 };
 
-// Returns a mask where all bits set represent a child hit
-int HitOctree(Ray ray, inout float currentOctantWidth, inout vec3 octreeCenter, int targetChild, bool root, int octree) {
-    float dist = MAX_FLOAT;
-    if (!HitAABB(ray, AABB(octreeCenter - currentOctantWidth, octreeCenter + currentOctantWidth), dist)) {
-        // We did not even hit the octant that this octree is inside of
-        return -1;
-    }
-
-    int closestHitIndex = -1;
-    float closestHit = MAX_FLOAT;
-
-    if (!root) {
-        currentOctantWidth /= 2.0;
-
-        switch (targetChild) {
-        case 0:
-            octreeCenter -= currentOctantWidth;
-            break;
-        case 1:
-            octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, -currentOctantWidth);
-            break;
-        case 2:
-            octreeCenter += vec3(-currentOctantWidth, -currentOctantWidth, currentOctantWidth);
-            break;
-        case 3:
-            octreeCenter += vec3(currentOctantWidth, -currentOctantWidth, currentOctantWidth);
-            break;
-        case 4:
-            octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, -currentOctantWidth);
-            break;
-        case 5:
-            octreeCenter += vec3(currentOctantWidth, currentOctantWidth, -currentOctantWidth);
-            break;
-        case 6:
-            octreeCenter += vec3(-currentOctantWidth, currentOctantWidth, currentOctantWidth);
-            break;
-        case 7:
-            octreeCenter += currentOctantWidth;
-            break;
-        };
-    }
-
-    float dist0 = MAX_FLOAT;
-    float dist1 = MAX_FLOAT;
-    float dist2 = MAX_FLOAT;
-    float dist3 = MAX_FLOAT;
-    float dist4 = MAX_FLOAT;
-    float dist5 = MAX_FLOAT;
-    float dist6 = MAX_FLOAT;
-    float dist7 = MAX_FLOAT;
-
-    AABB bbox0 = AABB(octreeCenter - currentOctantWidth, octreeCenter);
-    AABB bbox1 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, 0.0, 0.0));
-    AABB bbox2 = AABB(octreeCenter - vec3(currentOctantWidth, currentOctantWidth, 0.0), octreeCenter + vec3(0.0, 0.0, currentOctantWidth));
-    AABB bbox3 = AABB(octreeCenter - vec3(0.0, currentOctantWidth, 0.0), octreeCenter + vec3(currentOctantWidth, 0.0, currentOctantWidth));
-    AABB bbox4 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, currentOctantWidth), octreeCenter + vec3(0.0, currentOctantWidth, 0.0));
-    AABB bbox5 = AABB(octreeCenter - vec3(0.0, 0.0, currentOctantWidth), octreeCenter + vec3(currentOctantWidth, currentOctantWidth, 0.0));
-    AABB bbox6 = AABB(octreeCenter - vec3(currentOctantWidth, 0.0, 0.0), octreeCenter + vec3(0.0, currentOctantWidth, currentOctantWidth));
-    AABB bbox7 = AABB(octreeCenter, octreeCenter + currentOctantWidth);
-
-    if (GetBit(octree, OCT_CHILD_0) && HitAABB(ray, bbox0, dist0)) {
-        //ret = SetBit(ret, OCT_CHILD_0);
-
-        if (dist0 < closestHit) {
-            closestHit = dist0;
-            closestHitIndex = 0;
-        }
-    }
-
-    if (GetBit(octree, OCT_CHILD_1) && HitAABB(ray, bbox1, dist1)) {     
-        //ret = SetBit(ret, OCT_CHILD_1);
-
-        if (dist1 < closestHit) {
-            closestHit = dist1;
-            closestHitIndex = 1;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_2) && HitAABB(ray, bbox2, dist2)) {
-        //ret = SetBit(ret, OCT_CHILD_2);
-
-        if (dist2 < closestHit) {
-            closestHit = dist2;
-            closestHitIndex = 2;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_3) && HitAABB(ray, bbox3, dist3)) {        
-        //ret = SetBit(ret, OCT_CHILD_3);
-
-        if (dist3 < closestHit) {
-            closestHit = dist3;
-            closestHitIndex = 3;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_4) && HitAABB(ray, bbox4, dist4)) {     
-        //ret = SetBit(ret, OCT_CHILD_4);
-
-        if (dist4 < closestHit) {
-            closestHit = dist4;
-            closestHitIndex = 4;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_5) && HitAABB(ray, bbox5, dist5)) {   
-        //ret = SetBit(ret, OCT_CHILD_5);
-
-        if (dist5 < closestHit) {
-            closestHit = dist5;
-            closestHitIndex = 5;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_6) && HitAABB(ray, bbox6, dist6)) {       
-        //ret = SetBit(ret, OCT_CHILD_6);
-
-        if (dist6 < closestHit) {
-            closestHit = dist6;
-            closestHitIndex = 6;
-        }
-    }
-        
-    if (GetBit(octree, OCT_CHILD_7) && HitAABB(ray, bbox7, dist7)) {     
-        //ret = SetBit(ret, OCT_CHILD_7);
-
-        if (dist7 < closestHit) {
-            closestHit = dist7;
-            closestHitIndex = 7;
-        }
-    }
-
-    return closestHitIndex;
-    //return ret;
-}
-
-uniform int rootOctreeChildren[8];
-
 vec3 FireRayIntoScene(Ray r) {
     vec3 color = vec3(0.0, 0.0, 0.0);
     vec3 throughput = vec3(1.0, 1.0, 1.0);
@@ -528,14 +392,18 @@ vec3 FireRayIntoScene(Ray r) {
 
         HitInfo hitInfo;
         if (HitScene(ray, hitInfo)) { // Scatter the ray
-            
-            return vec3(0.0, 1.0, 0.0);
-
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
 
-            Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex];
+            //return hitInfo.normal;
+
+            // Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex]; TODO
+            Material mat;
+            mat.type = DIFFUSE_TYPE;
+            mat.color = vec3(0.35, 0.75, 0.4);
+            mat.fuzz = 0.5;
+            mat.indexOfRefraction = 1.0;
 
             if (mat.type == DIFFUSE_TYPE) {
                 scatterInfo = DiffuseScatter(scatterInfo, mat, hitInfo, bounces);
@@ -554,6 +422,27 @@ vec3 FireRayIntoScene(Ray r) {
                 scatterInfo = OneWayMirrorScatter(scatterInfo, mat, hitInfo, bounces);
             }
 
+
+
+
+
+
+
+
+
+
+
+            //return scatterInfo.ray.direction; // TODO remove
+
+
+
+
+
+
+
+
+
+
             scatterInfo.ray.origin = hitInfo.hitPosition;
             scatterInfo.ray.inverseDirection = 1.0 / scatterInfo.ray.direction;
 
@@ -569,24 +458,13 @@ vec3 FireRayIntoScene(Ray r) {
         ++bounces;
     }
 
-    return vec3(1.0, 0.0, 0.0);
+    //return vec3(1.0, 0.0, 0.0);
 
     return color;
 }
 
 // Stack concept, and some optimzations taken from:
 // https://github.com/SebLague/Ray-Tracing/tree/main
-
-uniform bool hardCoded0;
-uniform bool hardCoded1;
-uniform bool hardCoded2;
-uniform bool hardCoded3;
-uniform bool hardCoded4;
-uniform bool hardCoded5;
-uniform bool hardCoded6;
-uniform bool hardCoded7;
-
-uniform int hardCodedOctree;
 
 struct Voxel {
     float minX;
@@ -607,27 +485,23 @@ struct Voxel {
     int k7;
 
     bool hasKids;
+    bool shouldDraw;
 };
 
 layout(std430, binding = 5) readonly buffer VoxelBuffer {
     Voxel voxels[];
 };
 
+uniform int octreeRootIndex;
 
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
  
-
-
-
-
-
-
     int stack[128];
     int stackIndex = 1;
     
-    stack[stackIndex] = 0;
+    stack[stackIndex] = octreeRootIndex;
     
     while (stackIndex > 0) {
         int nodeIndex = stack[stackIndex];
@@ -669,11 +543,13 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             }
         }
         else { // No kids, we should shoot a ray at it
-            float dist;
-            if (HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
-                if (dist < hitInfo.closestDistance) {
-                    hitInfo.closestDistance = dist;
-                    hitSomething = true;
+            if (voxel.shouldDraw) {
+                HitInfo backupHitInfo = hitInfo;
+                if (HitAABB2(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), backupHitInfo)) {
+                    if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
+                        hitInfo = backupHitInfo;
+                        hitSomething = true;
+                    }
                 }
             }
         }
@@ -758,6 +634,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     //bbox.minBound = vec3(0.0);
     //bbox.maxBound = vec3(1.0);
     float dist;
+    /*
     //return HitAABB(ray, bbox, dist);
     vec3 octreeCenter = vec3(0.0);
     float currentOctantWidth = 1.0;
@@ -779,6 +656,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
            (HitAABB(ray, bbox5, dist) && GetBit(hardCodedOctree, 5)) ||
            (HitAABB(ray, bbox6, dist) && GetBit(hardCodedOctree, 6)) ||
            (HitAABB(ray, bbox7, dist) && GetBit(hardCodedOctree, 7));
+    */
     /*
     if () {
         return vec3(0.0, 1.0, 0.0);
@@ -1152,6 +1030,44 @@ bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
     return tFar >= tNear && tFar > 0;
 }
 
+bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo) {
+    vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
+    vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
+
+    vec3 t0 = min(t0Temp, t1Temp);
+    vec3 t1 = max(t0Temp, t1Temp);
+
+    float tNear = max(t0.x, max(t0.y, t0.z));
+    float tFar = min(t1.x, min(t1.y, t1.z));
+
+    if (tFar < tNear || tFar <= 0) {
+        return false; // No hit
+    }
+
+    hitInfo.closestDistance = tNear;
+    hitInfo.hitPosition = ray.origin + ray.direction * tNear;
+
+    // Determine which axis the hit occurred on by comparing the components of tNear
+    vec3 hitNormal;
+    if (tNear == t0.x) {
+        hitNormal = vec3(ray.inverseDirection.x > 0.0 ? -1.0 : 1.0, 0.0, 0.0);
+    } 
+    else if (tNear == t0.y) {
+        hitNormal = vec3(0.0, ray.inverseDirection.y > 0.0 ? -1.0 : 1.0, 0.0);
+    } 
+    else if (tNear == t0.z) {
+        hitNormal = vec3(0.0, 0.0, ray.inverseDirection.z > 0.0 ? -1.0 : 1.0);
+    }
+
+    hitInfo.normal = getFaceNormal(ray, hitNormal);
+
+    //hitInfo.hitPosition = vec3(1.0, 0.0, 0.0);
+
+    hitInfo.hitObjectIndex = 0;
+
+    return true;
+}
+
 ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {
     scatterInfo.ray.direction = normalize(hitInfo.normal + RandomUnitVec3(1.434 * i));
 
@@ -1160,6 +1076,17 @@ ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInf
     }
 
     scatterInfo.throughput = vec3(mat.color.rgb);
+
+
+
+
+
+    // scatterInfo.ray.direction = hitInfo.hitPosition; // TODO remove
+
+
+
+
+
 
     return scatterInfo;
 }
