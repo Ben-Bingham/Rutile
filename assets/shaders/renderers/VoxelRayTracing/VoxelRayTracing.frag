@@ -307,6 +307,11 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         Voxel voxel = voxels[nodeIndex];
 
         if (voxel.hasKids) {
+            float dist;
+            if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+                continue;
+            }
+
             if (voxel.k0 != -1) {
                 stack[stackIndex += 1] = voxel.k0;
             }
