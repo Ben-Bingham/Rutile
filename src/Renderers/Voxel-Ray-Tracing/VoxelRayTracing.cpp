@@ -1,5 +1,6 @@
 #include "VoxelRayTracing.h"
 #include "imgui.h"
+#include <array>
 #include <bitset>
 #include <iostream>
 
@@ -12,46 +13,7 @@
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    uint32_t SetBit(uint32_t value, size_t n) {
-        return value |= (1 << n);
-    }
-
     GLFWwindow* VoxelRayTracing::Init() {
-        uint32_t i = 293;
-        std::cout << "I: " << std::bitset<32>(i) << std::endl;
-
-        //uint32_t l = SetBit(i, 0);
-        //std::cout << "L: " << std::bitset<32>(l) << std::endl;
-
-        //uint32_t r = SetBit(i, 31);;
-        //std::cout << "R: " << std::bitset<32>(r) << std::endl;
-
-
-
-        // The blocks of the chunk
-        //i = SetBit(i, 24);
-        //i = SetBit(i, 26);
-        //i = SetBit(i, 29);
-        //i = SetBit(i, 31);
-
-        //std::cout << "I: " << std::bitset<32>(i) << std::endl;
-
-        //std::cout << std::bitset<32>(i >> 24) << std::endl;
-
-        //uint32_t index = i << 8;
-        //index = index >> 8;
-        //std::cout << "Index: " << std::bitset<32>(index) << std::endl;
-
-        //std::cout << index << std::endl;
-
-
-
-
-
-
-
-
-
         m_RendererLoadTime = std::chrono::steady_clock::now();
 
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
@@ -77,7 +39,6 @@ namespace Rutile {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
 
-        m_BlockData = std::make_unique<SSBO<unsigned char>>(0);
         m_VoxelSSBO = std::make_unique<SSBO<Voxel>>(5);
 
         std::vector<float> vertices = {
@@ -291,32 +252,22 @@ namespace Rutile {
 
     void VoxelRayTracing::CreateOctree() {
         /*
-         *   ---------                     ---------
-         *   | 0 | 1 |                     | 4 | 5 |
-         *   ---------> +X                 ---------> +X
-         *   | 2 | 3 |                     | 6 | 7 |
-         *   ---------                     ---------
-         *       V                             V
-         *       +Z                            +Z
+         *   ---------        ---------
+         *   | 0 | 1 |        | 4 | 5 |
+         *   ---------> +X    ---------> +X
+         *   | 2 | 3 |        | 6 | 7 |
+         *   ---------        ---------
+         *       V                V
+         *       +Z               +Z
          */
 
         constexpr int n = 8;
         std::array<std::array<std::array<bool, n>, n>, n> grid{ };
 
-        // Create a random grid of blocks
-        //for (int x = 0; x < n; ++x) {
-        //    for (int y = 0; y < n; ++y) {
-        //        for (int z = 0; z < n; ++z) {
-        //            grid[x][y][z] = RandomFloat() > 0.9f;
-        //        }
-        //    }
-        //}
-
         for (int x = 0; x < n; ++x) {
             for (int y = 0; y < n; ++y) {
                 for (int z = 0; z < n; ++z) {
-                    //grid[x][y][z] = y == x ? true : y == z ? true : false;
-                    grid[x][y][z] = (x + y + z) % 2 == 0;
+                    grid[x][y][z] = (x + y + z) % 3 == 0;
                 }
             }
         }
@@ -327,88 +278,13 @@ namespace Rutile {
         m_VoxelSSBO->SetData(voxels);
 
         m_VoxelRayTracingShader->SetInt("octreeRootIndex", (int)voxels.size() - 1);
-
-
-
-
-
-
-        //voxels.clear();
-
-        //Voxel root{ glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, 1, 2, 3, 4, 5, 6, 7, 8, true };
-
-        //if (!m_Child0) { root.k0 = -1; }
-        //if (!m_Child1) { root.k1 = -1; }
-        //if (!m_Child2) { root.k2 = -1; }
-        //if (!m_Child3) { root.k3 = -1; }
-        //if (!m_Child4) { root.k4 = -1; }
-        //if (!m_Child5) { root.k5 = -1; }
-        //if (!m_Child6) { root.k6 = -1; }
-        //if (!m_Child7) { root.k7 = -1; }
-
-        //voxels.push_back(root);
-
-        //for (int i = 0; i < 8; ++i) {
-        //    Voxel vox{};
-
-        //    vox.hasKids = false;
-        //    vox.shouldDraw = true;
-
-        //    glm::vec3 minB;
-        //    glm::vec3 maxB;
-
-        //    float width = root.maxBound.x - root.minBound.x; // Needs to be the same regardless of what coord is used, but this is just easy
-        //    float halfW = width / 2.0f;
-
-        //    switch (i) {
-        //    case 0:
-        //        minB = root.minBound;
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 1:
-        //        minB = root.minBound + glm::vec3{ halfW, 0.0f, 0.0f };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 2:
-        //        minB = root.minBound + glm::vec3{ 0.0f, 0.0f, halfW };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 3:
-        //        minB = root.minBound + glm::vec3{ halfW, 0.0f, halfW };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 4:
-        //        minB = root.minBound + glm::vec3{ 0.0f, halfW, 0.0f };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 5:
-        //        minB = root.minBound + glm::vec3{ halfW, halfW, 0.0f };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 6:
-        //        minB = root.minBound + glm::vec3{ 0.0f, halfW, halfW };
-        //        maxB = minB + halfW;
-        //        break;
-        //    case 7:
-        //        minB = root.minBound + glm::vec3{ halfW, halfW, halfW };
-        //        maxB = minB + halfW;
-        //        break;
-        //    }
-
-        //    vox.minBound = minB;
-        //    vox.maxBound = maxB;
-
-        //    voxels.push_back(vox);
-        //}
-
-        //m_VoxelSSBO->SetData(voxels);
     }
 
     void VoxelRayTracing::Cleanup(GLFWwindow* window) {
         m_VoxelRayTracingShader.reset();
         m_RenderingShader.reset();
 
-        m_BlockData.reset();
+        m_VoxelSSBO.reset();
 
         glfwDestroyWindow(window);
     }
@@ -462,29 +338,6 @@ namespace Rutile {
 
         m_VoxelRayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
 
-        m_VoxelRayTracingShader->SetBool("hardCoded0", m_Child0);
-        m_VoxelRayTracingShader->SetBool("hardCoded1", m_Child1);
-        m_VoxelRayTracingShader->SetBool("hardCoded2", m_Child2);
-        m_VoxelRayTracingShader->SetBool("hardCoded3", m_Child3);
-        m_VoxelRayTracingShader->SetBool("hardCoded4", m_Child4);
-        m_VoxelRayTracingShader->SetBool("hardCoded5", m_Child5);
-        m_VoxelRayTracingShader->SetBool("hardCoded6", m_Child6);
-        m_VoxelRayTracingShader->SetBool("hardCoded7", m_Child7);
-
-        hardCodedOctree = 0;
-        hardCodedOctree = m_Child0 ? SetBit(hardCodedOctree, 0) : hardCodedOctree;
-        hardCodedOctree = m_Child1 ? SetBit(hardCodedOctree, 1) : hardCodedOctree;
-        hardCodedOctree = m_Child2 ? SetBit(hardCodedOctree, 2) : hardCodedOctree;
-        hardCodedOctree = m_Child3 ? SetBit(hardCodedOctree, 3) : hardCodedOctree;
-        hardCodedOctree = m_Child4 ? SetBit(hardCodedOctree, 4) : hardCodedOctree;
-        hardCodedOctree = m_Child5 ? SetBit(hardCodedOctree, 5) : hardCodedOctree;
-        hardCodedOctree = m_Child6 ? SetBit(hardCodedOctree, 6) : hardCodedOctree;
-        hardCodedOctree = m_Child7 ? SetBit(hardCodedOctree, 7) : hardCodedOctree;
-
-        m_VoxelRayTracingShader->SetInt("hardCodedOctree", hardCodedOctree);
-
-        //CreateOctree();
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
         m_VoxelRayTracingShader->SetInt("accumulationBuffer", 0);
@@ -516,16 +369,7 @@ namespace Rutile {
     }
 
     void VoxelRayTracing::ProvideLocalRendererSettings() {
-        ImGui::Checkbox("0", &m_Child0);
-        ImGui::Checkbox("1", &m_Child1);
-        ImGui::Checkbox("2", &m_Child2);
-        ImGui::Checkbox("3", &m_Child3);
-        ImGui::Checkbox("4", &m_Child4);
-        ImGui::Checkbox("5", &m_Child5);
-        ImGui::Checkbox("6", &m_Child6);
-        ImGui::Checkbox("7", &m_Child7);
 
-        ResetAccumulatedPixelData();
     }
 
     void VoxelRayTracing::ResetAccumulatedPixelData() {
