@@ -3,7 +3,7 @@
 // Lots of code translated from Ray Tracing In One Weekend:
 // https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
-#define STATS
+//#define STATS
 
 struct Ray {
 	vec3 origin;
@@ -91,6 +91,8 @@ bool HitScene(Ray ray, inout HitInfo hitInfo);
 
 bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection);
 bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo);
+bool HitAABB3(Ray ray, AABB bbox, inout float dist);
+
 
 // Materials
 struct ScatterInfo {
@@ -324,6 +326,13 @@ struct DistIndex {
     int index;
 };
 
+struct DistIndexHitVoxelInd {
+    float dist;
+    int index;
+    bool hit;
+    int voxelIndex;
+};
+
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
@@ -334,51 +343,172 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         return false;
     }
 
-    int stack[128];
+    DistIndex stack[128];
     int stackIndex = 1;
     
-    stack[stackIndex] = octreeRootIndex;
+    DistIndex rootElement;
+    rootElement.index = octreeRootIndex;
+    rootElement.dist = dist;
+
+    stack[stackIndex] = rootElement;
     
     while (stackIndex > 0) {
-        int nodeIndex = stack[stackIndex];
+        DistIndex element = stack[stackIndex];
         --stackIndex;
     
-        Voxel voxel = voxels[nodeIndex];
-
-
-
-
-
-        /*
-        // This still speeds everything up
-        float dist;
-        if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+        Voxel voxel = voxels[element.index];
+        
+        if (element.dist > hitInfo.closestDistance) {
             continue;
         }
 
-        if (dist > hitInfo.closestDistance) {
-            continue;
-        }
+        //// TODO Commenting/uncomenting this causes perforamce cchange TODO
+        //float dist;
+        //if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+        //    continue;
+        //}
+        
+        //if (dist > hitInfo.closestDistance) {
+        //    continue;
+        //}
+
+        if (voxel.hasKids) {
+            //if (voxel.k0 != -1) { stack[stackIndex += 1] = voxel.k0; }
+            //if (voxel.k1 != -1) { stack[stackIndex += 1] = voxel.k1; }
+            //if (voxel.k2 != -1) { stack[stackIndex += 1] = voxel.k2; }
+            //if (voxel.k3 != -1) { stack[stackIndex += 1] = voxel.k3; }
+            //if (voxel.k4 != -1) { stack[stackIndex += 1] = voxel.k4; }
+            //if (voxel.k5 != -1) { stack[stackIndex += 1] = voxel.k5; }
+            //if (voxel.k6 != -1) { stack[stackIndex += 1] = voxel.k6; }
+            //if (voxel.k7 != -1) { stack[stackIndex += 1] = voxel.k7; }
+
+            DistIndexHitVoxelInd distIndices[8];
+
+            distIndices[0].dist = hitInfo.closestDistance;
+            distIndices[1].dist = hitInfo.closestDistance;
+            distIndices[2].dist = hitInfo.closestDistance;
+            distIndices[3].dist = hitInfo.closestDistance;
+            distIndices[4].dist = hitInfo.closestDistance;
+            distIndices[5].dist = hitInfo.closestDistance;
+            distIndices[6].dist = hitInfo.closestDistance;
+            distIndices[7].dist = hitInfo.closestDistance;
+
+            distIndices[0].index = 0;
+            distIndices[1].index = 1;
+            distIndices[2].index = 2;
+            distIndices[3].index = 3;
+            distIndices[4].index = 4;
+            distIndices[5].index = 5;
+            distIndices[6].index = 6;
+            distIndices[7].index = 7;
+            
+            distIndices[0].hit = false;
+            distIndices[1].hit = false;
+            distIndices[2].hit = false;
+            distIndices[3].hit = false;
+            distIndices[4].hit = false;
+            distIndices[5].hit = false;
+            distIndices[6].hit = false;
+            distIndices[7].hit = false;
+
+            distIndices[0].voxelIndex = voxel.k0;
+            distIndices[1].voxelIndex = voxel.k1;
+            distIndices[2].voxelIndex = voxel.k2;
+            distIndices[3].voxelIndex = voxel.k3;
+            distIndices[4].voxelIndex = voxel.k4;
+            distIndices[5].voxelIndex = voxel.k5;
+            distIndices[6].voxelIndex = voxel.k6;
+            distIndices[7].voxelIndex = voxel.k7;
+            
+            if (voxel.k0 != -1) { Voxel k0 = voxels[voxel.k0]; distIndices[0].hit = HitAABB3(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distIndices[0].dist); }
+            if (voxel.k1 != -1) { Voxel k1 = voxels[voxel.k1]; distIndices[1].hit = HitAABB3(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distIndices[1].dist); }
+            if (voxel.k2 != -1) { Voxel k2 = voxels[voxel.k2]; distIndices[2].hit = HitAABB3(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distIndices[2].dist); }
+            if (voxel.k3 != -1) { Voxel k3 = voxels[voxel.k3]; distIndices[3].hit = HitAABB3(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distIndices[3].dist); }
+            if (voxel.k4 != -1) { Voxel k4 = voxels[voxel.k4]; distIndices[4].hit = HitAABB3(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distIndices[4].dist); }
+            if (voxel.k5 != -1) { Voxel k5 = voxels[voxel.k5]; distIndices[5].hit = HitAABB3(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distIndices[5].dist); }
+            if (voxel.k6 != -1) { Voxel k6 = voxels[voxel.k6]; distIndices[6].hit = HitAABB3(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distIndices[6].dist); }
+            if (voxel.k7 != -1) { Voxel k7 = voxels[voxel.k7]; distIndices[7].hit = HitAABB3(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distIndices[7].dist); }
+            
+#define CMP(a, b) distIndices[a].dist < distIndices[b].dist
+#define SWAP(a, b) DistIndexHitVoxelInd t1 = distIndices[a]; distIndices[a] = distIndices[b]; distIndices[b] = t1;
+#define CSWAP(a, b) if (CMP(a, b)) { SWAP(a, b); }
+
+            CSWAP(0, 2); CSWAP(1, 3); CSWAP(4, 6); CSWAP(5, 7);
+            CSWAP(0, 4); CSWAP(1, 5); CSWAP(2, 6); CSWAP(3, 7);
+            CSWAP(0, 1); CSWAP(2, 3); CSWAP(4, 5); CSWAP(6, 7);
+            CSWAP(2, 4); CSWAP(3, 5);
+            CSWAP(1, 4); CSWAP(3, 6);
+            CSWAP(1, 2); CSWAP(3, 4); CSWAP(5, 6);
+
+            if (distIndices[0].hit) { DistIndex element; element.index = distIndices[0].voxelIndex; element.dist = distIndices[0].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[1].hit) { DistIndex element; element.index = distIndices[1].voxelIndex; element.dist = distIndices[1].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[2].hit) { DistIndex element; element.index = distIndices[2].voxelIndex; element.dist = distIndices[2].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[3].hit) { DistIndex element; element.index = distIndices[3].voxelIndex; element.dist = distIndices[3].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[4].hit) { DistIndex element; element.index = distIndices[4].voxelIndex; element.dist = distIndices[4].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[5].hit) { DistIndex element; element.index = distIndices[5].voxelIndex; element.dist = distIndices[5].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[6].hit) { DistIndex element; element.index = distIndices[6].voxelIndex; element.dist = distIndices[6].dist; stack[stackIndex += 1] = element; }
+            if (distIndices[7].hit) { DistIndex element; element.index = distIndices[7].voxelIndex; element.dist = distIndices[7].dist; stack[stackIndex += 1] = element; }
+            
 
 
 
 
 
-        // Assume we already hit the voxel before getting here:
-        // This does add an extra hit test, but its only for the voxels we draw, meaning that it dosent scale with the size the number of voxels,
-        // it scales with the number of voxels on screen. This will only ever add 1 check to each ray
-        if (voxel.shouldDraw) {
-            // Need to either hit the voxel again to get hitInfo, or need to store that somehow from earlier
-            // Compare hitInfo with current, and modify if nesacary
-            HitInfo backupHitInfo = hitInfo;
-            if (HitAABB2(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), backupHitInfo)) {
-                if (backupHitInfo.closestDistance < hitInfo.closestDistance) { // TODO this check can be moved inside HitAABB2
-                    hitInfo = backupHitInfo;
-                    hitSomething = true;
-                }
+            //if (h0) { stack[stackIndex += 1] = voxel.k0; }
+            //if (h1) { stack[stackIndex += 1] = voxel.k1; }
+            //if (h2) { stack[stackIndex += 1] = voxel.k2; }
+            //if (h3) { stack[stackIndex += 1] = voxel.k3; }
+            //if (h4) { stack[stackIndex += 1] = voxel.k4; }
+            //if (h5) { stack[stackIndex += 1] = voxel.k5; }
+            //if (h6) { stack[stackIndex += 1] = voxel.k6; }
+            //if (h7) { stack[stackIndex += 1] = voxel.k7; }
+
+
+
+
+
+
+
+
+
+
+            //bool h0 = HitAABB3(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0]);
+            //bool h1 = HitAABB3(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1]);
+            //bool h2 = HitAABB3(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2]);
+            //bool h3 = HitAABB3(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3]);
+            //bool h4 = HitAABB3(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4]);
+            //bool h5 = HitAABB3(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5]);
+            //bool h6 = HitAABB3(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6]);
+            //bool h7 = HitAABB3(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7]);
+
+
+            /*
+            Voxel k0 = voxels[voxel.k0];
+            Voxel k1 = voxels[voxel.k1];
+            Voxel k2 = voxels[voxel.k2];
+            Voxel k3 = voxels[voxel.k3];
+            Voxel k4 = voxels[voxel.k4];
+            Voxel k5 = voxels[voxel.k5];
+            Voxel k6 = voxels[voxel.k6];
+            Voxel k7 = voxels[voxel.k7];
+
+            float distances[8];
+
+            bool a0 = HitAABB(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0]);
+            bool a1 = HitAABB(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1]);
+            bool a2 = HitAABB(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2]);
+            bool a3 = HitAABB(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3]);
+            bool a4 = HitAABB(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4]);
+            bool a5 = HitAABB(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5]);
+            bool a6 = HitAABB(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6]);
+            bool a7 = HitAABB(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7]);
+
+            if (a0 && a1 && a2 && a3 && a4 && a5 && a6 && a7) {
+                return true;
             }
+            */
 
-        } else if (voxel.hasKids) {
+            /*
             // Hit every kid, record the distance
             DistIndex distances[8];
 
@@ -447,76 +577,10 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                     case 7: stack[stackIndex += 1] = voxel.k7; break;
                 }
             }
-        }
-        */
+            */
 
 
 
-
-
-
-
-
-
-
-        // Already have this:
-        // Assume we have no idea if we hit the voxel before getting here:
-
-        // Hit the voxel
-
-        // If hit the voxel {
-        //      if (shouldDraw) {
-        //          Check the hitInfo if were closer and draw
-        //      } else if (has kids) {
-        //          Add all kids
-        //      }
-        // } else {
-        //      Loop back, check the next voxel
-        // }
-
-
-        
-        if (voxel.hasKids) {
-            float dist;
-            if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
-                continue;
-            }
-
-            if (dist > hitInfo.closestDistance) {
-                continue;
-            }
-
-            if (voxel.k0 != -1) {
-                stack[stackIndex += 1] = voxel.k0;
-            }
-
-            if (voxel.k1 != -1) {
-                stack[stackIndex += 1] = voxel.k1;
-            }
-
-            if (voxel.k2 != -1) {
-                stack[stackIndex += 1] = voxel.k2;
-            }
-
-            if (voxel.k3 != -1) {
-                stack[stackIndex += 1] = voxel.k3;
-            }
-
-            if (voxel.k4 != -1) {
-                stack[stackIndex += 1] = voxel.k4;
-            }
-
-            if (voxel.k5 != -1) {
-                stack[stackIndex += 1] = voxel.k5;
-            }
-
-            if (voxel.k6 != -1) {
-                stack[stackIndex += 1] = voxel.k6;
-            }
-
-            if (voxel.k7 != -1) {
-                stack[stackIndex += 1] = voxel.k7;
-            }
         }
         else { // No kids, we should shoot a ray at it
             if (voxel.shouldDraw) {
@@ -529,7 +593,6 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                 }
             }
         }
-        
     }
 
     return hitSomething;
@@ -603,6 +666,25 @@ bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo) {
     hitInfo.hitObjectIndex = 0;
 
     return true;
+}
+
+bool HitAABB3(Ray ray, AABB bbox, inout float dist) {
+#ifdef STATS
+    ++stats.bboxChecks;
+#endif
+
+    vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
+    vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
+
+    vec3 t0 = min(t0Temp, t1Temp);
+    vec3 t1 = max(t0Temp, t1Temp);
+
+    float tNear = max(t0.x, max(t0.y, t0.z));
+    float tFar = min(t1.x, min(t1.y, t1.z));
+
+    dist = tNear;
+
+    return tFar >= tNear && tFar > 0;
 }
 
 ScatterInfo DiffuseScatter(ScatterInfo scatterInfo, Material mat, HitInfo hitInfo, int i) {

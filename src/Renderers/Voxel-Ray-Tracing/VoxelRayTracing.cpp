@@ -261,7 +261,7 @@ namespace Rutile {
          *       +Z               +Z
          */
 
-        constexpr int n = 8;
+        constexpr int n = 64;
         std::array<std::array<std::array<bool, n>, n>, n> grid{ };
 
         for (int x = 0; x < n; ++x) {
@@ -273,7 +273,7 @@ namespace Rutile {
         }
 
         voxels.clear();
-        Voxelify(grid, glm::vec3{ -1.0f }, glm::vec3{ 1.0f }, voxels);
+        Voxelify(grid, glm::vec3{ -2.0f }, glm::vec3{ 2.0f }, voxels);
 
         m_VoxelSSBO->SetData(voxels);
 

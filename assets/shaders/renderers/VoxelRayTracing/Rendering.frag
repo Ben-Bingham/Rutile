@@ -7,7 +7,7 @@ in vec2 normalizedPixelPosition;
 uniform sampler2D accumulationBuffer;
 uniform int frameCount;
 
-#define STATS
+//#define STATS
 
 void main() {
 	vec3 accumulationValue = texture(accumulationBuffer, normalizedPixelPosition).rgb;
