@@ -339,7 +339,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
         --stackIndex;
     
         TLASNode node = TLASNodes[nodeIndex];
-    
+
         if (node.objectCount > 0) { // Is a leaf node, has multiple objects
             for (int i = node.node1Offset; i < node.node1Offset + node.objectCount; ++i) {
                 HitInfo backupHitInfo = hitInfo;

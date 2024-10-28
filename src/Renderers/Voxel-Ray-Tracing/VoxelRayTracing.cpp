@@ -267,7 +267,7 @@ namespace Rutile {
         for (int x = 0; x < n; ++x) {
             for (int y = 0; y < n; ++y) {
                 for (int z = 0; z < n; ++z) {
-                    grid[x][y][z] = (x + y + z) % 3 == 0;
+                    grid[x][y][z] = (x + y + z) % 2 == 0;
                 }
             }
         }
@@ -369,7 +369,66 @@ namespace Rutile {
     }
 
     void VoxelRayTracing::ProvideLocalRendererSettings() {
+        static int maxBboxChecks = 100;
+        static int maxSphereChecks = 100;
+        static int maxTriangleChecks = 100;
+        static int maxMeshChecks = 100;
 
+        static int mode = 0;
+
+        RadioButtons("Stats mode", std::vector<std::string>{
+            "Bounding Boxes",
+                "Spheres",
+                "Triangles",
+                "Meshes"
+        },
+            & mode
+        );
+
+        int bbox = -1;
+        int sphere = -1;
+        int tri = -1;
+        int mesh = -1;
+
+        switch (mode) {
+        case 0:
+            if (ImGui::DragInt("Max Bounding Box Checks", &maxBboxChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            bbox = maxBboxChecks;
+            break;
+
+        case 1:
+            if (ImGui::DragInt("Max Sphere Checks", &maxSphereChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            sphere = maxSphereChecks;
+            break;
+
+        case 2:
+            if (ImGui::DragInt("Max Triangle Checks", &maxTriangleChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            tri = maxTriangleChecks;
+            break;
+
+        case 3:
+            if (ImGui::DragInt("Max Mesh Checks", &maxMeshChecks, 0.1f, 0, 10000)) {
+                ResetAccumulatedPixelData();
+            }
+            mesh = maxMeshChecks;
+            break;
+
+        default:
+            std::cout << "ERROR: Unknown mode" << std::endl;
+            break;
+        }
+
+        m_VoxelRayTracingShader->Bind();
+        m_VoxelRayTracingShader->SetInt("maxBboxChecks", bbox);
+        m_VoxelRayTracingShader->SetInt("maxSphereChecks", sphere);
+        m_VoxelRayTracingShader->SetInt("maxTriangleChecks", tri);
+        m_VoxelRayTracingShader->SetInt("maxMeshChecks", mesh);
     }
 
     void VoxelRayTracing::ResetAccumulatedPixelData() {

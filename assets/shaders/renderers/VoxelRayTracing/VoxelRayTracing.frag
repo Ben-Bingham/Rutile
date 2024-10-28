@@ -3,7 +3,7 @@
 // Lots of code translated from Ray Tracing In One Weekend:
 // https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
-//#define STATS
+#define STATS
 
 struct Ray {
 	vec3 origin;
@@ -214,6 +214,25 @@ vec3 FireRayIntoScene(Ray r) {
 
         HitInfo hitInfo;
         if (HitScene(ray, hitInfo)) { // Scatter the ray
+
+
+
+
+
+
+
+
+            //return vec3(0.0, 1.0, 0.0);
+
+
+
+
+
+
+
+
+
+
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
@@ -257,6 +276,15 @@ vec3 FireRayIntoScene(Ray r) {
         ++bounces;
     }
 
+
+
+
+
+    //return vec3(1.0, 0.0, 0.0);
+
+
+
+
     return color;
 }
 
@@ -291,10 +319,21 @@ layout(std430, binding = 5) readonly buffer VoxelBuffer {
 
 uniform int octreeRootIndex;
 
+struct DistIndex {
+    float dist;
+    int index;
+};
+
 bool HitScene(Ray ray, inout HitInfo hitInfo) {
     hitInfo.closestDistance = MAX_FLOAT;
     bool hitSomething = false;
  
+    Voxel rootVoxel = voxels[octreeRootIndex];
+    float dist;
+    if (!HitAABB(ray, AABB(vec3(rootVoxel.minX, rootVoxel.minY, rootVoxel.minZ), vec3(rootVoxel.maxX, rootVoxel.maxY, rootVoxel.maxZ)), dist)) {
+        return false;
+    }
+
     int stack[128];
     int stackIndex = 1;
     
@@ -306,9 +345,144 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
     
         Voxel voxel = voxels[nodeIndex];
 
+
+
+
+
+        /*
+        // This still speeds everything up
+        float dist;
+        if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+            continue;
+        }
+
+        if (dist > hitInfo.closestDistance) {
+            continue;
+        }
+
+
+
+
+
+        // Assume we already hit the voxel before getting here:
+        // This does add an extra hit test, but its only for the voxels we draw, meaning that it dosent scale with the size the number of voxels,
+        // it scales with the number of voxels on screen. This will only ever add 1 check to each ray
+        if (voxel.shouldDraw) {
+            // Need to either hit the voxel again to get hitInfo, or need to store that somehow from earlier
+            // Compare hitInfo with current, and modify if nesacary
+            HitInfo backupHitInfo = hitInfo;
+            if (HitAABB2(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), backupHitInfo)) {
+                if (backupHitInfo.closestDistance < hitInfo.closestDistance) { // TODO this check can be moved inside HitAABB2
+                    hitInfo = backupHitInfo;
+                    hitSomething = true;
+                }
+            }
+
+        } else if (voxel.hasKids) {
+            // Hit every kid, record the distance
+            DistIndex distances[8];
+
+            distances[0].index = 0;
+            distances[1].index = 1;
+            distances[2].index = 2;
+            distances[3].index = 3;
+            distances[4].index = 4;
+            distances[5].index = 5;
+            distances[6].index = 6;
+            distances[7].index = 7;
+
+            bool hits[8];
+
+            Voxel k0 = voxels[voxel.k0]; hits[0] = HitAABB(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0].dist);
+            Voxel k1 = voxels[voxel.k1]; hits[1] = HitAABB(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1].dist);
+            Voxel k2 = voxels[voxel.k2]; hits[2] = HitAABB(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2].dist);
+            Voxel k3 = voxels[voxel.k3]; hits[3] = HitAABB(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3].dist);            
+            Voxel k4 = voxels[voxel.k4]; hits[4] = HitAABB(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4].dist);
+            Voxel k5 = voxels[voxel.k5]; hits[5] = HitAABB(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5].dist);
+            Voxel k6 = voxels[voxel.k6]; hits[6] = HitAABB(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6].dist);            
+            Voxel k7 = voxels[voxel.k7]; hits[7] = HitAABB(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7].dist);
+
+            for (int i = 0; i < 8; ++i) {
+                if (hits[i] && distances[i].dist > hitInfo.closestDistance) {
+                    // Too far, remove it
+                    distances[i].index = -1;
+                    distances[i].dist = MAX_FLOAT;
+                }
+            }
+            
+            // Sort distances
+            int n = 8;
+            
+            for (int i = 0; i < n - 1; i++) {
+                bool swapped = false;
+
+                for (int j = 0; j < n - i - 1; j++) {
+                    if (distances[j].dist > distances[j + 1].dist) {
+                        DistIndex tmp = distances[j];
+                        distances[j] = distances[j + 1];
+                        distances[j + 1] = tmp;
+
+                        swapped = true;
+                    }
+                }
+      
+                // If no elements were swapped, then the array is sorted
+                if (!swapped)
+                    break;
+            }
+
+            for (int i = 0; i < 8; ++i) {
+                if (distances[i].index == -1) {
+                    break;
+                }
+
+                switch (distances[i].index) {
+                    case 0: stack[stackIndex += 1] = voxel.k0; break;
+                    case 1: stack[stackIndex += 1] = voxel.k1; break;
+                    case 2: stack[stackIndex += 1] = voxel.k2; break;
+                    case 3: stack[stackIndex += 1] = voxel.k3; break;
+                    case 4: stack[stackIndex += 1] = voxel.k4; break;
+                    case 5: stack[stackIndex += 1] = voxel.k5; break;
+                    case 6: stack[stackIndex += 1] = voxel.k6; break;
+                    case 7: stack[stackIndex += 1] = voxel.k7; break;
+                }
+            }
+        }
+        */
+
+
+
+
+
+
+
+
+
+
+        // Already have this:
+        // Assume we have no idea if we hit the voxel before getting here:
+
+        // Hit the voxel
+
+        // If hit the voxel {
+        //      if (shouldDraw) {
+        //          Check the hitInfo if were closer and draw
+        //      } else if (has kids) {
+        //          Add all kids
+        //      }
+        // } else {
+        //      Loop back, check the next voxel
+        // }
+
+
+        
         if (voxel.hasKids) {
             float dist;
             if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
+                continue;
+            }
+
+            if (dist > hitInfo.closestDistance) {
                 continue;
             }
 
@@ -355,6 +529,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                 }
             }
         }
+        
     }
 
     return hitSomething;
@@ -391,6 +566,10 @@ bool HitAABB(Ray ray, AABB bbox, out float distanceToIntersection) {
 }
 
 bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo) {
+#ifdef STATS
+    ++stats.bboxChecks;
+#endif
+
     vec3 t0Temp = (bbox.minBound - ray.origin) * ray.inverseDirection;
     vec3 t1Temp = (bbox.maxBound - ray.origin) * ray.inverseDirection;
 
@@ -400,7 +579,7 @@ bool HitAABB2(Ray ray, AABB bbox, inout HitInfo hitInfo) {
     float tNear = max(t0.x, max(t0.y, t0.z));
     float tFar = min(t1.x, min(t1.y, t1.z));
 
-    if (tFar < tNear || tFar <= 0) {
+    if (tFar < tNear || tFar <= 0 || tNear <= MIN_RAY_DISTANCE) {
         return false; // No hit
     }
 
