@@ -7,5 +7,7 @@ namespace Rutile {
         glm::vec3 max{ -std::numeric_limits<float>::max() };
 
         void AddPadding(float padding);
+
+        bool Contains(const glm::vec3& point);
     };
 }

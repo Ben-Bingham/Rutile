@@ -11,6 +11,8 @@
 #include "Utility/Random.h"
 #include "Utility/events/Events.h"
 #include "Utility/OpenGl/GLDebug.h"
+#include "Utility/RayTracing/AABB.h"
+#include "Utility/RayTracing/AABBFactory.h"
 
 namespace Rutile {
     GLFWwindow* VoxelRayTracing::Init() {
@@ -105,8 +107,6 @@ namespace Rutile {
         m_VoxelRayTracingShader->Bind();
 
         ResetAccumulatedPixelData();
-
-        CreateOctree();
 
         return window;
     }
@@ -237,9 +237,7 @@ namespace Rutile {
                     case 6: voxel.k6 = index; break;
                     case 7: voxel.k7 = index; break;
                     }
-
                 }
-
             }
             else {
                 voxel.hasKids = false;
@@ -261,19 +259,45 @@ namespace Rutile {
          *       +Z               +Z
          */
 
-        constexpr int n = 64;
+        constexpr int n = 128;
+        glm::vec3 min{ -10.0f };
+        glm::vec3 max{ 10.0f };
         std::array<std::array<std::array<bool, n>, n>, n> grid{ };
+
+        std::vector<AABB> objectBboxs{ };
+
+        for (auto obj : App::scene.objects) {
+            AABB bbox = AABBFactory::Construct(App::scene.geometryBank[obj.geometry], App::scene.transformBank[obj.transform]);
+            objectBboxs.push_back(bbox);
+        }
 
         for (int x = 0; x < n; ++x) {
             for (int y = 0; y < n; ++y) {
                 for (int z = 0; z < n; ++z) {
-                    grid[x][y][z] = (x + y + z) % 2 == 0;
+                    for (auto bbox : objectBboxs) {
+                        //AABB bbox = AABBFactory::Construct(App::scene.geometryBank[obj.geometry], App::scene.transformBank[obj.transform]);
+
+                        //App::scene.transformBank[obj.transform].CalculateMatrix();
+
+                        //glm::vec3 pointToCheck = glm::vec3{ App::scene.transformBank[obj.transform].matrix * glm::vec4{ x, y, z, 1.0f } };
+                        glm::vec3 p = glm::vec3{ x, y, z };
+                        p /= n;
+                        p *= (max.x - min.x);
+                        p += min;
+                        if (bbox.Contains(p)) {
+                            grid[x][y][z] = true;
+                            break;
+                        }
+
+                        grid[x][y][z] = false;
+                    }
+                    //grid[x][y][z] = (x + y + z) % 2 == 0;
                 }
             }
         }
 
         voxels.clear();
-        Voxelify(grid, glm::vec3{ -2.0f }, glm::vec3{ 2.0f }, voxels);
+        Voxelify(grid, min, max, voxels);
 
         m_VoxelSSBO->SetData(voxels);
 
@@ -365,6 +389,8 @@ namespace Rutile {
     }
 
     void VoxelRayTracing::LoadScene() {
+        CreateOctree();
+
         ResetAccumulatedPixelData();
     }
 
