@@ -41,7 +41,15 @@ namespace Rutile {
         std::vector<Voxel> voxels;
 
     private:
+        struct LocalMaterial {
+            int type;
+            float fuzz;
+            float indexOfRefraction;
+            alignas(16) glm::vec4 color;
+        };
+
         void ResetAccumulatedPixelData();
+        void CreateAndUploadMaterialBuffer();
 
         std::chrono::time_point<std::chrono::steady_clock> m_RendererLoadTime;
 
@@ -59,5 +67,7 @@ namespace Rutile {
         unsigned int m_AccumulationRBO{ 0 };
 
         std::unique_ptr<SSBO<Voxel>> m_VoxelSSBO;
+
+        std::unique_ptr<SSBO<LocalMaterial>> m_MaterialBank;
     };
 }

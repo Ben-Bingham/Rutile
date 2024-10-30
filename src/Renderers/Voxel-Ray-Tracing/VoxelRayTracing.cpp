@@ -41,6 +41,7 @@ namespace Rutile {
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
 
+        m_MaterialBank = std::make_unique<SSBO<LocalMaterial>>(0);
         m_VoxelSSBO = std::make_unique<SSBO<Voxel>>(5);
 
         std::vector<float> vertices = {
@@ -111,17 +112,22 @@ namespace Rutile {
         return window;
     }
 
+    struct VoxelValue {
+        bool b;
+        int materialIndex;
+    };
+
     /*
      * Min bound and Max bound: the size of the current voxel
      */
     template<int N>
-    void Voxelify(std::array<std::array<std::array<bool, N>, N>, N> grid, glm::vec3 minBound, glm::vec3 maxBound, std::vector<VoxelRayTracing::Voxel>& voxels) {
+    void Voxelify(std::array<std::array<std::array<VoxelValue, N>, N>, N> grid, glm::vec3 minBound, glm::vec3 maxBound, std::vector<VoxelRayTracing::Voxel>& voxels) {
         int voxelsFound = 0;
 
         for (int x = 0; x < N; ++x) {
             for (int y = 0; y < N; ++y) {
                 for (int z = 0; z < N; ++z) {
-                    if (grid[x][y][z]) {
+                    if (grid[x][y][z].b) {
                         ++voxelsFound;
                     }
                 }
@@ -133,9 +139,11 @@ namespace Rutile {
         voxel.minBound = minBound;
         voxel.maxBound = maxBound;
 
-        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0])) {
+        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0].b)) {
             voxel.hasKids = false;
             voxel.shouldDraw = true;
+
+            voxel.k0 = grid[0][0][0].materialIndex;
 
         }
         else {
@@ -148,7 +156,7 @@ namespace Rutile {
 
                 // Disect the grid into 8 pieces properly, recurse 8 differnt times, once for each octant
                 for (int i = 0; i < 8; ++i) {
-                    std::array<std::array<std::array<bool, hN>, hN>, hN> g{ };
+                    std::array<std::array<std::array<VoxelValue, hN>, hN>, hN> g{ };
 
                     glm::vec3 minB{ };
                     glm::vec3 maxB{ };
@@ -248,6 +256,11 @@ namespace Rutile {
         voxels.push_back(voxel);
     }
 
+    struct AABBMatId {
+        AABB bbox;
+        MaterialIndex matId;
+    };
+
     void VoxelRayTracing::CreateOctree() {
         /*
          *   ---------        ---------
@@ -262,36 +275,32 @@ namespace Rutile {
         constexpr int n = 128;
         glm::vec3 min{ -10.0f };
         glm::vec3 max{ 10.0f };
-        std::array<std::array<std::array<bool, n>, n>, n> grid{ };
+        std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
 
-        std::vector<AABB> objectBboxs{ };
+        std::vector<AABBMatId> objectBboxs{ };
 
         for (auto obj : App::scene.objects) {
             AABB bbox = AABBFactory::Construct(App::scene.geometryBank[obj.geometry], App::scene.transformBank[obj.transform]);
-            objectBboxs.push_back(bbox);
+            objectBboxs.push_back(AABBMatId{ bbox, obj.material });
         }
 
         for (int x = 0; x < n; ++x) {
             for (int y = 0; y < n; ++y) {
                 for (int z = 0; z < n; ++z) {
                     for (auto bbox : objectBboxs) {
-                        //AABB bbox = AABBFactory::Construct(App::scene.geometryBank[obj.geometry], App::scene.transformBank[obj.transform]);
-
-                        //App::scene.transformBank[obj.transform].CalculateMatrix();
-
-                        //glm::vec3 pointToCheck = glm::vec3{ App::scene.transformBank[obj.transform].matrix * glm::vec4{ x, y, z, 1.0f } };
                         glm::vec3 p = glm::vec3{ x, y, z };
                         p /= n;
-                        p *= (max.x - min.x);
+                        p *= max.x - min.x;
                         p += min;
-                        if (bbox.Contains(p)) {
-                            grid[x][y][z] = true;
+
+                        if (bbox.bbox.Contains(p)) {
+                            grid[x][y][z].b = true;
+                            grid[x][y][z].materialIndex = bbox.matId;
                             break;
                         }
 
-                        grid[x][y][z] = false;
+                        grid[x][y][z].b = false;
                     }
-                    //grid[x][y][z] = (x + y + z) % 2 == 0;
                 }
             }
         }
@@ -334,6 +343,9 @@ namespace Rutile {
             EVENT_IS(event, ObjectMaterialUpdate)) {
 
             ResetAccumulatedPixelData();
+        }
+        if (EVENT_IS(event, ObjectMaterialUpdate)) {
+            CreateAndUploadMaterialBuffer();
         }
     }
     void VoxelRayTracing::Render() {
@@ -390,6 +402,8 @@ namespace Rutile {
 
     void VoxelRayTracing::LoadScene() {
         CreateOctree();
+
+        CreateAndUploadMaterialBuffer();
 
         ResetAccumulatedPixelData();
     }
@@ -470,5 +484,22 @@ namespace Rutile {
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, clearData.data());
+    }
+
+    void VoxelRayTracing::CreateAndUploadMaterialBuffer() {
+        m_VoxelRayTracingShader->Bind();
+
+        std::vector<LocalMaterial> localMats{ };
+        for (size_t i = 0; i < App::scene.materialBank.Size(); ++i) {
+            LocalMaterial mat{ };
+            mat.type = (int)App::scene.materialBank[i].type;
+            mat.fuzz = App::scene.materialBank[i].fuzz;
+            mat.indexOfRefraction = App::scene.materialBank[i].indexOfRefraction;
+            mat.color = glm::vec4{ App::scene.materialBank[i].solid.color, 1.0 };
+
+            localMats.emplace_back(mat);
+        }
+
+        m_MaterialBank->SetData(localMats);
     }
 }

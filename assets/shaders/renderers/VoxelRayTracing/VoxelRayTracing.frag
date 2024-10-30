@@ -19,6 +19,13 @@ struct Stats {
     int meshChecks;
 } stats;
 
+struct Material {
+    int type;
+    float fuzz;
+    float indexOfRefraction;
+    vec3 color;
+};
+
 uniform int maxBboxChecks;
 uniform int maxSphereChecks;
 uniform int maxTriangleChecks;
@@ -42,7 +49,6 @@ struct AABB {
     vec3 minBound;
     vec3 maxBound;
 };
-
 
 layout(std430, binding = 0) readonly buffer materialBuffer {
     Material materialBank[];
@@ -239,12 +245,13 @@ vec3 FireRayIntoScene(Ray r) {
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
 
-            // Material mat = materialBank[objects[hitInfo.hitObjectIndex].materialIndex]; TODO
-            Material mat;
-            mat.type = DIFFUSE_TYPE;
-            mat.color = vec3(0.35, 0.75, 0.4);
-            mat.fuzz = 0.5;
-            mat.indexOfRefraction = 1.0;
+            Material mat = materialBank[hitInfo.hitObjectIndex];
+            
+            //Material mat;
+            //mat.type = DIFFUSE_TYPE;
+            //mat.color = vec3(0.35, 0.75, 0.4);
+            //mat.fuzz = 0.5;
+            //mat.indexOfRefraction = 1.0;
 
             if (mat.type == DIFFUSE_TYPE) {
                 scatterInfo = DiffuseScatter(scatterInfo, mat, hitInfo, bounces);
@@ -589,6 +596,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
                     if (backupHitInfo.closestDistance < hitInfo.closestDistance) {
                         hitInfo = backupHitInfo;
                         hitSomething = true;
+                        hitInfo.hitObjectIndex = voxel.k0;
                     }
                 }
             }
