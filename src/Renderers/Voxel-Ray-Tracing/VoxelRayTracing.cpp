@@ -259,7 +259,21 @@ namespace Rutile {
     struct AABBMatId {
         AABB bbox;
         MaterialIndex matId;
+        Object obj;
     };
+
+    bool TriangleContainsVoxel(std::array<glm::vec3, 3> tri, AABB voxel) {
+        // Given the line: y = mx + c
+        // The circle: (x - a)^2 + (y - b)^2 = r^2
+        // The following quadratic equation has roots whos x values corospond to the x values of the intersection between the circle and the line
+        // When the two intersect, there are two roots, otherwise the roots are undefined
+        // x^2(1 + m^2) + 2x(mc - a - mb) + a^2 + b^2 + c^2 - r^2 - 2bc
+        // The roots do not need to be calculated, instead only the discriminant needs to be calculated
+
+        // The y coordinate does not need to be calculated as we are only trying to determine weather or not the circle intersects the line, and not the location
+
+        return true;
+    }
 
     void VoxelRayTracing::CreateOctree() {
         /*
@@ -277,11 +291,109 @@ namespace Rutile {
         glm::vec3 max{ 10.0f };
         std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
 
+        for (auto obj : App::scene.objects) {
+            auto geo = App::scene.geometryBank[obj.geometry];
+            auto transform = App::scene.transformBank[obj.transform];
+            for (size_t i = 0; i < geo.indices.size(); i += 3) {
+                glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 0]].position, 1.0f } };
+                glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 1]].position, 1.0f } };
+                glm::vec3 p3 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 2]].position, 1.0f } };
+
+                // Here p1-3 are in world space, representing there real coords.
+                // They need to be translated into there voxel coords, ie what voxel do they each corospond to the center of.
+                //p1 /= n;
+                //p1 *= max.x - min.x;
+                //p1 += min;
+
+                p1 -= min;
+                p1 /= max.x - min.x;
+                p1 *= n;
+
+                p2 -= min;
+                p2 /= max.x - min.x;
+                p2 *= n;
+
+                //Triangle tri{ p1, p2, p3 };
+
+                int x0 = (int)std::round(p1.x);
+                int y0 = (int)std::round(p1.y);
+
+                int x1 = (int)std::round(p2.x);
+                int y1 = (int)std::round(p2.y);
+
+                //int z0 = (int)std::round(p1.z);
+                //int z1 = (int)std::round(p2.z);
+
+                int dx = std::abs(x1 - x0);
+                int sx = x0 < x1 ? 1 : -1;
+
+                int dy = -std::abs(y1 - y0);
+                int sy = y0 < y1 ? 1 : -1;
+
+                int error = dx + dy;
+
+                while (true) {
+                    // The voxel is true
+                    grid[x0][y0][0].b = true;
+                    grid[x0][y0][0].materialIndex = obj.material;
+
+                    if (x0 == x1 && y0 == y1) break;
+                    int e2 = 2 * error;
+                    if (e2 >= dy) {
+                        if (x0 == x1) break;
+                        error = error + dy;
+                        x0 = x0 + sx;
+                    }
+                    if (e2 <= dx) {
+                        if (y0 == y1) break;
+                        error = error + sx;
+                        y0 = y0 + sy;
+                    }
+                }
+
+                /*
+                plotLine(x0, y0, x1, y1)
+                    dx = abs(x1 - x0)
+                    sx = x0 < x1 ? 1 : -1
+                    dy = -abs(y1 - y0)
+                    sy = y0 < y1 ? 1 : -1
+                    error = dx + dy
+
+                    while true
+                        plot(x0, y0)
+                        if x0 == x1 && y0 == y1 break
+                        e2 = 2 * error
+                        if e2 >= dy
+                            if x0 == x1 break
+                            error = error + dy
+                            x0 = x0 + sx
+                        end if
+                        if e2 <= dx
+                            if y0 == y1 break
+                            error = error + dx
+                            y0 = y0 + sy
+                        end if
+                    end while
+                */
+            }
+        }
+
+        /*
         std::vector<AABBMatId> objectBboxs{ };
 
         for (auto obj : App::scene.objects) {
-            AABB bbox = AABBFactory::Construct(App::scene.geometryBank[obj.geometry], App::scene.transformBank[obj.transform]);
-            objectBboxs.push_back(AABBMatId{ bbox, obj.material });
+            auto geo = App::scene.geometryBank[obj.geometry];
+            auto transform = App::scene.transformBank[obj.transform];
+
+            for (size_t i = 0; i < geo.indices.size(); i += 3) {
+                glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 0]].position, 1.0f } };
+                glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 1]].position, 1.0f } };
+                glm::vec3 p3 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 2]].position, 1.0f } };
+
+                AABB bbox = AABBFactory::Construct(Triangle{ p1, p2, p3 });
+                bbox.AddPadding(((max - min).x / n) * 2); // Add 1 voxels of padding to all sides to account of axis aligned planes
+                objectBboxs.push_back(AABBMatId{ bbox, obj.material, obj });
+            }
         }
 
         for (int x = 0; x < n; ++x) {
@@ -294,6 +406,11 @@ namespace Rutile {
                         p += min;
 
                         if (bbox.bbox.Contains(p)) {
+                            // The voxel is within the objects bounding box
+
+                            //auto geo = App::scene.geometryBank[bbox.obj.geometry];
+
+
                             grid[x][y][z].b = true;
                             grid[x][y][z].materialIndex = bbox.matId;
                             break;
@@ -304,6 +421,7 @@ namespace Rutile {
                 }
             }
         }
+        */
 
         voxels.clear();
         Voxelify(grid, min, max, voxels);
