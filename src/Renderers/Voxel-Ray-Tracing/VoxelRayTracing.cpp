@@ -447,6 +447,8 @@ namespace Rutile {
         voxels.clear();
         Voxelify(grid, min, max, voxels);
 
+        m_VoxelRayTracingShader->Bind();
+
         m_VoxelSSBO->SetData(voxels);
 
         m_VoxelRayTracingShader->SetInt("octreeRootIndex", (int)voxels.size() - 1);
