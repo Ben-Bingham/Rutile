@@ -288,6 +288,8 @@ namespace Rutile {
             while (true) {
                 if (x0 == x1) break;
 
+                if (x0 >= N || y0 >= N || z0 >= N) break;
+
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
 
@@ -313,6 +315,8 @@ namespace Rutile {
             while (true) {
                 if (y0 == y1) break;
 
+                if (x0 >= N || y0 >= N || z0 >= N) break;
+
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
 
@@ -337,6 +341,8 @@ namespace Rutile {
             int ey = 2 * dy - dz;
             while (true) {
                 if (z0 == z1) break;
+
+                if (x0 >= N || y0 >= N || z0 >= N) break;
 
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
@@ -369,9 +375,45 @@ namespace Rutile {
          *       +Z               +Z
          */
 
+        AABB sceneBoundingBox{ glm::vec3{ 0.1f }, glm::vec3{ 0.1f } };
         constexpr int n = 128;
-        glm::vec3 min{ -20.0f };
-        glm::vec3 max{ 20.0f };
+
+        for (auto obj : App::scene.objects) {
+            sceneBoundingBox = AABBFactory::Construct(AABBFactory::Construct(obj), sceneBoundingBox);
+        }
+
+        sceneBoundingBox.AddPadding(((sceneBoundingBox.max - sceneBoundingBox.min).length() / n) * 4.0f);
+
+        glm::vec3 min{ };
+        glm::vec3 max{ };
+
+        // TODO This system assumes the scenes are centerd at the origin, maybe change this?
+        if (std::abs(sceneBoundingBox.min.x) > std::abs(sceneBoundingBox.max.x)) {
+            min.x = -std::abs(sceneBoundingBox.min.x);
+            max.x =  std::abs(sceneBoundingBox.min.x);
+        } else {
+            min.x = -std::abs(sceneBoundingBox.max.x);
+            max.x =  std::abs(sceneBoundingBox.max.x);
+        }
+
+        if (std::abs(sceneBoundingBox.min.y) > std::abs(sceneBoundingBox.max.y)) {
+            min.y = -std::abs(sceneBoundingBox.min.y);
+            max.y =  std::abs(sceneBoundingBox.min.y);
+        }
+        else {
+            min.y = -std::abs(sceneBoundingBox.max.y);
+            max.y =  std::abs(sceneBoundingBox.max.y);
+        }
+
+        if (std::abs(sceneBoundingBox.min.z) > std::abs(sceneBoundingBox.max.z)) {
+            min.z = -std::abs(sceneBoundingBox.min.z);
+            max.z =  std::abs(sceneBoundingBox.min.z);
+        }
+        else {
+            min.z = -std::abs(sceneBoundingBox.max.z);
+            max.z =  std::abs(sceneBoundingBox.max.z);
+        }
+
         std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
 
         for (auto obj : App::scene.objects) {
