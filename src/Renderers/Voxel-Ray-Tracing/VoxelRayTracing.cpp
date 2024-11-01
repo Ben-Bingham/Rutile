@@ -262,17 +262,100 @@ namespace Rutile {
         Object obj;
     };
 
-    bool TriangleContainsVoxel(std::array<glm::vec3, 3> tri, AABB voxel) {
-        // Given the line: y = mx + c
-        // The circle: (x - a)^2 + (y - b)^2 = r^2
-        // The following quadratic equation has roots whos x values corospond to the x values of the intersection between the circle and the line
-        // When the two intersect, there are two roots, otherwise the roots are undefined
-        // x^2(1 + m^2) + 2x(mc - a - mb) + a^2 + b^2 + c^2 - r^2 - 2bc
-        // The roots do not need to be calculated, instead only the discriminant needs to be calculated
+    // General design taken from:
+    // https://www.mathworks.com/matlabcentral/fileexchange/21057-3d-bresenham-s-line-generation
+    template<int N>
+    void VoxelifiyLine(std::array<std::array<std::array<VoxelValue, N>, N>, N>& grid, glm::ivec3 min, glm::ivec3 max, MaterialIndex matIndex) {
+        int x0 = min.x;
+        int y0 = min.y;
+        int z0 = min.z;
+        int x1 = max.x;
+        int y1 = max.y;
+        int z1 = max.z;
 
-        // The y coordinate does not need to be calculated as we are only trying to determine weather or not the circle intersects the line, and not the location
+        int dx = std::abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
 
-        return true;
+        int dy = std::abs(y1 - y0);
+        int sy = y0 < y1 ? 1 : -1;
+
+        int dz = std::abs(z1 - z0);
+        int sz = z0 < z1 ? 1 : -1;
+
+        if (dx >= dy && dx >= dz) {
+            int ey = 2 * dy - dx;
+            int ez = 2 * dz - dx;
+            while (true) {
+                if (x0 == x1) break;
+
+                grid[x0][y0][z0].b = true;
+                grid[x0][y0][z0].materialIndex = matIndex;
+
+                if (ey >= 0) {
+                    y0 += sy;
+                    ey -= 2 * dx;
+                }
+                if (ez >= 0) {
+                    z0 += sz;
+                    ez -= 2 * dx;
+                }
+
+                ey += 2 * dy;
+                ez += 2 * dz;
+
+                x0 += sx;
+            }
+
+        }
+        else if (dy >= dx && dy >= dz) {
+            int ex = 2 * dx - dy;
+            int ez = 2 * dz - dy;
+            while (true) {
+                if (y0 == y1) break;
+
+                grid[x0][y0][z0].b = true;
+                grid[x0][y0][z0].materialIndex = matIndex;
+
+                if (ex >= 0) {
+                    x0 += sx;
+                    ex -= 2 * dy;
+                }
+                if (ez >= 0) {
+                    z0 += sz;
+                    ez -= 2 * dy;
+                }
+
+                ex += 2 * dx;
+                ez += 2 * dz;
+
+                y0 += sy;
+            }
+
+        }
+        else if (dz >= dx && dz >= dy) {
+            int ex = 2 * dx - dz;
+            int ey = 2 * dy - dz;
+            while (true) {
+                if (z0 == z1) break;
+
+                grid[x0][y0][z0].b = true;
+                grid[x0][y0][z0].materialIndex = matIndex;
+
+                if (ex >= 0) {
+                    x0 += sx;
+                    ex -= 2 * dz;
+                }
+                if (ey >= 0) {
+                    y0 += sz;
+                    ey -= 2 * dz;
+                }
+
+                ex += 2 * dx;
+                ey += 2 * dy;
+
+                z0 += sz;
+            }
+        }
     }
 
     void VoxelRayTracing::CreateOctree() {
@@ -287,23 +370,23 @@ namespace Rutile {
          */
 
         constexpr int n = 128;
-        glm::vec3 min{ -10.0f };
-        glm::vec3 max{ 10.0f };
+        glm::vec3 min{ -20.0f };
+        glm::vec3 max{ 20.0f };
         std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
 
         for (auto obj : App::scene.objects) {
             auto geo = App::scene.geometryBank[obj.geometry];
             auto transform = App::scene.transformBank[obj.transform];
             for (size_t i = 0; i < geo.indices.size(); i += 3) {
-                glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 0]].position, 1.0f } };
-                glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 1]].position, 1.0f } };
-                glm::vec3 p3 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 2]].position, 1.0f } };
+                glm::vec3 p0 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 0]].position, 1.0f } };
+                glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 1]].position, 1.0f } };
+                glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 2]].position, 1.0f } };
 
                 // Here p1-3 are in world space, representing there real coords.
                 // They need to be translated into there voxel coords, ie what voxel do they each corospond to the center of.
-                //p1 /= n;
-                //p1 *= max.x - min.x;
-                //p1 += min;
+                p0 -= min;
+                p0 /= max.x - min.x;
+                p0 *= n;
 
                 p1 -= min;
                 p1 /= max.x - min.x;
@@ -313,115 +396,23 @@ namespace Rutile {
                 p2 /= max.x - min.x;
                 p2 *= n;
 
-                //Triangle tri{ p1, p2, p3 };
+                int x0 = (int)std::round(p0.x);
+                int y0 = (int)std::round(p0.y);
+                int z0 = (int)std::round(p0.z);
 
-                int x0 = (int)std::round(p1.x);
-                int y0 = (int)std::round(p1.y);
+                int x1 = (int)std::round(p1.x);
+                int y1 = (int)std::round(p1.y);
+                int z1 = (int)std::round(p1.z);
 
-                int x1 = (int)std::round(p2.x);
-                int y1 = (int)std::round(p2.y);
+                int x2 = (int)std::round(p2.x);
+                int y2 = (int)std::round(p2.y);
+                int z2 = (int)std::round(p2.z);
 
-                //int z0 = (int)std::round(p1.z);
-                //int z1 = (int)std::round(p2.z);
-
-                int dx = std::abs(x1 - x0);
-                int sx = x0 < x1 ? 1 : -1;
-
-                int dy = -std::abs(y1 - y0);
-                int sy = y0 < y1 ? 1 : -1;
-
-                int error = dx + dy;
-
-                while (true) {
-                    // The voxel is true
-                    grid[x0][y0][0].b = true;
-                    grid[x0][y0][0].materialIndex = obj.material;
-
-                    if (x0 == x1 && y0 == y1) break;
-                    int e2 = 2 * error;
-                    if (e2 >= dy) {
-                        if (x0 == x1) break;
-                        error = error + dy;
-                        x0 = x0 + sx;
-                    }
-                    if (e2 <= dx) {
-                        if (y0 == y1) break;
-                        error = error + sx;
-                        y0 = y0 + sy;
-                    }
-                }
-
-                /*
-                plotLine(x0, y0, x1, y1)
-                    dx = abs(x1 - x0)
-                    sx = x0 < x1 ? 1 : -1
-                    dy = -abs(y1 - y0)
-                    sy = y0 < y1 ? 1 : -1
-                    error = dx + dy
-
-                    while true
-                        plot(x0, y0)
-                        if x0 == x1 && y0 == y1 break
-                        e2 = 2 * error
-                        if e2 >= dy
-                            if x0 == x1 break
-                            error = error + dy
-                            x0 = x0 + sx
-                        end if
-                        if e2 <= dx
-                            if y0 == y1 break
-                            error = error + dx
-                            y0 = y0 + sy
-                        end if
-                    end while
-                */
+                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material); // 0 -> 1
+                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 0 -> 2
+                VoxelifiyLine(grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 1 -> 2
             }
         }
-
-        /*
-        std::vector<AABBMatId> objectBboxs{ };
-
-        for (auto obj : App::scene.objects) {
-            auto geo = App::scene.geometryBank[obj.geometry];
-            auto transform = App::scene.transformBank[obj.transform];
-
-            for (size_t i = 0; i < geo.indices.size(); i += 3) {
-                glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 0]].position, 1.0f } };
-                glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 1]].position, 1.0f } };
-                glm::vec3 p3 = glm::vec3{ transform.matrix * glm::vec4{ geo.vertices[geo.indices[i + 2]].position, 1.0f } };
-
-                AABB bbox = AABBFactory::Construct(Triangle{ p1, p2, p3 });
-                bbox.AddPadding(((max - min).x / n) * 2); // Add 1 voxels of padding to all sides to account of axis aligned planes
-                objectBboxs.push_back(AABBMatId{ bbox, obj.material, obj });
-            }
-        }
-
-        for (int x = 0; x < n; ++x) {
-            for (int y = 0; y < n; ++y) {
-                for (int z = 0; z < n; ++z) {
-                    for (auto bbox : objectBboxs) {
-                        glm::vec3 p = glm::vec3{ x, y, z };
-                        p /= n;
-                        p *= max.x - min.x;
-                        p += min;
-
-                        if (bbox.bbox.Contains(p)) {
-                            // The voxel is within the objects bounding box
-
-                            //auto geo = App::scene.geometryBank[bbox.obj.geometry];
-
-
-                            grid[x][y][z].b = true;
-                            grid[x][y][z].materialIndex = bbox.matId;
-                            break;
-                        }
-
-                        grid[x][y][z].b = false;
-                    }
-                }
-            }
-        }
-        */
 
         voxels.clear();
         Voxelify(grid, min, max, voxels);
