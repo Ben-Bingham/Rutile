@@ -56,6 +56,12 @@ namespace Rutile {
             case SceneType::CORNELL_BOX_VERSION_2: {
                 return GetCornellBoxVersion2();
             }
+            case SceneType::DRAGON_8K: {
+                return GetDragon8K();
+            }
+            case SceneType::DRAGON_80K: {
+                return GetDragon80K();
+            }
         }
     }
 
@@ -766,6 +772,40 @@ namespace Rutile {
         dragonTransform.scale = glm::vec3{ 2.0f };
         dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform, dragonMaterial);
+
+        PointLight pointLight;
+        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetDragon8K() {
+        SceneFactory sceneFactory;
+
+        Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
+
+        Transform dragonTransform{ };
+        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform, dragonMaterial);
+
+        PointLight pointLight;
+        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetDragon80K() {
+        SceneFactory sceneFactory;
+
+        Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
+
+        Transform dragonTransform{ };
+        sceneFactory.Add("assets\\models\\dragon80k\\Dragon_80K.obj", dragonTransform, dragonMaterial);
 
         PointLight pointLight;
         pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };

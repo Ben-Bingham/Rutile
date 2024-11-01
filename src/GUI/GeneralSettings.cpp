@@ -76,7 +76,9 @@ namespace Rutile {
                 "Ray Tracing In One Weekend",
                 "Cornell Box",
                 "Backpack",
-                "Cornell Box 2.0"
+                "Cornell Box 2.0",
+                "8K Triangle Dragon",
+                "80K Triangle Dragon"
             }, 
             (int*)&App::sceneType, 
             [] {
