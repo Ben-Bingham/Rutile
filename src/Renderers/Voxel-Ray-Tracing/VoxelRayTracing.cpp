@@ -1,5 +1,6 @@
 #include "VoxelRayTracing.h"
 #include "imgui.h"
+#include <algorithm>
 #include <array>
 #include <bitset>
 #include <iostream>
@@ -384,35 +385,22 @@ namespace Rutile {
 
         sceneBoundingBox.AddPadding(((sceneBoundingBox.max - sceneBoundingBox.min).length() / n) * 4.0f);
 
-        glm::vec3 min{ };
-        glm::vec3 max{ };
+        std::vector<float> distancesFromCenter{ };
 
-        // TODO This system assumes the scenes are centerd at the origin, maybe change this?
-        if (std::abs(sceneBoundingBox.min.x) > std::abs(sceneBoundingBox.max.x)) {
-            min.x = -std::abs(sceneBoundingBox.min.x);
-            max.x =  std::abs(sceneBoundingBox.min.x);
-        } else {
-            min.x = -std::abs(sceneBoundingBox.max.x);
-            max.x =  std::abs(sceneBoundingBox.max.x);
-        }
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.min.x));
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.min.y));
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.min.z));
 
-        if (std::abs(sceneBoundingBox.min.y) > std::abs(sceneBoundingBox.max.y)) {
-            min.y = -std::abs(sceneBoundingBox.min.y);
-            max.y =  std::abs(sceneBoundingBox.min.y);
-        }
-        else {
-            min.y = -std::abs(sceneBoundingBox.max.y);
-            max.y =  std::abs(sceneBoundingBox.max.y);
-        }
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.max.x));
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.max.y));
+        distancesFromCenter.push_back(std::abs(sceneBoundingBox.max.z));
 
-        if (std::abs(sceneBoundingBox.min.z) > std::abs(sceneBoundingBox.max.z)) {
-            min.z = -std::abs(sceneBoundingBox.min.z);
-            max.z =  std::abs(sceneBoundingBox.min.z);
-        }
-        else {
-            min.z = -std::abs(sceneBoundingBox.max.z);
-            max.z =  std::abs(sceneBoundingBox.max.z);
-        }
+        std::ranges::sort(distancesFromCenter.begin(), distancesFromCenter.end());
+
+        float largestVal = distancesFromCenter.back();
+
+        glm::vec3 min{ -largestVal };
+        glm::vec3 max{ largestVal };
 
         std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
 
