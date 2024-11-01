@@ -290,6 +290,7 @@ namespace Rutile {
                 if (x0 == x1) break;
 
                 if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
@@ -317,6 +318,7 @@ namespace Rutile {
                 if (y0 == y1) break;
 
                 if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
@@ -344,9 +346,117 @@ namespace Rutile {
                 if (z0 == z1) break;
 
                 if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
                 grid[x0][y0][z0].b = true;
                 grid[x0][y0][z0].materialIndex = matIndex;
+
+                if (ex >= 0) {
+                    x0 += sx;
+                    ex -= 2 * dz;
+                }
+                if (ey >= 0) {
+                    y0 += sz;
+                    ey -= 2 * dz;
+                }
+
+                ex += 2 * dx;
+                ey += 2 * dy;
+
+                z0 += sz;
+            }
+        }
+    }
+
+
+    template<int N>
+    void VoxelifiyTriangle(std::array<std::array<std::array<VoxelValue, N>, N>, N>& grid, glm::ivec3 p0, glm::ivec3 p1, glm::ivec3 p2, MaterialIndex matIndex) {
+        int x0 = p0.x;
+        int y0 = p0.y;
+        int z0 = p0.z;
+        int x1 = p1.x;
+        int y1 = p1.y;
+        int z1 = p1.z;
+
+        int dx = std::abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
+
+        int dy = std::abs(y1 - y0);
+        int sy = y0 < y1 ? 1 : -1;
+
+        int dz = std::abs(z1 - z0);
+        int sz = z0 < z1 ? 1 : -1;
+
+        if (dx >= dy && dx >= dz) {
+            int ey = 2 * dy - dx;
+            int ez = 2 * dz - dx;
+            while (true) {
+                if (x0 == x1) break;
+
+                if (x0 >= N || y0 >= N || z0 >= N) break;
+
+                //grid[x0][y0][z0].b = true;
+                //grid[x0][y0][z0].materialIndex = matIndex;
+
+                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
+
+                if (ey >= 0) {
+                    y0 += sy;
+                    ey -= 2 * dx;
+                }
+                if (ez >= 0) {
+                    z0 += sz;
+                    ez -= 2 * dx;
+                }
+
+                ey += 2 * dy;
+                ez += 2 * dz;
+
+                x0 += sx;
+            }
+
+        }
+        else if (dy >= dx && dy >= dz) {
+            int ex = 2 * dx - dy;
+            int ez = 2 * dz - dy;
+            while (true) {
+                if (y0 == y1) break;
+
+                if (x0 >= N || y0 >= N || z0 >= N) break;
+
+                //grid[x0][y0][z0].b = true;
+                //grid[x0][y0][z0].materialIndex = matIndex;
+
+                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
+
+                if (ex >= 0) {
+                    x0 += sx;
+                    ex -= 2 * dy;
+                }
+                if (ez >= 0) {
+                    z0 += sz;
+                    ez -= 2 * dy;
+                }
+
+                ex += 2 * dx;
+                ez += 2 * dz;
+
+                y0 += sy;
+            }
+
+        }
+        else if (dz >= dx && dz >= dy) {
+            int ex = 2 * dx - dz;
+            int ey = 2 * dy - dz;
+            while (true) {
+                if (z0 == z1) break;
+
+                if (x0 >= N || y0 >= N || z0 >= N) break;
+
+                //grid[x0][y0][z0].b = true;
+                //grid[x0][y0][z0].materialIndex = matIndex;
+
+                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -438,9 +548,14 @@ namespace Rutile {
                 int y2 = (int)std::round(p2.y);
                 int z2 = (int)std::round(p2.z);
 
-                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material); // 0 -> 1
-                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 0 -> 2
-                VoxelifiyLine(grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 1 -> 2
+                //VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material); // 0 -> 1
+                //VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 0 -> 2
+                //VoxelifiyLine(grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material); // 1 -> 2
+
+                VoxelifiyTriangle(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material);
+                VoxelifiyTriangle(grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, obj.material);
+                VoxelifiyTriangle(grid, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material);
+
             }
         }
 
