@@ -368,7 +368,6 @@ namespace Rutile {
         }
     }
 
-
     template<int N>
     void VoxelifiyTriangle(std::array<std::array<std::array<VoxelValue, N>, N>, N>& grid, glm::ivec3 p0, glm::ivec3 p1, glm::ivec3 p2, MaterialIndex matIndex) {
         int x0 = p0.x;
