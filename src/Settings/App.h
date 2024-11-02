@@ -32,7 +32,7 @@ namespace Rutile {
         inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static SceneType sceneType = SceneType::ORIGINAL_SCENE;
+        inline static SceneType sceneType = SceneType::DRAGON_80K;
         inline static Scene scene = SceneManager::GetScene(sceneType);
 
         inline static std::unique_ptr<Renderer> renderer = nullptr;

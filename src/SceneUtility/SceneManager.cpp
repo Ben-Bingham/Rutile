@@ -783,15 +783,21 @@ namespace Rutile {
     Scene SceneManager::GetDragon8K() {
         SceneFactory sceneFactory;
 
+        App::camera.pitch = -15.0f;
+        App::camera.position = { 0.0f, 2.4f, 7.5f };
+        App::updateCameraVectors = true;
+
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
         dragonMaterial.type = Material::Type::MIRROR;
         dragonMaterial.fuzz = 0.1f;
 
         Transform dragonTransform{ };
+        dragonTransform.scale = glm::vec3{ 10.0f };
+        dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform, dragonMaterial);
 
         PointLight pointLight;
-        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
         sceneFactory.Add(pointLight);
 
         return sceneFactory.GetScene();
@@ -800,15 +806,21 @@ namespace Rutile {
     Scene SceneManager::GetDragon80K() {
         SceneFactory sceneFactory;
 
+        App::camera.pitch = -15.0f;
+        App::camera.position = { 0.0f, 2.4f, 7.5f };
+        App::updateCameraVectors = true;
+
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
         dragonMaterial.type = Material::Type::MIRROR;
         dragonMaterial.fuzz = 0.1f;
 
         Transform dragonTransform{ };
+        dragonTransform.scale = glm::vec3{ 10.0f };
+        dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add("assets\\models\\dragon80k\\Dragon_80K.obj", dragonTransform, dragonMaterial);
 
         PointLight pointLight;
-        pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
         sceneFactory.Add(pointLight);
 
         return sceneFactory.GetScene();
