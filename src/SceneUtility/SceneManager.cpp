@@ -62,6 +62,15 @@ namespace Rutile {
             case SceneType::DRAGON_80K: {
                 return GetDragon80K();
             }
+            case SceneType::DRAGON_800K: {
+                return GetDragon800K();
+            }
+            case SceneType::SPORTS_CAR_FRONT: {
+                return GetSportsCarFront();
+            }
+            case SceneType::MINECRAFT_WORLD: {
+                return GetMinecraftWorld();
+            }
         }
     }
 
@@ -818,6 +827,68 @@ namespace Rutile {
         dragonTransform.scale = glm::vec3{ 10.0f };
         dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
         sceneFactory.Add("assets\\models\\dragon80k\\Dragon_80K.obj", dragonTransform, dragonMaterial);
+
+        PointLight pointLight;
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetDragon800K() {
+        SceneFactory sceneFactory;
+
+        App::camera.pitch = -15.0f;
+        App::camera.position = { 0.0f, 2.4f, 7.5f };
+        App::updateCameraVectors = true;
+
+        Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
+
+        Transform dragonTransform{ };
+        dragonTransform.scale = glm::vec3{ 10.0f };
+        dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add("assets\\models\\dragon800k\\dragon.obj", dragonTransform, dragonMaterial);
+
+        PointLight pointLight;
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetSportsCarFront() {
+        SceneFactory sceneFactory;
+
+        App::camera = Camera{ };
+        App::camera.position = glm::vec3{ 1.482f, 1.115f, 2.667f };
+        App::camera.yaw = -126.85f;
+        App::camera.pitch = -17.5f;
+        App::updateCameraVectors = true;
+
+        Transform carTransform{ };
+        sceneFactory.Add("assets\\models\\sportsCar\\sportsCar.obj", carTransform);
+
+        PointLight pointLight;
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetMinecraftWorld() {
+        SceneFactory sceneFactory;
+
+        App::camera = Camera{ };
+        App::camera.pitch = -45.0f;
+        App::camera.yaw = 0.0f;
+        App::camera.position = glm::vec3{ -4.5f, 4.0f, 0.0f };
+        App::updateCameraVectors = true;
+
+        Transform rungholtTransform{ };
+        rungholtTransform.scale = glm::vec3{ 0.01f };
+        sceneFactory.Add("assets\\models\\minecraftWorld\\rungholt.obj", rungholtTransform);
 
         PointLight pointLight;
         pointLight.position = { -2.3f, 3.0f, 3.0f };
