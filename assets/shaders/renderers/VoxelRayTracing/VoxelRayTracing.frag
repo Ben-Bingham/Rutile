@@ -223,35 +223,11 @@ vec3 FireRayIntoScene(Ray r) {
         HitInfo hitInfo;
         if (HitScene(ray, hitInfo)) { // Scatter the ray
 
-
-
-
-
-
-
-
-            //return vec3(0.0, 1.0, 0.0);
-
-
-
-
-
-
-
-
-
-
             ScatterInfo scatterInfo;
             scatterInfo.ray = ray;
             scatterInfo.throughput = vec3(0.0, 0.0, 0.0);
 
             Material mat = materialBank[hitInfo.hitObjectIndex];
-            
-            //Material mat;
-            //mat.type = DIFFUSE_TYPE;
-            //mat.color = vec3(0.35, 0.75, 0.4);
-            //mat.fuzz = 0.5;
-            //mat.indexOfRefraction = 1.0;
 
             if (mat.type == DIFFUSE_TYPE) {
                 scatterInfo = DiffuseScatter(scatterInfo, mat, hitInfo, bounces);
@@ -284,15 +260,6 @@ vec3 FireRayIntoScene(Ray r) {
 
         ++bounces;
     }
-
-
-
-
-
-    //return vec3(1.0, 0.0, 0.0);
-
-
-
 
     return color;
 }
@@ -369,25 +336,7 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             continue;
         }
 
-        //// TODO Commenting/uncomenting this causes perforamce cchange TODO
-        //float dist;
-        //if (!HitAABB(ray, AABB(vec3(voxel.minX, voxel.minY, voxel.minZ), vec3(voxel.maxX, voxel.maxY, voxel.maxZ)), dist)) {
-        //    continue;
-        //}
-        
-        //if (dist > hitInfo.closestDistance) {
-        //    continue;
-        //}
-
         if (voxel.hasKids) {
-            //if (voxel.k0 != -1) { stack[stackIndex += 1] = voxel.k0; }
-            //if (voxel.k1 != -1) { stack[stackIndex += 1] = voxel.k1; }
-            //if (voxel.k2 != -1) { stack[stackIndex += 1] = voxel.k2; }
-            //if (voxel.k3 != -1) { stack[stackIndex += 1] = voxel.k3; }
-            //if (voxel.k4 != -1) { stack[stackIndex += 1] = voxel.k4; }
-            //if (voxel.k5 != -1) { stack[stackIndex += 1] = voxel.k5; }
-            //if (voxel.k6 != -1) { stack[stackIndex += 1] = voxel.k6; }
-            //if (voxel.k7 != -1) { stack[stackIndex += 1] = voxel.k7; }
 
             DistIndexHitVoxelInd distIndices[8];
 
@@ -455,139 +404,6 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             if (distIndices[5].hit) { DistIndex element; element.index = distIndices[5].voxelIndex; element.dist = distIndices[5].dist; stack[stackIndex += 1] = element; }
             if (distIndices[6].hit) { DistIndex element; element.index = distIndices[6].voxelIndex; element.dist = distIndices[6].dist; stack[stackIndex += 1] = element; }
             if (distIndices[7].hit) { DistIndex element; element.index = distIndices[7].voxelIndex; element.dist = distIndices[7].dist; stack[stackIndex += 1] = element; }
-            
-
-
-
-
-
-            //if (h0) { stack[stackIndex += 1] = voxel.k0; }
-            //if (h1) { stack[stackIndex += 1] = voxel.k1; }
-            //if (h2) { stack[stackIndex += 1] = voxel.k2; }
-            //if (h3) { stack[stackIndex += 1] = voxel.k3; }
-            //if (h4) { stack[stackIndex += 1] = voxel.k4; }
-            //if (h5) { stack[stackIndex += 1] = voxel.k5; }
-            //if (h6) { stack[stackIndex += 1] = voxel.k6; }
-            //if (h7) { stack[stackIndex += 1] = voxel.k7; }
-
-
-
-
-
-
-
-
-
-
-            //bool h0 = HitAABB3(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0]);
-            //bool h1 = HitAABB3(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1]);
-            //bool h2 = HitAABB3(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2]);
-            //bool h3 = HitAABB3(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3]);
-            //bool h4 = HitAABB3(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4]);
-            //bool h5 = HitAABB3(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5]);
-            //bool h6 = HitAABB3(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6]);
-            //bool h7 = HitAABB3(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7]);
-
-
-            /*
-            Voxel k0 = voxels[voxel.k0];
-            Voxel k1 = voxels[voxel.k1];
-            Voxel k2 = voxels[voxel.k2];
-            Voxel k3 = voxels[voxel.k3];
-            Voxel k4 = voxels[voxel.k4];
-            Voxel k5 = voxels[voxel.k5];
-            Voxel k6 = voxels[voxel.k6];
-            Voxel k7 = voxels[voxel.k7];
-
-            float distances[8];
-
-            bool a0 = HitAABB(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0]);
-            bool a1 = HitAABB(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1]);
-            bool a2 = HitAABB(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2]);
-            bool a3 = HitAABB(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3]);
-            bool a4 = HitAABB(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4]);
-            bool a5 = HitAABB(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5]);
-            bool a6 = HitAABB(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6]);
-            bool a7 = HitAABB(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7]);
-
-            if (a0 && a1 && a2 && a3 && a4 && a5 && a6 && a7) {
-                return true;
-            }
-            */
-
-            /*
-            // Hit every kid, record the distance
-            DistIndex distances[8];
-
-            distances[0].index = 0;
-            distances[1].index = 1;
-            distances[2].index = 2;
-            distances[3].index = 3;
-            distances[4].index = 4;
-            distances[5].index = 5;
-            distances[6].index = 6;
-            distances[7].index = 7;
-
-            bool hits[8];
-
-            Voxel k0 = voxels[voxel.k0]; hits[0] = HitAABB(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distances[0].dist);
-            Voxel k1 = voxels[voxel.k1]; hits[1] = HitAABB(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distances[1].dist);
-            Voxel k2 = voxels[voxel.k2]; hits[2] = HitAABB(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distances[2].dist);
-            Voxel k3 = voxels[voxel.k3]; hits[3] = HitAABB(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distances[3].dist);            
-            Voxel k4 = voxels[voxel.k4]; hits[4] = HitAABB(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distances[4].dist);
-            Voxel k5 = voxels[voxel.k5]; hits[5] = HitAABB(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distances[5].dist);
-            Voxel k6 = voxels[voxel.k6]; hits[6] = HitAABB(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distances[6].dist);            
-            Voxel k7 = voxels[voxel.k7]; hits[7] = HitAABB(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distances[7].dist);
-
-            for (int i = 0; i < 8; ++i) {
-                if (hits[i] && distances[i].dist > hitInfo.closestDistance) {
-                    // Too far, remove it
-                    distances[i].index = -1;
-                    distances[i].dist = MAX_FLOAT;
-                }
-            }
-            
-            // Sort distances
-            int n = 8;
-            
-            for (int i = 0; i < n - 1; i++) {
-                bool swapped = false;
-
-                for (int j = 0; j < n - i - 1; j++) {
-                    if (distances[j].dist > distances[j + 1].dist) {
-                        DistIndex tmp = distances[j];
-                        distances[j] = distances[j + 1];
-                        distances[j + 1] = tmp;
-
-                        swapped = true;
-                    }
-                }
-      
-                // If no elements were swapped, then the array is sorted
-                if (!swapped)
-                    break;
-            }
-
-            for (int i = 0; i < 8; ++i) {
-                if (distances[i].index == -1) {
-                    break;
-                }
-
-                switch (distances[i].index) {
-                    case 0: stack[stackIndex += 1] = voxel.k0; break;
-                    case 1: stack[stackIndex += 1] = voxel.k1; break;
-                    case 2: stack[stackIndex += 1] = voxel.k2; break;
-                    case 3: stack[stackIndex += 1] = voxel.k3; break;
-                    case 4: stack[stackIndex += 1] = voxel.k4; break;
-                    case 5: stack[stackIndex += 1] = voxel.k5; break;
-                    case 6: stack[stackIndex += 1] = voxel.k6; break;
-                    case 7: stack[stackIndex += 1] = voxel.k7; break;
-                }
-            }
-            */
-
-
-
         }
         else { // No kids, we should shoot a ray at it
             if (voxel.shouldDraw) {

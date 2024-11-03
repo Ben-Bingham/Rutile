@@ -248,15 +248,30 @@ namespace Rutile {
                         break;
                     }
 
+                    int voxelCount = 0;
                     for (int x = 0; x < hN; ++x) {
                         for (int y = 0; y < hN; ++y) {
                             for (int z = 0; z < hN; ++z) {
                                 g[x][y][z] = grid[x + sourceOffset.x][y + sourceOffset.y][z + sourceOffset.z];
+                                if (g[x][y][z].b) ++voxelCount;
                             }
                         }
                     }
 
-                    Voxelify(g, voxels, minB, maxB, firstOfNextVoxelsIndex + i, false);
+                    if (voxelCount == 0) {
+                        switch (i) {
+                        case 0: voxels[currentVoxelIndex].k0 = -1; break;
+                        case 1: voxels[currentVoxelIndex].k1 = -1; break;
+                        case 2: voxels[currentVoxelIndex].k2 = -1; break;
+                        case 3: voxels[currentVoxelIndex].k3 = -1; break;
+                        case 4: voxels[currentVoxelIndex].k4 = -1; break;
+                        case 5: voxels[currentVoxelIndex].k5 = -1; break;
+                        case 6: voxels[currentVoxelIndex].k6 = -1; break;
+                        case 7: voxels[currentVoxelIndex].k7 = -1; break;
+                        }
+                    } else {
+                        Voxelify(g, voxels, minB, maxB, firstOfNextVoxelsIndex + i, false);
+                    }
                 }
             }
             else {
