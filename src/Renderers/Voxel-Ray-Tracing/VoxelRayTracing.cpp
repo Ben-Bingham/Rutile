@@ -264,21 +264,12 @@ namespace Rutile {
                     }
                 }
 
+                // Set the index of just the first octant
+                voxels[currentVoxelIndex].k0 = firstOfNextVoxelsIndex;
+
                 int childrenAdded = 0;
                 for (int i = 0; i < 8; ++i) {
                     if (voxelCountInChildren[i] == 0) continue;
-
-                    // Assign octant index
-                    switch (i) {
-                        case 0: voxels[currentVoxelIndex].k0 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 1: voxels[currentVoxelIndex].k1 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 2: voxels[currentVoxelIndex].k2 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 3: voxels[currentVoxelIndex].k3 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 4: voxels[currentVoxelIndex].k4 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 5: voxels[currentVoxelIndex].k5 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 6: voxels[currentVoxelIndex].k6 = firstOfNextVoxelsIndex + childrenAdded; break;
-                        case 7: voxels[currentVoxelIndex].k7 = firstOfNextVoxelsIndex + childrenAdded; break;
-                    }
 
                     // Enable the correct bit in the child mask
                     switch (i) {
