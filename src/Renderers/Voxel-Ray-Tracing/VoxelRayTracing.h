@@ -36,6 +36,8 @@ namespace Rutile {
 
             int hasKids{ false };
             int shouldDraw{ false };
+
+            int childMask{ 0 }; // first 8 bits dictate which children the voxel has
         };
 
         std::vector<Voxel> voxels;

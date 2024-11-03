@@ -287,6 +287,8 @@ struct Voxel {
 
     bool hasKids;
     bool shouldDraw;
+
+    int childMask;
 };
 
 layout(std430, binding = 5) readonly buffer VoxelBuffer {
@@ -376,14 +378,23 @@ bool HitScene(Ray ray, inout HitInfo hitInfo) {
             distIndices[6].voxelIndex = voxel.k6;
             distIndices[7].voxelIndex = voxel.k7;
             
-            if (voxel.k0 != -1) { Voxel k0 = voxels[voxel.k0]; distIndices[0].hit = HitAABB3(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distIndices[0].dist); }
-            if (voxel.k1 != -1) { Voxel k1 = voxels[voxel.k1]; distIndices[1].hit = HitAABB3(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distIndices[1].dist); }
-            if (voxel.k2 != -1) { Voxel k2 = voxels[voxel.k2]; distIndices[2].hit = HitAABB3(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distIndices[2].dist); }
-            if (voxel.k3 != -1) { Voxel k3 = voxels[voxel.k3]; distIndices[3].hit = HitAABB3(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distIndices[3].dist); }
-            if (voxel.k4 != -1) { Voxel k4 = voxels[voxel.k4]; distIndices[4].hit = HitAABB3(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distIndices[4].dist); }
-            if (voxel.k5 != -1) { Voxel k5 = voxels[voxel.k5]; distIndices[5].hit = HitAABB3(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distIndices[5].dist); }
-            if (voxel.k6 != -1) { Voxel k6 = voxels[voxel.k6]; distIndices[6].hit = HitAABB3(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distIndices[6].dist); }
-            if (voxel.k7 != -1) { Voxel k7 = voxels[voxel.k7]; distIndices[7].hit = HitAABB3(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distIndices[7].dist); }
+            bool hasChild0 = (voxel.childMask & 1  ) == 1  ;
+            bool hasChild1 = (voxel.childMask & 2  ) == 2  ;
+            bool hasChild2 = (voxel.childMask & 4  ) == 4  ;
+            bool hasChild3 = (voxel.childMask & 8  ) == 8  ;
+            bool hasChild4 = (voxel.childMask & 16 ) == 16 ;
+            bool hasChild5 = (voxel.childMask & 32 ) == 32 ;
+            bool hasChild6 = (voxel.childMask & 64 ) == 64 ;
+            bool hasChild7 = (voxel.childMask & 128) == 128;
+
+            if (voxel.k0 != -1 && hasChild0) { Voxel k0 = voxels[voxel.k0]; distIndices[0].hit = HitAABB3(ray, AABB(vec3(k0.minX, k0.minY, k0.minZ), vec3(k0.maxX, k0.maxY, k0.maxZ)), distIndices[0].dist); }
+            if (voxel.k1 != -1 && hasChild1) { Voxel k1 = voxels[voxel.k1]; distIndices[1].hit = HitAABB3(ray, AABB(vec3(k1.minX, k1.minY, k1.minZ), vec3(k1.maxX, k1.maxY, k1.maxZ)), distIndices[1].dist); }
+            if (voxel.k2 != -1 && hasChild2) { Voxel k2 = voxels[voxel.k2]; distIndices[2].hit = HitAABB3(ray, AABB(vec3(k2.minX, k2.minY, k2.minZ), vec3(k2.maxX, k2.maxY, k2.maxZ)), distIndices[2].dist); }
+            if (voxel.k3 != -1 && hasChild3) { Voxel k3 = voxels[voxel.k3]; distIndices[3].hit = HitAABB3(ray, AABB(vec3(k3.minX, k3.minY, k3.minZ), vec3(k3.maxX, k3.maxY, k3.maxZ)), distIndices[3].dist); }
+            if (voxel.k4 != -1 && hasChild4) { Voxel k4 = voxels[voxel.k4]; distIndices[4].hit = HitAABB3(ray, AABB(vec3(k4.minX, k4.minY, k4.minZ), vec3(k4.maxX, k4.maxY, k4.maxZ)), distIndices[4].dist); }
+            if (voxel.k5 != -1 && hasChild5) { Voxel k5 = voxels[voxel.k5]; distIndices[5].hit = HitAABB3(ray, AABB(vec3(k5.minX, k5.minY, k5.minZ), vec3(k5.maxX, k5.maxY, k5.maxZ)), distIndices[5].dist); }
+            if (voxel.k6 != -1 && hasChild6) { Voxel k6 = voxels[voxel.k6]; distIndices[6].hit = HitAABB3(ray, AABB(vec3(k6.minX, k6.minY, k6.minZ), vec3(k6.maxX, k6.maxY, k6.maxZ)), distIndices[6].dist); }
+            if (voxel.k7 != -1 && hasChild7) { Voxel k7 = voxels[voxel.k7]; distIndices[7].hit = HitAABB3(ray, AABB(vec3(k7.minX, k7.minY, k7.minZ), vec3(k7.maxX, k7.maxY, k7.maxZ)), distIndices[7].dist); }
             
 #define CMP(a, b) distIndices[a].dist < distIndices[b].dist
 #define SWAP(a, b) DistIndexHitVoxelInd t1 = distIndices[a]; distIndices[a] = distIndices[b]; distIndices[b] = t1;

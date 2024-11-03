@@ -268,6 +268,7 @@ namespace Rutile {
                 for (int i = 0; i < 8; ++i) {
                     if (voxelCountInChildren[i] == 0) continue;
 
+                    // Assign octant index
                     switch (i) {
                         case 0: voxels[currentVoxelIndex].k0 = firstOfNextVoxelsIndex + childrenAdded; break;
                         case 1: voxels[currentVoxelIndex].k1 = firstOfNextVoxelsIndex + childrenAdded; break;
@@ -277,6 +278,18 @@ namespace Rutile {
                         case 5: voxels[currentVoxelIndex].k5 = firstOfNextVoxelsIndex + childrenAdded; break;
                         case 6: voxels[currentVoxelIndex].k6 = firstOfNextVoxelsIndex + childrenAdded; break;
                         case 7: voxels[currentVoxelIndex].k7 = firstOfNextVoxelsIndex + childrenAdded; break;
+                    }
+
+                    // Enable the correct bit in the child mask
+                    switch (i) {
+                        case 0: voxels[currentVoxelIndex].childMask |= 1  ; break;
+                        case 1: voxels[currentVoxelIndex].childMask |= 2  ; break;
+                        case 2: voxels[currentVoxelIndex].childMask |= 4  ; break;
+                        case 3: voxels[currentVoxelIndex].childMask |= 8  ; break;
+                        case 4: voxels[currentVoxelIndex].childMask |= 16 ; break;
+                        case 5: voxels[currentVoxelIndex].childMask |= 32 ; break;
+                        case 6: voxels[currentVoxelIndex].childMask |= 64 ; break;
+                        case 7: voxels[currentVoxelIndex].childMask |= 128; break;
                     }
 
                     Voxelify(childrenGrids[i], voxels, childrenBounds[i].min, childrenBounds[i].max, firstOfNextVoxelsIndex + childrenAdded, false);
