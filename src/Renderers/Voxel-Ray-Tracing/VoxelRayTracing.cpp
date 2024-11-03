@@ -163,20 +163,13 @@ namespace Rutile {
 
                 int firstOfNextVoxelsIndex = voxels.size();
 
-                for (int i = 0; i < 8; ++i) {
-                    voxels.push_back(VoxelRayTracing::Voxel{ });
-                }
+                using Grid = std::array<std::array<std::array<VoxelValue, N / 2>, N / 2>, N / 2>;
 
-                voxels[currentVoxelIndex].k0 = firstOfNextVoxelsIndex + 0;
-                voxels[currentVoxelIndex].k1 = firstOfNextVoxelsIndex + 1;
-                voxels[currentVoxelIndex].k2 = firstOfNextVoxelsIndex + 2;
-                voxels[currentVoxelIndex].k3 = firstOfNextVoxelsIndex + 3;
-                voxels[currentVoxelIndex].k4 = firstOfNextVoxelsIndex + 4;
-                voxels[currentVoxelIndex].k5 = firstOfNextVoxelsIndex + 5;
-                voxels[currentVoxelIndex].k6 = firstOfNextVoxelsIndex + 6;
-                voxels[currentVoxelIndex].k7 = firstOfNextVoxelsIndex + 7;
+                // Define children
+                std::array<int, 8> voxelCountInChildren{ };
+                std::array<Grid, 8> childrenGrids{ };
+                std::array<AABB, 8> childrenBounds{ };
 
-                // Create children
                 constexpr int hN = N / 2;
                 float kidWidth = (maxBound.x - minBound.x) / 2.0f;
 
@@ -258,20 +251,37 @@ namespace Rutile {
                         }
                     }
 
-                    if (voxelCount == 0) {
-                        switch (i) {
-                        case 0: voxels[currentVoxelIndex].k0 = -1; break;
-                        case 1: voxels[currentVoxelIndex].k1 = -1; break;
-                        case 2: voxels[currentVoxelIndex].k2 = -1; break;
-                        case 3: voxels[currentVoxelIndex].k3 = -1; break;
-                        case 4: voxels[currentVoxelIndex].k4 = -1; break;
-                        case 5: voxels[currentVoxelIndex].k5 = -1; break;
-                        case 6: voxels[currentVoxelIndex].k6 = -1; break;
-                        case 7: voxels[currentVoxelIndex].k7 = -1; break;
-                        }
-                    } else {
-                        Voxelify(g, voxels, minB, maxB, firstOfNextVoxelsIndex + i, false);
+                    voxelCountInChildren[i] = voxelCount;
+                    childrenGrids[i] = g;
+                    childrenBounds[i].min = minB;
+                    childrenBounds[i].max = maxB;
+                }
+
+                // All voxels need to be added first in order to insure that they are contiguous in memory
+                for (int i = 0; i < 8; ++i) {
+                    if (voxelCountInChildren[i] != 0) {
+                        voxels.push_back(VoxelRayTracing::Voxel{ });
                     }
+                }
+
+                int childrenAdded = 0;
+                for (int i = 0; i < 8; ++i) {
+                    if (voxelCountInChildren[i] == 0) continue;
+
+                    switch (i) {
+                        case 0: voxels[currentVoxelIndex].k0 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 1: voxels[currentVoxelIndex].k1 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 2: voxels[currentVoxelIndex].k2 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 3: voxels[currentVoxelIndex].k3 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 4: voxels[currentVoxelIndex].k4 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 5: voxels[currentVoxelIndex].k5 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 6: voxels[currentVoxelIndex].k6 = firstOfNextVoxelsIndex + childrenAdded; break;
+                        case 7: voxels[currentVoxelIndex].k7 = firstOfNextVoxelsIndex + childrenAdded; break;
+                    }
+
+                    Voxelify(childrenGrids[i], voxels, childrenBounds[i].min, childrenBounds[i].max, firstOfNextVoxelsIndex + childrenAdded, false);
+
+                    ++childrenAdded;
                 }
             }
             else {
