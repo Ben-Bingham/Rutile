@@ -4,6 +4,7 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <stack>
 
 #include "GUI/ImGuiUtil.h"
 
@@ -143,28 +144,48 @@ namespace Rutile {
 
     using VoxelValue = _VoxelValue<uint8_t>;
 
-    template<int N>
-    void Voxelify(std::array<std::array<std::array<VoxelValue, N>, N>, N> grid, std::vector<VoxelRayTracing::Voxel>& voxels, glm::vec3 minBound, glm::vec3 maxBound, int currentVoxelIndex = -1, bool first = true) {
+    struct Grid {
+        Grid(int n)
+            : n{ n } {
+            grid.resize(n);
+            for (auto& g : grid) {
+                g.resize(n);
+                for (auto& h : g) {
+                    h.resize(n);
+                }
+            }
+        }
+
+        VoxelValue& Get(int x, int y, int z) {
+            return grid[x][y][z];
+        }
+
+        void Set(int x, int y, int z, VoxelValue val) {
+            grid[x][y][z] = val;
+        }
+
+    private:
+        int n;
+
+        std::vector<std::vector<std::vector<VoxelValue>>> grid{ };
+    };
+
+    void Voxelify(int n, Grid& grid, std::vector<VoxelRayTracing::Voxel>& voxels, glm::vec3 minBound, glm::vec3 maxBound, int currentVoxelIndex = -1, bool first = true) {
         if (first) {
             // Set up the root
             voxels.push_back(VoxelRayTracing::Voxel{ });
 
-            Voxelify(grid, voxels, minBound, maxBound, 0, false);
+            Voxelify(n, grid, voxels, minBound, maxBound, 0, false);
 
             return;
         }
 
-        // Assume:
-            // that the current voxels index is "currentVoxelIndex" and
-            // the current size is minBound and maxBound
-            // grid stores all the voxels this voxel should store
-
         int voxelsFound = 0;
 
-        for (int x = 0; x < N; ++x) {
-            for (int y = 0; y < N; ++y) {
-                for (int z = 0; z < N; ++z) {
-                    if (grid[x][y][z].GetBool()) {
+        for (int x = 0; x < n; ++x) {
+            for (int y = 0; y < n; ++y) {
+                for (int z = 0; z < n; ++z) {
+                    if (grid.Get(x, y, z).GetBool()) {
                         ++voxelsFound;
                     }
                 }
@@ -175,11 +196,11 @@ namespace Rutile {
         currentVoxel.minBound = minBound;
         currentVoxel.maxBound = maxBound;
 
-        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0].GetBool())) {
+        if (n * n * n == voxelsFound || (n == 1 && grid.Get(0, 0, 0).GetBool())) {
             currentVoxel.hasKids = false;
             currentVoxel.shouldDraw = true;
 
-            currentVoxel.k0 = grid[0][0][0].GetMaterialIndex();
+            currentVoxel.k0 = grid.Get(0, 0, 0).GetMaterialIndex();
         }
         else {
             if (voxelsFound != 0) {
@@ -188,18 +209,17 @@ namespace Rutile {
 
                 int firstOfNextVoxelsIndex = voxels.size();
 
-                using Grid = std::array<std::array<std::array<VoxelValue, N / 2>, N / 2>, N / 2>;
-
                 // Define children
                 std::array<int, 8> voxelCountInChildren{ };
-                std::array<Grid, 8> childrenGrids{ };
+                std::vector<Grid> childrenGrids{ };
                 std::array<AABB, 8> childrenBounds{ };
 
-                constexpr int hN = N / 2;
+                int hN = n / 2;
                 float kidWidth = (maxBound.x - minBound.x) / 2.0f;
 
                 for (int i = 0; i < 8; ++i) {
-                    std::array<std::array<std::array<VoxelValue, hN>, hN>, hN> g{ };
+                    childrenGrids.push_back(Grid{ n / 2 });
+                    Grid g{ n / 2 };
 
                     glm::vec3 minB{ };
                     glm::vec3 maxB{ };
@@ -270,8 +290,8 @@ namespace Rutile {
                     for (int x = 0; x < hN; ++x) {
                         for (int y = 0; y < hN; ++y) {
                             for (int z = 0; z < hN; ++z) {
-                                g[x][y][z] = grid[x + sourceOffset.x][y + sourceOffset.y][z + sourceOffset.z];
-                                if (g[x][y][z].GetBool()) ++voxelCount;
+                                g.Set(x, y, z, grid.Get(x + sourceOffset.x, y + sourceOffset.y, z + sourceOffset.z));
+                                if (g.Get(x,y,z).GetBool()) ++voxelCount;
                             }
                         }
                     }
@@ -308,7 +328,7 @@ namespace Rutile {
                         case 7: voxels[currentVoxelIndex].childMask |= 128; break;
                     }
 
-                    Voxelify(childrenGrids[i], voxels, childrenBounds[i].min, childrenBounds[i].max, firstOfNextVoxelsIndex + childrenAdded, false);
+                    Voxelify(n / 2, childrenGrids[i], voxels, childrenBounds[i].min, childrenBounds[i].max, firstOfNextVoxelsIndex + childrenAdded, false);
 
                     ++childrenAdded;
                 }
@@ -328,8 +348,7 @@ namespace Rutile {
 
     // General design taken from:
     // https://www.mathworks.com/matlabcentral/fileexchange/21057-3d-bresenham-s-line-generation
-    template<int N>
-    void VoxelifiyLine(std::array<std::array<std::array<VoxelValue, N>, N>, N>& grid, glm::ivec3 min, glm::ivec3 max, MaterialIndex matIndex) {
+    void VoxelifiyLine(int n, Grid& grid, glm::ivec3 min, glm::ivec3 max, MaterialIndex matIndex) {
         int x0 = min.x;
         int y0 = min.y;
         int z0 = min.z;
@@ -352,11 +371,11 @@ namespace Rutile {
             while (true) {
                 if (x0 == x1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].SetBool(true);
-                grid[x0][y0][z0].SetMaterialIndex(matIndex);
+                grid.Get(x0, y0, z0).SetBool(true);
+                grid.Get(x0, y0, z0).SetMaterialIndex(matIndex);
 
                 if (ey >= 0) {
                     y0 += sy;
@@ -380,11 +399,11 @@ namespace Rutile {
             while (true) {
                 if (y0 == y1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].SetBool(true);
-                grid[x0][y0][z0].SetMaterialIndex(matIndex);
+                grid.Get(x0, y0, z0).SetBool(true);
+                grid.Get(x0, y0, z0).SetMaterialIndex(matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -408,11 +427,11 @@ namespace Rutile {
             while (true) {
                 if (z0 == z1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].SetBool(true);
-                grid[x0][y0][z0].SetMaterialIndex(matIndex);
+                grid.Get(x0, y0, z0).SetBool(true);
+                grid.Get(x0, y0, z0).SetMaterialIndex(matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -431,8 +450,7 @@ namespace Rutile {
         }
     }
 
-    template<int N>
-    void VoxelifiyTriangle(std::array<std::array<std::array<VoxelValue, N>, N>, N>& grid, glm::ivec3 p0, glm::ivec3 p1, glm::ivec3 p2, MaterialIndex matIndex) {
+    void VoxelifiyTriangle(int n, Grid& grid, glm::ivec3 p0, glm::ivec3 p1, glm::ivec3 p2, MaterialIndex matIndex) {
         int x0 = p0.x;
         int y0 = p0.y;
         int z0 = p0.z;
@@ -455,9 +473,9 @@ namespace Rutile {
             while (true) {
                 if (x0 == x1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
 
-                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
+                VoxelifiyLine(n, grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
 
                 if (ey >= 0) {
                     y0 += sy;
@@ -481,9 +499,9 @@ namespace Rutile {
             while (true) {
                 if (y0 == y1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
 
-                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
+                VoxelifiyLine(n, grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -507,9 +525,9 @@ namespace Rutile {
             while (true) {
                 if (z0 == z1) break;
 
-                if (x0 >= N || y0 >= N || z0 >= N) break;
+                if (x0 >= n || y0 >= n || z0 >= n) break;
 
-                VoxelifiyLine(grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
+                VoxelifiyLine(n, grid, glm::ivec3{ x0, y0, z0 }, p2, matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -540,7 +558,7 @@ namespace Rutile {
          */
 
         AABB sceneBoundingBox{ glm::vec3{ -0.1f }, glm::vec3{ 0.1f } };
-        constexpr int n = 256;
+        constexpr int n = 128;
 
         for (auto obj : App::scene.objects) {
             sceneBoundingBox = AABBFactory::Construct(AABBFactory::Construct(obj), sceneBoundingBox);
@@ -565,7 +583,7 @@ namespace Rutile {
         glm::vec3 min{ -largestVal };
         glm::vec3 max{ largestVal };
 
-        std::array<std::array<std::array<VoxelValue, n>, n>, n> grid{ };
+        Grid grid{ n };
         
         for (auto obj : App::scene.objects) {
             auto geo = App::scene.geometryBank[obj.geometry];
@@ -601,15 +619,14 @@ namespace Rutile {
                 int y2 = (int)std::round(p2.y);
                 int z2 = (int)std::round(p2.z);
 
-                VoxelifiyTriangle(grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material);
-                VoxelifiyTriangle(grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, obj.material);
-                VoxelifiyTriangle(grid, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material);
-
+                VoxelifiyTriangle(n, grid, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, obj.material);
+                VoxelifiyTriangle(n, grid, glm::ivec3{ x1, y1, z1 }, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, obj.material);
+                VoxelifiyTriangle(n, grid, glm::ivec3{ x2, y2, z2 }, glm::ivec3{ x0, y0, z0 }, glm::ivec3{ x1, y1, z1 }, obj.material);
             }
         }
-        
+
         voxels.clear();
-        Voxelify(grid, voxels, min, max);
+        Voxelify(n, grid, voxels, min, max);
 
         m_VoxelRayTracingShader->Bind();
 
