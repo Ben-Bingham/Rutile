@@ -26,13 +26,6 @@ namespace Rutile {
             glm::vec3 maxBound;
 
             int k0{ -1 };
-            int k1{ -1 };
-            int k2{ -1 };
-            int k3{ -1 };
-            int k4{ -1 };
-            int k5{ -1 };
-            int k6{ -1 };
-            int k7{ -1 };
 
             int hasKids{ false };
             int shouldDraw{ false };
