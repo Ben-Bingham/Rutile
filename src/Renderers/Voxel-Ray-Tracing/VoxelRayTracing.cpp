@@ -113,10 +113,35 @@ namespace Rutile {
         return window;
     }
 
-    struct VoxelValue {
-        bool b;
-        int materialIndex;
+    template<typename T>
+    struct _VoxelValue {
+        bool GetBool() {
+            return (materialIndex & 0x00000001) == 1;
+        }
+
+        void SetBool(bool newVal) {
+            if (newVal) {
+                materialIndex |= 1;
+            } else {
+                materialIndex &= 0xFFFFFFFE;
+            }
+        }
+
+        int GetMaterialIndex() {
+            return materialIndex >> 1;
+        }
+
+        void SetMaterialIndex(T newIndex) {
+            bool b = GetBool();
+            materialIndex = newIndex << 1;
+            SetBool(b);
+        }
+
+    private:
+        T materialIndex{ 0 };
     };
+
+    using VoxelValue = _VoxelValue<uint8_t>;
 
     template<int N>
     void Voxelify(std::array<std::array<std::array<VoxelValue, N>, N>, N> grid, std::vector<VoxelRayTracing::Voxel>& voxels, glm::vec3 minBound, glm::vec3 maxBound, int currentVoxelIndex = -1, bool first = true) {
@@ -139,7 +164,7 @@ namespace Rutile {
         for (int x = 0; x < N; ++x) {
             for (int y = 0; y < N; ++y) {
                 for (int z = 0; z < N; ++z) {
-                    if (grid[x][y][z].b) {
+                    if (grid[x][y][z].GetBool()) {
                         ++voxelsFound;
                     }
                 }
@@ -150,11 +175,11 @@ namespace Rutile {
         currentVoxel.minBound = minBound;
         currentVoxel.maxBound = maxBound;
 
-        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0].b)) {
+        if (N * N * N == voxelsFound || (N == 1 && grid[0][0][0].GetBool())) {
             currentVoxel.hasKids = false;
             currentVoxel.shouldDraw = true;
 
-            currentVoxel.k0 = grid[0][0][0].materialIndex;
+            currentVoxel.k0 = grid[0][0][0].GetMaterialIndex();
         }
         else {
             if (voxelsFound != 0) {
@@ -246,7 +271,7 @@ namespace Rutile {
                         for (int y = 0; y < hN; ++y) {
                             for (int z = 0; z < hN; ++z) {
                                 g[x][y][z] = grid[x + sourceOffset.x][y + sourceOffset.y][z + sourceOffset.z];
-                                if (g[x][y][z].b) ++voxelCount;
+                                if (g[x][y][z].GetBool()) ++voxelCount;
                             }
                         }
                     }
@@ -330,8 +355,8 @@ namespace Rutile {
                 if (x0 >= N || y0 >= N || z0 >= N) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].b = true;
-                grid[x0][y0][z0].materialIndex = matIndex;
+                grid[x0][y0][z0].SetBool(true);
+                grid[x0][y0][z0].SetMaterialIndex(matIndex);
 
                 if (ey >= 0) {
                     y0 += sy;
@@ -358,8 +383,8 @@ namespace Rutile {
                 if (x0 >= N || y0 >= N || z0 >= N) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].b = true;
-                grid[x0][y0][z0].materialIndex = matIndex;
+                grid[x0][y0][z0].SetBool(true);
+                grid[x0][y0][z0].SetMaterialIndex(matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
@@ -386,8 +411,8 @@ namespace Rutile {
                 if (x0 >= N || y0 >= N || z0 >= N) break;
                 if (x0 < 0 || y0 < 0 || z0 < 0) break;
 
-                grid[x0][y0][z0].b = true;
-                grid[x0][y0][z0].materialIndex = matIndex;
+                grid[x0][y0][z0].SetBool(true);
+                grid[x0][y0][z0].SetMaterialIndex(matIndex);
 
                 if (ex >= 0) {
                     x0 += sx;
