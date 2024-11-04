@@ -147,27 +147,22 @@ namespace Rutile {
     struct Grid {
         Grid(int n)
             : n{ n } {
-            grid.resize(n);
-            for (auto& g : grid) {
-                g.resize(n);
-                for (auto& h : g) {
-                    h.resize(n);
-                }
-            }
+
+            grid.resize(n * n * n);
         }
 
         VoxelValue& Get(int x, int y, int z) {
-            return grid[x][y][z];
+            return grid[x * n * n + y * n + z];
         }
 
         void Set(int x, int y, int z, VoxelValue val) {
-            grid[x][y][z] = val;
+            grid[x * n * n + y * n + z] = val;
         }
 
     private:
         int n;
 
-        std::vector<std::vector<std::vector<VoxelValue>>> grid{ };
+        std::vector<VoxelValue> grid{ };
     };
 
     void Voxelify(int n, Grid& grid, std::vector<VoxelRayTracing::Voxel>& voxels, glm::vec3 minBound, glm::vec3 maxBound, int currentVoxelIndex = -1, bool first = true) {
@@ -558,7 +553,7 @@ namespace Rutile {
          */
 
         AABB sceneBoundingBox{ glm::vec3{ -0.1f }, glm::vec3{ 0.1f } };
-        constexpr int n = 128;
+        constexpr int n = 1024;
 
         for (auto obj : App::scene.objects) {
             sceneBoundingBox = AABBFactory::Construct(AABBFactory::Construct(obj), sceneBoundingBox);
