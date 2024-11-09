@@ -81,9 +81,6 @@ namespace Rutile {
         constexpr float r = 1.0f; // Sphere radius in local space
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
-        bool hitSomething = false;
-        HitInfo hitInfo;
-
         for (auto& object : App::scene.objects) {
             const glm::mat4 invModel = glm::inverse(App::scene.transformBank[object.transform].matrix);
 
@@ -122,25 +119,9 @@ namespace Rutile {
 
             float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
-            if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-                hitInfo.closestDistance = lengthAlongRayWorldSpace;
-                hitSomething = true;
-                hitInfo.hitObject = &object;
-
-                glm::vec3 hitPointLocalSpace = o + t * d;
-
-                hitInfo.normal = glm::normalize(hitPointLocalSpace - spherePos);
-
-                // Transform normal back to world space
-                glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::scene.transformBank[object.transform].matrix))) * hitInfo.normal;
-                hitInfo.normal = glm::normalize(normalWorldSpace);
-
-                hitInfo.position = App::scene.transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
+            if (lengthAlongRayWorldSpace < std::numeric_limits<float>::max()) {
+                return App::scene.materialBank[object.material].solid.color;
             }
-        }
-
-        if (hitSomething) {
-            return App::scene.materialBank[hitInfo.hitObject->material].solid.color;
         }
 
         return App::settings.backgroundColor;
