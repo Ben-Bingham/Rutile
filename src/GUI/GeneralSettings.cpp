@@ -49,9 +49,10 @@ namespace Rutile {
                 (int*)&App::settings.materialType,
                 [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
             );
+
+            ImGui::Separator();
         }
 
-        ImGui::Separator();
 
         // Select scene
         RadioButtons(

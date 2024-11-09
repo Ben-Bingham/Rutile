@@ -24,6 +24,8 @@ namespace Rutile {
 
         void Notify(Event* event) override;
 
+        void ProjectionMatrixUpdate() override;
+
         // ImGui
         void ProvideLocalRendererSettings() override;
 

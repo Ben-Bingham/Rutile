@@ -149,6 +149,10 @@ namespace Rutile {
         }
     }
 
+    void GPURayTracing::ProjectionMatrixUpdate() {
+        ResetAccumulatedPixelData();
+    }
+
     void GPURayTracing::Cleanup(GLFWwindow* window) {
         m_BLASBank.reset();
         m_TLASBank.reset();

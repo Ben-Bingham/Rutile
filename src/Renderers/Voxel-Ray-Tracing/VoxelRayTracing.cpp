@@ -788,6 +788,10 @@ namespace Rutile {
         m_VoxelRayTracingShader->SetInt("maxMeshChecks", mesh);
     }
 
+    void VoxelRayTracing::ProjectionMatrixUpdate() {
+        ResetAccumulatedPixelData();
+    }
+
     void VoxelRayTracing::ResetAccumulatedPixelData() {
         m_FrameCount = 0;
 

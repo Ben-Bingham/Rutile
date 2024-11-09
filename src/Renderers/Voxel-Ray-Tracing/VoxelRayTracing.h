@@ -19,6 +19,8 @@ namespace Rutile {
 
         void ProvideLocalRendererSettings() override;
 
+        void ProjectionMatrixUpdate() override;
+
         void CreateOctree();
 
         struct Voxel {
