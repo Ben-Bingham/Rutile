@@ -45,6 +45,7 @@ The classic Cornell Box.
 ### GPU Ray Traced
 ![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/Cornell%20Box/GPU-Ray-Tracing.png "Cornell Box Ray Traced")
 ### Voxel Ray Traced
+This image shows off some of the issues with the current voxelization algorithim.
 ![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/Cornell%20Box/Voxel-Ray-Tracing.png "Cornell Box Voxel Traced")
 
 ## Cornell Box 2.0
@@ -54,6 +55,7 @@ This is my custom take on the Cornell Box, with a little bit more complexity
 ### GPU Ray Traced
 ![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/Cornell%20Box%202.0/GPUTraced.png "Cornell Box 2.0 Traced")
 ### Voxel Ray Traced
+This image shows off some of the issues with the current voxelization algorithim.
 ![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/Cornell%20Box%202.0/Voxel.png "Cornell Box 2.0 Voxel Traced")
 
 ## Framework
