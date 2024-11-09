@@ -15,8 +15,12 @@ namespace Rutile {
         const auto imGuiTime = std::chrono::duration_cast<std::chrono::nanoseconds>(App::timingData.imGuiTime);
         ImGui::Text(("ImGui Time: " + std::to_string((double)imGuiTime.count() / 1000000.0) + "ms").c_str());
 
-        const auto averageFrameTime = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - App::timingData.startTime);
-        ImGui::Text(("Average Frame Time: " + std::to_string((double)averageFrameTime.count() / 1000000.0 / (double)App::frameCount) + "ms").c_str());
+        const auto averageFrameTime = std::chrono::duration_cast<std::chrono::nanoseconds>(App::timingData.rollingAverageFrameTime);
+        ImGui::Text(("Rolling Average Frame Time: " + std::to_string((double)averageFrameTime.count() / 1000000.0) + "ms").c_str());
+
+        if (ImGui::DragInt("Length of rolling average", (int*)&App::timingData.rollingAverageLength, 1, 1, 10000)) {
+            App::timingData.frameTimes.clear();
+        }
 
         App::renderer->ProvideTimingStatistics();
     }

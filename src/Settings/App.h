@@ -51,7 +51,5 @@ namespace Rutile {
         inline static TimingData timingData{ };
 
         inline static EventManager eventManager;
-
-        inline static int frameCount{ 0 };
     };
 }

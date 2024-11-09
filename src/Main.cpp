@@ -72,11 +72,6 @@ int main() {
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
-        if (App::frameCount % 10 == 0) { // Take the average over the last 100 frames // TODO this is a horrible way to do this
-            App::frameCount = 0;
-            App::timingData.startTime = std::chrono::steady_clock::now();
-        }
-
         auto frameStartTime = std::chrono::steady_clock::now();
 
         glfwPollEvents();
@@ -126,7 +121,23 @@ int main() {
         // Timing the frame
         App::timingData.frameTime = std::chrono::steady_clock::now() - frameStartTime;
 
-        ++App::frameCount;
+        App::timingData.frameTimes.push_back(App::timingData.frameTime);
+
+        if (App::timingData.frameTimes.size() > App::timingData.rollingAverageLength) {
+            for (size_t i = 0; i < App::timingData.frameTimes.size() - 1; ++i) {
+                App::timingData.frameTimes[i] = App::timingData.frameTimes[i + 1];
+            }
+
+            App::timingData.frameTimes.pop_back();
+        }
+
+        App::timingData.rollingAverageFrameTime = std::chrono::duration<double>{ 0 };
+
+        for (auto& frameTime : App::timingData.frameTimes) {
+            App::timingData.rollingAverageFrameTime += frameTime;
+        }
+
+        App::timingData.rollingAverageFrameTime /= (double)App::timingData.frameTimes.size();
     }
 
     App::imGui.Cleanup();
