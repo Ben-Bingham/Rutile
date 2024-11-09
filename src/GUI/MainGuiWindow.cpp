@@ -40,7 +40,7 @@ namespace Rutile {
                 App::renderer->ProvideLocalRendererSettings();
             }
 
-            if (App::settings.materialType != MaterialType::SOLID) {
+            if (App::settings.materialType != MaterialType::SOLID && App::currentRendererType == RendererType::OPENGL) {
                 if (ImGui::CollapsingHeader("Shadows")) {
                     ShadowSettings();
                 }
