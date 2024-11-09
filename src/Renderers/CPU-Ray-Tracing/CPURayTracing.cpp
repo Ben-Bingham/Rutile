@@ -81,78 +81,69 @@ namespace Rutile {
         constexpr float r = 1.0f; // Sphere radius in local space
         constexpr glm::vec3 spherePos = { 0.0f, 0.0f, 0.0f }; // Sphere position in local space
 
-        glm::vec3 pixelColor{ 1.0f, 1.0f, 1.0f };
+        bool hitSomething = false;
+        HitInfo hitInfo;
 
-        for (int i = 0; i < App::settings.maxBounces; ++i) {
-            bool hitSomething = false;
-            HitInfo hitInfo;
+        for (auto& object : App::scene.objects) {
+            const glm::mat4 invModel = glm::inverse(App::scene.transformBank[object.transform].matrix);
 
-            for (auto& object : App::scene.objects) {
-                const glm::mat4 invModel = glm::inverse(App::scene.transformBank[object.transform].matrix);
+            const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
 
-                const glm::vec3 o = invModel * glm::vec4{ ray.origin, 1.0f };
+            glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f }; // TODO pick one
+            //glm::vec3 d = glm::transpose(inverse(glm::mat3(invModel))) * ray.direction;
+            d = normalize(d);
 
-                glm::vec3 d = invModel * glm::vec4{ ray.direction, 0.0f }; // TODO pick one
-                //glm::vec3 d = glm::transpose(inverse(glm::mat3(invModel))) * ray.direction;
-                d = normalize(d);
+            glm::vec3 co = spherePos - o;
+            const float a = dot(d, d);
+            const float b = -2.0f * glm::dot(d, co);
+            const float c = dot(co, co) - (r * r);
 
-                glm::vec3 co = spherePos - o;
-                const float a = dot(d, d);
-                const float b = -2.0f * glm::dot(d, co);
-                const float c = dot(co, co) - (r * r);
+            const float discriminant = (b * b) - (4.0f * a * c);
 
-                const float discriminant = (b * b) - (4.0f * a * c);
+            if (discriminant < 0.0f) { // No intersection
+                continue;
+            }
 
-                if (discriminant < 0.0f) { // No intersection
-                    continue;
-                }
+            const float sqrtDiscriminant = glm::sqrt(discriminant);
 
-                const float sqrtDiscriminant = glm::sqrt(discriminant);
+            // Because we subtract the discriminant, this root will always be smaller than the other one
+            float t = (-b - sqrtDiscriminant) / (2.0f * a);
 
-                // Because we subtract the discriminant, this root will always be smaller than the other one
-                float t = (-b - sqrtDiscriminant) / (2.0f * a);
-
+            if (t <= 0.001f || t >= std::numeric_limits<float>::max()) {
+                t = (-b + sqrtDiscriminant) / (2.0f * a);
                 if (t <= 0.001f || t >= std::numeric_limits<float>::max()) {
-                    t = (-b + sqrtDiscriminant) / (2.0f * a);
-                    if (t <= 0.001f || t >= std::numeric_limits<float>::max()) {
-                        continue;
-                    }
-                }
-
-                // At this point, no matter what t will be the closest hit for this object
-
-                glm::vec3 hitPointWorldSpace = App::scene.transformBank[object.transform].matrix * glm::vec4{ o + t * normalize(d), 1.0 };
-
-                float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
-
-                if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
-                    hitInfo.closestDistance = lengthAlongRayWorldSpace;
-                    hitSomething = true;
-                    hitInfo.hitObject = &object;
-
-                    glm::vec3 hitPointLocalSpace = o + t * d;
-
-                    hitInfo.normal = glm::normalize(hitPointLocalSpace - spherePos);
-
-                    // Transform normal back to world space
-                    glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::scene.transformBank[object.transform].matrix))) * hitInfo.normal;
-                    hitInfo.normal = glm::normalize(normalWorldSpace);
-
-                    hitInfo.position = App::scene.transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
+                    continue;
                 }
             }
 
-            if (hitSomething) {
-                pixelColor *= App::scene.materialBank[hitInfo.hitObject->material].solid.color;
+            // At this point, no matter what t will be the closest hit for this object
 
-                ray.origin = hitInfo.position;
-                ray.direction = glm::normalize(hitInfo.normal + RandomUnitVec3());
-            } else {
-                break;
+            glm::vec3 hitPointWorldSpace = App::scene.transformBank[object.transform].matrix * glm::vec4{ o + t * normalize(d), 1.0 };
+
+            float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
+
+            if (lengthAlongRayWorldSpace < hitInfo.closestDistance) {
+                hitInfo.closestDistance = lengthAlongRayWorldSpace;
+                hitSomething = true;
+                hitInfo.hitObject = &object;
+
+                glm::vec3 hitPointLocalSpace = o + t * d;
+
+                hitInfo.normal = glm::normalize(hitPointLocalSpace - spherePos);
+
+                // Transform normal back to world space
+                glm::vec3 normalWorldSpace = glm::transpose(glm::inverse(glm::mat3(App::scene.transformBank[object.transform].matrix))) * hitInfo.normal;
+                hitInfo.normal = glm::normalize(normalWorldSpace);
+
+                hitInfo.position = App::scene.transformBank[object.transform].matrix * glm::vec4{ hitPointLocalSpace, 1.0f };
             }
         }
 
-        return App::settings.backgroundColor * pixelColor;
+        if (hitSomething) {
+            return App::scene.materialBank[hitInfo.hitObject->material].solid.color;
+        }
+
+        return App::settings.backgroundColor;
     }
 
     const char* vertexShaderSource = \
