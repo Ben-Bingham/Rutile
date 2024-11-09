@@ -553,7 +553,7 @@ namespace Rutile {
          */
 
         AABB sceneBoundingBox{ glm::vec3{ -0.1f }, glm::vec3{ 0.1f } };
-        constexpr int n = 1024;
+        constexpr int n = 256;
 
         for (auto obj : App::scene.objects) {
             sceneBoundingBox = AABBFactory::Construct(AABBFactory::Construct(obj), sceneBoundingBox);
