@@ -15,9 +15,15 @@ This is the primary renderer of Rutile, it implements a few key features:
   * Dielectrics
   * Emmisive materials
 * Accumulation of pixel data across multiple frames
+
+This is one of my favrioute scenes rendered with the GPU Ray Tracer, it features a modified Cornell box, that has all of its wall replaced with one way mirrors, it allows us to see in, but all the rays still bounce around inside creating what looks like dragons and teapots that go on forever.
+![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/Cornell%20Box%202.0.png "Cornell Box 2.0")
 ### Voxel Ray Tracing
 The voxel ray tracer uses a sparse octree to store a voxelized version of each scene, and then applies the same materials present in the GPU ray tracer.
 The current voxelization algorithim is a work in progress, but works decently well when triangles are small.
+
+This is the same dragon model as seen elsewhere, except that it is voxelized to be 1024 voxels wide. This image shows off some of the flaws with the voxelization algorithim, with many small bumps being visible across the dragon. 
+![alt text](https://github.com/Ben-Bingham/Rutile/raw/main/gallery/SilverDragon1024.png "Cornell Box 2.0")
 
 ### Hot Swapping
 Hot swapping is a key feature of Rutile, with just a click of a button, you can change from one renderer to another, while still keeping the same camera position, FOV, and direction, aswell as which scene is selcted.
