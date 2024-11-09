@@ -49,14 +49,6 @@ namespace Rutile {
                 (int*)&App::settings.materialType,
                 [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
             );
-        } else {
-            App::settings.materialType = MaterialType::RAY_TRACING;
-            RadioButtons(
-                "Select Material Type",
-                { "Ray Tracing" },
-                (int*)&App::settings.materialType,
-                [] { App::eventManager.Notify(new MaterialTypeUpdate{ }); }
-            );
         }
 
         ImGui::Separator();
