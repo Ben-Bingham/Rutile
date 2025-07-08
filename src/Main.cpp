@@ -21,53 +21,57 @@
 
 using namespace Rutile;
 
-void CreateCurrentRenderer(RendererType type) {
+std::unique_ptr<Renderer> CreateRenderer(RendererType type) {
+    std::unique_ptr<Renderer> renderer;
+
     switch (App::currentRendererType) {
     case RendererType::OPENGL:
-        App::renderer = std::make_unique<OpenGlRenderer>();
+        renderer = std::make_unique<OpenGlRenderer>();
         break;
     case RendererType::CPU_RAY_TRACING:
-        App::renderer = std::make_unique<CPURayTracing>();
+        renderer = std::make_unique<CPURayTracing>();
         break;
     case RendererType::GPU_RAY_TRACING:
-        App::renderer = std::make_unique<GPURayTracing>();
+        renderer = std::make_unique<GPURayTracing>();
         break;
     case RendererType::VOXEL_RAY_TRACING:
-        App::renderer = std::make_unique<VoxelRayTracing>();
+        renderer = std::make_unique<VoxelRayTracing>();
         break;
     }
 
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
-    App::window = App::renderer->Init();
+    App::window = renderer->Init();
 
     for (auto object : App::scene.objects) {
         App::scene.transformBank[object.transform].CalculateMatrix();
     }
 
-    App::renderer->LoadScene();
-    App::renderer->SignalSettingsUpdate();
-    App::renderer->ProjectionMatrixUpdate();
+    renderer->LoadScene();
+    renderer->SignalSettingsUpdate();
+    renderer->ProjectionMatrixUpdate();
 
     App::glfw.AttachOntoWindow(App::window);
 
     App::imGui.Init(App::window);
+
+    return renderer;
 }
 
-void ShutDownCurrentRenderer() {
+void ShutdownRenderer(std::unique_ptr<Renderer>& renderer) {
     App::imGui.Cleanup();
 
     App::glfw.DetachFromWindow(App::window);
 
-    App::renderer->Cleanup(App::window);
-    App::renderer.reset();
+    renderer->Cleanup(App::window);
+    renderer.reset();
 }
 
 int main() {
     App::glfw.Init();
 
-    CreateCurrentRenderer(App::currentRendererType);
+    App::renderer = CreateRenderer(App::currentRendererType);
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
@@ -78,31 +82,20 @@ int main() {
 
         MoveCamera();
 
-        { // Reacting to settings changes
-            if (App::restartRenderer) {
-                ShutDownCurrentRenderer();
-
-                CreateCurrentRenderer(App::currentRendererType);
-
-                App::restartRenderer = false;
-            }
-
-            if (App::currentRendererType != App::lastRendererType) {
-                ShutDownCurrentRenderer();
-
-                CreateCurrentRenderer(App::currentRendererType);
-            }
-
-            App::lastRendererType = App::currentRendererType;
-        }
-
         App::imGui.StartNewFrame();
 
         MainGuiWindow();
 
         App::imGui.FinishFrame();
 
-        if (App::currentRendererType != App::lastRendererType) {
+        if (App::restartRenderer || App::currentRendererType != App::lastRendererType) {
+            ShutdownRenderer(App::renderer);
+
+            App::renderer = CreateRenderer(App::currentRendererType);
+
+            App::restartRenderer = false;
+            App::lastRendererType = App::currentRendererType;
+
             continue;
         }
 
