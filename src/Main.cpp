@@ -100,6 +100,8 @@ int main() {
 
         MainGuiWindow();
 
+        App::imGui.FinishFrame();
+
         if (App::currentRendererType != App::lastRendererType) {
             continue;
         }
@@ -108,8 +110,6 @@ int main() {
             TimeScope renderTime{ &App::timingData.renderTime };
 
             App::renderer->Render();
-
-            App::imGui.FinishFrame();
 
             glfwSwapBuffers(App::window);
         }
