@@ -17,6 +17,7 @@
 
 #include "Utility/CameraMovement.h"
 #include "Utility/events/Events.h"
+#include "Utility/TimeScope.h"
 
 using namespace Rutile;
 
@@ -64,15 +65,13 @@ void ShutDownCurrentRenderer() {
 }
 
 int main() {
-    App::timingData.startTime = std::chrono::steady_clock::now();
-
     App::glfw.Init();
 
     CreateCurrentRenderer(App::currentRendererType);
 
     // Main loop
     while (!glfwWindowShouldClose(App::window)) {
-        auto frameStartTime = std::chrono::steady_clock::now();
+        TimeScope frameTime{ &App::timingData.frameTime };
 
         glfwPollEvents();
         App::eventManager.Distribute();
@@ -97,47 +96,23 @@ int main() {
             App::lastRendererType = App::currentRendererType;
         }
 
+        App::imGui.StartNewFrame();
+
+        MainGuiWindow();
+
+        if (App::currentRendererType != App::lastRendererType) {
+            continue;
+        }
+
         { // Rendering
-            App::imGui.StartNewFrame();
+            TimeScope renderTime{ &App::timingData.renderTime };
 
-            auto imGuiStartTime = std::chrono::steady_clock::now();
-            MainGuiWindow();
-
-            if (App::currentRendererType != App::lastRendererType) {
-                continue;
-            }
-
-            App::timingData.imGuiTime = std::chrono::steady_clock::now() - imGuiStartTime;
-
-            auto renderStartTime = std::chrono::steady_clock::now();
             App::renderer->Render();
-            App::timingData.renderTime = std::chrono::steady_clock::now() - renderStartTime;
 
             App::imGui.FinishFrame();
 
             glfwSwapBuffers(App::window);
         }
-
-        // Timing the frame
-        App::timingData.frameTime = std::chrono::steady_clock::now() - frameStartTime;
-
-        App::timingData.frameTimes.push_back(App::timingData.frameTime);
-
-        if (App::timingData.frameTimes.size() > App::timingData.rollingAverageLength) {
-            for (size_t i = 0; i < App::timingData.frameTimes.size() - 1; ++i) {
-                App::timingData.frameTimes[i] = App::timingData.frameTimes[i + 1];
-            }
-
-            App::timingData.frameTimes.pop_back();
-        }
-
-        App::timingData.rollingAverageFrameTime = std::chrono::duration<double>{ 0 };
-
-        for (auto& frameTime : App::timingData.frameTimes) {
-            App::timingData.rollingAverageFrameTime += frameTime;
-        }
-
-        App::timingData.rollingAverageFrameTime /= (double)App::timingData.frameTimes.size();
     }
 
     App::imGui.Cleanup();
