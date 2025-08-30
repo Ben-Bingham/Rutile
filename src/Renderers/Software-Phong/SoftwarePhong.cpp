@@ -118,8 +118,47 @@ namespace Rutile {
         std::vector<glm::vec4> imageData;
         imageData.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
 
+        using DepthType = float;
+        std::vector<DepthType> depthBuffer;
+        depthBuffer.resize((size_t)App::screenWidth * (size_t)App::screenHeight);
+
+        // For each triangle in the scene:
+            // Transform it into screen space
+            // Find what pixels it occupys
+            // Find the triangles depth at each pixels -> depth buffer
+        // For each pixel compare it to the depth buffer, for each pixel that is closest run the fragment shader
+
+        // Iterates over all objects
+        for (auto& obj : App::scene.objects) {
+            Geometry& geo = App::scene.geometryBank[obj.geometry];
+            auto& vert = geo.vertices;
+            auto& inds = geo.indices;
+
+            Transform& transform = App::scene.transformBank[obj.transform];
+            transform.CalculateMatrix(); // TODO super ineficient
+
+            // TODO super ineficient
+            glm::mat4 proj = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+
+            glm::mat4 mvp = proj * App::camera.View() * transform.matrix;
+
+            // Iterates over all triangles
+            for (size_t i = 0; i < inds.size(); i += 3) {
+                Vertex v1 = vert[inds[i + 0]];
+                Vertex v2 = vert[inds[i + 1]];
+                Vertex v3 = vert[inds[i + 2]];
+
+                v1.position = glm::vec3{ mvp * glm::vec4{ v1.position.x, v1.position.y, v1.position.z, 1.0 } };
+                v2.position = glm::vec3{ mvp * glm::vec4{ v2.position.x, v2.position.y, v2.position.z, 1.0 } };
+                v3.position = glm::vec3{ mvp * glm::vec4{ v3.position.x, v3.position.y, v3.position.z, 1.0 } };
+
+                
+            }
+        }
+
         for (int y = 0; y < App::screenHeight; ++y) {
             for (int x = 0; x < App::screenWidth; ++x) {
+                imageData[x + y * App::screenWidth] = glm::vec4{ depthBuffer[x + y * App::screenWidth], depthBuffer[x + y * App::screenWidth], depthBuffer[x + y * App::screenWidth], 1.0 };
                 imageData[x + y * App::screenWidth] = glm::vec4{ (float)y / (float)App::screenHeight, 0.0, 0.0, 1.0 };
             }
         }
