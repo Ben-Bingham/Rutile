@@ -7,13 +7,14 @@
 #include "Settings/App.h"
 
 #include "renderers/renderer.h"
-#include "renderers/OpenGl/OpenGlRenderer.h"
 
 #include "GUI/MainGUIWindow.h"
 
 #include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
 #include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
 #include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
+#include "Renderers/Software-Phong/SoftwarePhong.h"
+#include "renderers/OpenGl/OpenGlRenderer.h"
 
 #include "Utility/CameraMovement.h"
 #include "Utility/events/Events.h"
@@ -36,6 +37,10 @@ std::unique_ptr<Renderer> CreateRenderer(RendererType type) {
         break;
     case RendererType::VOXEL_RAY_TRACING:
         renderer = std::make_unique<VoxelRayTracing>();
+        break;
+        break;
+    case RendererType::SOFTWARE_PHONG:
+        renderer = std::make_unique<SoftwarePhong>();
         break;
     }
 

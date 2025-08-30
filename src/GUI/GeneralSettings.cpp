@@ -11,11 +11,15 @@ namespace Rutile {
         // Select renderer
         RadioButtons(
             "Select Renderer", 
-            { "OpenGl", "CPU Ray-Tracing", "GPU Ray-Tracing", "Voxel Ray-Tracing" },
+            { "OpenGl", "CPU Ray-Tracing", "GPU Ray-Tracing", "Voxel Ray-Tracing", "Software Phong"},
             (int*)&App::currentRendererType,
             [] {
                 switch(App::currentRendererType) {
                 case RendererType::OPENGL:
+                    App::settings.materialType = MaterialType::PHONG;
+                    break;
+
+                case RendererType::SOFTWARE_PHONG:
                     App::settings.materialType = MaterialType::PHONG;
                     break;
 
@@ -26,6 +30,7 @@ namespace Rutile {
                 case RendererType::GPU_RAY_TRACING:
                     App::settings.materialType = MaterialType::RAY_TRACING;
                     break;
+
                 case RendererType::VOXEL_RAY_TRACING:
                     App::settings.materialType = MaterialType::RAY_TRACING;
                     break;

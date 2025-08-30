@@ -5,6 +5,7 @@ namespace Rutile {
         OPENGL,
         CPU_RAY_TRACING,
         GPU_RAY_TRACING,
-        VOXEL_RAY_TRACING
+        VOXEL_RAY_TRACING,
+        SOFTWARE_PHONG
     };
 }
