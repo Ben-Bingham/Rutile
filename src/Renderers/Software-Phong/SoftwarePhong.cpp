@@ -128,6 +128,13 @@ namespace Rutile {
             // Find the triangles depth at each pixels -> depth buffer
         // For each pixel compare it to the depth buffer, for each pixel that is closest run the fragment shader
 
+        // Bottom left of screen is (0, 0) and top right is (1, 1)
+        const float pixelWidth = 1.0f / (float)App::screenWidth;
+        const float pixelHeight = 1.0f / (float)App::screenHeight;
+
+        glm::vec3 min{ std::numeric_limits<float>::max() };
+        glm::vec3 max{ -std::numeric_limits<float>::max() };
+
         // Iterates over all objects
         for (auto& obj : App::scene.objects) {
             Geometry& geo = App::scene.geometryBank[obj.geometry];
@@ -152,9 +159,42 @@ namespace Rutile {
                 v2.position = glm::vec3{ mvp * glm::vec4{ v2.position.x, v2.position.y, v2.position.z, 1.0 } };
                 v3.position = glm::vec3{ mvp * glm::vec4{ v3.position.x, v3.position.y, v3.position.z, 1.0 } };
 
-                
+                min = glm::min(glm::min(glm::min(v1.position, v2.position), v3.position), min);
+                max = glm::max(glm::max(glm::max(v1.position, v2.position), v3.position), max);
+
+                glm::ivec2 p1 = glm::ivec2{ (int)std::floor(v1.position.x / pixelWidth), (int)std::floor(v1.position.y / pixelHeight) };
+                glm::ivec2 p2 = glm::ivec2{ (int)std::floor(v2.position.x / pixelWidth), (int)std::floor(v2.position.y / pixelHeight) };
+                glm::ivec2 p3 = glm::ivec2{ (int)std::floor(v3.position.x / pixelWidth), (int)std::floor(v3.position.y / pixelHeight) };
+
+                //glm::ivec2 min{ App::screenWidth, App::screenHeight };
+                //glm::ivec2 max{ 0, 0 };
+
+                //if (p1.x > max.x) max.x = p1.x;
+                //if (p2.x > max.x) max.x = p2.x;
+                //if (p3.x > max.x) max.x = p3.x;
+
+                //if (p1.y > max.y) max.y = p1.y;
+                //if (p2.y > max.y) max.y = p2.y;
+                //if (p3.y > max.y) max.y = p3.y;
+
+                //if (p1.x < min.x) min.x = p1.x;
+                //if (p2.x < min.x) min.x = p2.x;
+                //if (p3.x < min.x) min.x = p3.x;
+
+                //if (p1.y < min.y) min.y = p1.y;
+                //if (p2.y < min.y) min.y = p2.y;
+                //if (p3.y < min.y) min.y = p3.y;
+
+                //for (int x = min.x; x < max.x; ++x) {
+                //    for (int y = min.y; y < max.y; ++y) {
+                //        depthBuffer[x + y * App::screenWidth] = 1.0;
+                //    }
+                //}
             }
         }
+
+        std::cout << "min: (" << min.x << ", " << min.y << ", " << min.z << ")" << std::endl;
+        std::cout << "max: (" << max.x << ", " << max.y << ", " << max.z << ")" << std::endl;
 
         for (int y = 0; y < App::screenHeight; ++y) {
             for (int x = 0; x < App::screenWidth; ++x) {
