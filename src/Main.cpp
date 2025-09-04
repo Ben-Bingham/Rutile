@@ -116,13 +116,13 @@ int main() {
     renderer->SetScene(scene);
 
     //while (glfw.WindowOpen()) { 
-    while(glfwWindowShouldClose(window)) {
+    while(!glfwWindowShouldClose(window)) {
         TimeScope frameTime{ &App::timingData.frameTime };
 
         //glfw.Poll(); 
         glfwPollEvents();
 
-        MoveCamera(); // TODO
+        //MoveCamera(); // TODO
 
         //imGui.StartNewFrame();
 
@@ -135,7 +135,7 @@ int main() {
         // TODO backup opengl state and then restore after
         renderer->Render();
 
-        glfwSwapBuffers(App::window);
+        glfwSwapBuffers(window);
     }
 
     renderer->Cleanup();

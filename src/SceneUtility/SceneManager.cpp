@@ -79,10 +79,11 @@ namespace Rutile {
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        std::shared_ptr<Material> redMat{ };
-        redMat->diffuse = glm::vec3{ 1.0f, 0.0f, 0.0f };
-        redMat->ambient = glm::vec3{ 0.8f, 0.0f, 0.0f };
-        redMat->specular = glm::vec3{ 0.1f, 0.0f, 0.0f };
+        std::shared_ptr<Material> redMat = std::make_shared<Material>(
+            glm::vec3{ 1.0f, 0.0f, 0.0f },
+            glm::vec3{ 0.8f, 0.0f, 0.0f },
+            glm::vec3{ 0.1f, 0.0f, 0.0f }
+        );
 
         Mesh mesh{ };
 
