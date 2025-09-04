@@ -3,7 +3,6 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-
 // TODO
 //#define STB_IMAGE_IMPLEMENTATION
 //#include <stb_image.h>
@@ -27,62 +26,20 @@
 #include "Utility/TimeScope.h"
 #include "Utility/OpenGl/GLDebug.h"
 
+#include "3rdPartySystems/GLFW.h"
+#include "3rdPartySystems/GLEW.h"
+#include "3rdPartySystems/ImGuiInstance.h"
+
 #include "imgui.h"
 
 using namespace Rutile;
-
-//std::unique_ptr<Renderer> CreateRenderer(RendererType type) {
-//    std::unique_ptr<Renderer> renderer;
-//
-//    switch (App::currentRendererType) {
-//    case RendererType::OPENGL:
-//        renderer = std::make_unique<OpenGlRenderer>();
-//        break;
-//    case RendererType::CPU_RAY_TRACING:
-//        renderer = std::make_unique<CPURayTracing>();
-//        break;
-//    case RendererType::GPU_RAY_TRACING:
-//        renderer = std::make_unique<GPURayTracing>();
-//        break;
-//    case RendererType::VOXEL_RAY_TRACING:
-//        renderer = std::make_unique<VoxelRayTracing>();
-//        break;
-//        break;
-//    case RendererType::SOFTWARE_PHONG:
-//        renderer = std::make_unique<SoftwarePhong>();
-//        break;
-//    }
-//
-//    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-//    glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
-//
-//    App::window = renderer->Init();
-//
-//    for (auto object : App::scene.objects) {
-//        App::scene.transformBank[object.transform].CalculateMatrix();
-//    }
-//
-//    renderer->LoadScene();
-//    renderer->SignalSettingsUpdate();
-//    renderer->ProjectionMatrixUpdate();
-//
-//    App::glfw.AttachOntoWindow(App::window);
-//
-//    App::imGui.Init(App::window);
-//
-//    return renderer;
-//}
 
 int main() {
     GLFW glfw;
     glfw.Init();
 
-    //GLEW glew;
-    //glew.Init();
-
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
     GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
-    glfwShowWindow(window);
 
     if (!window) {
         std::cout << "ERROR: Failed to create window." << std::endl;
@@ -90,22 +47,13 @@ int main() {
 
     glfwMakeContextCurrent(window);
 
-    if (glewInit() != GLEW_OK) {
-        std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
-    }
-
-    int flags;
-    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(glDebugOutput, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    }
-
-
     //Window window;
     //window.Init();
+
+    GLEW glew;
+    glew.Init();
+
+    glfw.InitializeOpenGLDebug();
 
     ImGuiInstance imGui;
     imGui.Init(window);
@@ -149,9 +97,6 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, 0);
     renderbuffer.Unbind();
 
-
-
-
     //while (glfw.WindowOpen()) { 
     while(!glfwWindowShouldClose(window)) {
         TimeScope frameTime{ &App::timingData.frameTime };
@@ -171,13 +116,7 @@ int main() {
         //MainGuiWindow();
         ImGui::Begin("Test");
 
-        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{800.0f, 600.0f});
-        //if (rendererOutput) {
-        //    ImGui::Image((ImTextureID)rendererOutput->Get(), ImVec2{ 800.0f, 600.0f });
-        //}
-        //else {
-        //    std::cout << "RENDERER OUTPUT IS NULLPTR" << std::endl;
-        //}
+        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ 800.0f, 600.0f });
 
         ImGui::End();
 
@@ -190,7 +129,7 @@ int main() {
 
     renderer->Cleanup();
     imGui.Cleanup();
+    glew.Cleanup();
     //window.Cleanup();
-    //glew.Cleanup();
     glfw.Cleanup();
 }

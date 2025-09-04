@@ -5,10 +5,8 @@
 #include <memory>
 
 #include "glm/glm.hpp"
-
-#include "Utility/ImGuiInstance.h"
-#include "Utility/GLFW.h"
-
+#include <gl/glew.h>
+#include <GLFW/glfw3.h>
 //#include "renderers/Renderer.h"
 
 #include "RenderingAPI/Camera.h"
@@ -28,8 +26,8 @@ namespace Rutile {
         inline static int screenWidth = 1200;
         inline static int screenHeight = 800;
 
-        inline static GLFW glfw{ };
-        inline static ImGuiInstance imGui{ };
+        //inline static GLFW glfw{ };
+        //inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
         inline static SceneType sceneType = SceneType::CORNELL_BOX;
