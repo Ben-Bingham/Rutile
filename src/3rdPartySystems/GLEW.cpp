@@ -6,11 +6,11 @@
 #include <GLFW/glfw3.h>
 
 namespace Rutile {
-	void GLEW::Init() {
+	GLEW::GLEW() {
 		if (glewInit() != GLEW_OK) {
 			std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
 		}
 	}
 
-	void GLEW::Cleanup() { }
+	GLEW::~GLEW() { }
 }

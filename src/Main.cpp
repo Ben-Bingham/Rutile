@@ -36,19 +36,15 @@
 using namespace Rutile;
 
 int main() {
-    GLFW glfw;
-    glfw.Init();
-
+    GLFW glfw{ };
     Window window{ glm::ivec2{ 1600, 900 } };
-    window.Init();
-
-    GLEW glew;
-    glew.Init();
 
     glfw.InitializeOpenGLDebug();
 
-    ImGuiInstance imGui;
-    imGui.Init(window);
+    GLEW glew;
+
+
+    ImGuiInstance imGui{ window };
 
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
     renderer->Init();
@@ -118,8 +114,4 @@ int main() {
     }
 
     renderer->Cleanup();
-    imGui.Cleanup();
-    glew.Cleanup();
-    //window.Cleanup();
-    glfw.Cleanup();
 }

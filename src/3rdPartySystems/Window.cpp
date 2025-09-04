@@ -6,9 +6,6 @@ namespace Rutile {
 	Window::Window(glm::ivec2 size) 
 		: size(size) {
 
-	}
-
-	void Window::Init() {
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 		m_Window = glfwCreateWindow(size.x, size.y, "Rutile", nullptr, nullptr);
 
@@ -19,7 +16,9 @@ namespace Rutile {
 		glfwMakeContextCurrent(m_Window);
 	}
 
-	void Window::Cleanup() { }
+	Window::~Window() {
+
+	}
 
 	GLFWwindow* Window::Get() {
 		return m_Window;

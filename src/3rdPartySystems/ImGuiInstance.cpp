@@ -6,7 +6,7 @@
 #include "implot.h"
 
 namespace Rutile {
-    void ImGuiInstance::Init(Window& window) {
+    ImGuiInstance::ImGuiInstance(Window& window) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImPlot::CreateContext();
@@ -20,7 +20,7 @@ namespace Rutile {
         ImGui_ImplOpenGL3_Init();
     }
 
-    void ImGuiInstance::Cleanup() {
+    ImGuiInstance::~ImGuiInstance() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImPlot::DestroyContext();

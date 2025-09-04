@@ -28,7 +28,7 @@ namespace Rutile {
         App::mousePosition.y = static_cast<int>(y);
     }
 
-    void GLFW::Init() {
+    GLFW::GLFW() {
         glfwSetErrorCallback(glfwErrorCallback);
 
         if (!glfwInit()) {
@@ -36,8 +36,9 @@ namespace Rutile {
         }
     }
 
-    void GLFW::Cleanup() {
+    GLFW::~GLFW() {
         glfwTerminate();
+
     }
 
     void GLFW::InitializeOpenGLDebug() {

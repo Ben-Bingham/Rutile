@@ -8,8 +8,12 @@
 namespace Rutile {
     class ImGuiInstance {
     public:
-        void Init(Window& window);
-        void Cleanup();
+        ImGuiInstance(Window& window);
+        ImGuiInstance(const ImGuiInstance& other) = delete;
+        ImGuiInstance(ImGuiInstance&& other) noexcept = default;
+        ImGuiInstance& operator=(const ImGuiInstance& other) = delete;
+        ImGuiInstance& operator=(ImGuiInstance&& other) noexcept = default;
+        ~ImGuiInstance();
 
         void StartNewFrame();
         void FinishFrame();

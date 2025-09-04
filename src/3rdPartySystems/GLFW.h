@@ -6,8 +6,12 @@
 namespace Rutile {
     class GLFW {
     public:
-        void Init();
-        void Cleanup();
+        GLFW();
+        GLFW(const GLFW& other) = delete;
+        GLFW(GLFW&& other) noexcept = default;
+        GLFW& operator=(const GLFW& other) = delete;
+        GLFW& operator=(GLFW&& other) noexcept = default;
+        ~GLFW();
 
         void InitializeOpenGLDebug();
 

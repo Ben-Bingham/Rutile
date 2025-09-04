@@ -9,9 +9,11 @@ namespace Rutile {
 	class Window {
 	public:
 		Window(glm::ivec2 size);
-
-		void Init();
-		void Cleanup();
+		Window(const Window& other) = delete;
+		Window(Window&& other) noexcept = default;
+		Window& operator=(const Window& other) = delete;
+		Window& operator=(Window&& other) noexcept = default;
+		~Window();
 
 		GLFWwindow* Get();
 
