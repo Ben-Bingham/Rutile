@@ -117,6 +117,8 @@ int main() {
 
     renderer->SetScene(scene);
 
+    std::shared_ptr<Texture2D> rendererOutput{ };
+
     //while (glfw.WindowOpen()) { 
     while(!glfwWindowShouldClose(window)) {
         TimeScope frameTime{ &App::timingData.frameTime };
@@ -133,6 +135,13 @@ int main() {
         //MainGuiWindow();
         ImGui::Begin("Test");
 
+        if (rendererOutput) {
+            ImGui::Image((ImTextureID)rendererOutput->Get(), ImVec2{ 800.0f, 600.0f });
+        }
+        else {
+            std::cout << "RENDERER OUTPUT IS NULLPTR" << std::endl;
+        }
+
         ImGui::End();
 
         renderer->ProvideGUI(); // TODO
@@ -140,7 +149,7 @@ int main() {
         imGui.FinishFrame();
 
         // TODO backup opengl state and then restore after
-        renderer->Render();
+        rendererOutput = renderer->Render();
 
         glfwSwapBuffers(window);
     }

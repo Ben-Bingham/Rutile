@@ -48,6 +48,60 @@ namespace Rutile {
         //glBindTexture(GL_TEXTURE_2D, 0);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
+
+        framebuffer = std::make_unique<Framebuffer>();
+
+        framebuffer->Bind();
+
+        targetTexture = std::make_shared<Texture2D>(fbSize, TextureParameters{
+            TextureFormat::RGB,
+            TextureStorageType::UNSIGNED_BYTE,
+            TextureWrapMode::REPEAT,
+            TextureFilteringMode::LINEAR
+        });
+
+        targetTexture->Bind();
+
+        Texture2D& tex = *targetTexture.get();
+
+        framebuffer->AddTexture(tex, Framebuffer::TextureUses::COLOR_0);
+
+        renderbuffer = std::make_unique<Renderbuffer>(fbSize);
+
+        framebuffer->AddRenderbuffer(*renderbuffer.get(), Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+
+        auto result = framebuffer->Check();
+        if (!result) {
+            std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
+        }
+        
+        framebuffer->Unbind();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        renderbuffer->Unbind();
+
+
+        // Target framebuffer
+        //glGenFramebuffers(1, &targetFBO);
+        //glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
+
+        //glGenRenderbuffers(1, &targetRBO);
+        //glBindRenderbuffer(GL_RENDERBUFFER, targetRBO);
+        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, targetRBO, 0);
+        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, targetRBO);
+
+        //targetTexture = std::make_shared<Texture2D>(glm::ivec2{ 100, 100 });
+
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture->Get(), 0);
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+
+
+
+
         /*glGenFramebuffers(1, &m_DepthMapFBO);
 
         glGenTextures(1, &m_ShadowMapTexture);
@@ -134,17 +188,15 @@ namespace Rutile {
         // OpenGl settings
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-
-        target = std::make_unique<Texture2D>(glm::ivec2{ 100, 100 });
     }
 
     std::shared_ptr<Texture2D> OpenGlRenderer::Render() {
-        if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
-            glFrontFace(GL_CCW);
-        }
-        else {
-            glFrontFace(GL_CW);
-        }
+        //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
+        //    glFrontFace(GL_CCW);
+        //}
+        //else {
+        //    glFrontFace(GL_CW);
+        //}
 
         /*
         // Directional Shadow Map Rendering
@@ -191,7 +243,8 @@ namespace Rutile {
         //}
         */
 
-        RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
+        // TODO call this
+        //RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
         //if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
@@ -199,17 +252,17 @@ namespace Rutile {
 
         RenderScene();
 
-        if (App::settings.visualizeCascades) {
-            //VisualizeShadowCascades();
-        }
+        //if (App::settings.visualizeCascades) {
+        //    //VisualizeShadowCascades();
+        //}
 
-        if (App::settings.visualizeCascadeLights) {
-            //VisualizeCascadeLights();
-        }
+        //if (App::settings.visualizeCascadeLights) {
+        //    //VisualizeCascadeLights();
+        //}
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        return target;
+
+        return targetTexture;
     }
 
     void OpenGlRenderer::Cleanup() {
@@ -247,6 +300,7 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::SetScene(Scene& scene) {
+        scene = scene;
         /*
         // Lights
 
@@ -307,6 +361,8 @@ namespace Rutile {
 
         m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
         m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
+        */
+
 
         // Geometry
 
@@ -319,7 +375,7 @@ namespace Rutile {
         m_VBOs.clear();
         m_EBOs.clear();
 
-        const size_t geometryCount = App::scene.geometryBank.Size();
+        const size_t geometryCount = scene.objects.size();
 
         m_VAOs.resize(geometryCount);
         m_VBOs.resize(geometryCount);
@@ -330,10 +386,10 @@ namespace Rutile {
         glGenBuffers(static_cast<GLsizei>(geometryCount), m_EBOs.data());
 
         for (size_t i = 0; i < geometryCount; ++i) {
-            const Geometry& geo = App::scene.geometryBank[i];
+            const Mesh& mesh = scene.objects[i].mesh;
 
-            std::vector<Vertex> vertices = geo.vertices;
-            std::vector<Index> indices = geo.indices;
+            std::vector<Vertex> vertices = mesh.vertices;
+            std::vector<Index> indices = mesh.indices;
 
             glBindVertexArray(m_VAOs[i]);
 
@@ -356,7 +412,6 @@ namespace Rutile {
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
-        */
     }
 
     void OpenGlRenderer::RenderOmnidirectionalShadowMaps() {
@@ -544,9 +599,8 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::RenderScene() {
-        /*
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, App::screenWidth, App::screenHeight);
+        framebuffer->Bind();
+        glViewport(0, 0, 800, 600);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -558,146 +612,25 @@ namespace Rutile {
             glCullFace(GL_BACK);
         }
 
-        for (const auto& object : App::scene.objects) {
+        for (const auto& object : scene.objects) {
             Shader* shaderProgram = nullptr;
 
-            Transform& transform = App::scene.transformBank[object.transform];
+            //Transform& transform = App::scene.transformBank[object.transform];
+            glm::mat4 transform = object.transform;
 
-            Material mat = App::scene.materialBank[object.material];
+            std::shared_ptr<Material> mat = object.material;
 
-            switch (App::settings.materialType) {
-                case MaterialType::SOLID: {
-                    shaderProgram = m_SolidShader.get();
-                    shaderProgram->Bind();
-
-                    // Material
-                    shaderProgram->SetVec4("color", glm::vec4{ mat.solid.color, 1.0f });
-
-                    break;
-                }
-                case MaterialType::PHONG: {
-                    shaderProgram = m_PhongShader.get();
-                    shaderProgram->Bind();
-
-                    // Material
-                    shaderProgram->SetVec3("phong.ambient", mat.phong.ambient);
-                    shaderProgram->SetVec3("phong.diffuse", mat.phong.diffuse);
-                    shaderProgram->SetVec3("phong.specular", mat.phong.specular);
-
-                    shaderProgram->SetFloat("phong.shininess", mat.phong.shininess);
-
-                    // Lighting
-                    shaderProgram->SetMat4("model", transform.matrix);
-
-                    shaderProgram->SetVec3("cameraPosition", App::camera.position);
-
-                    // Lights
-
-                    // Directional Light
-                    if (App::scene.HasDirectionalLight()) {
-                        shaderProgram->SetBool("haveDirectionalLight", true);
-
-                        shaderProgram->SetVec3("directionalLight.direction", App::scene.directionalLight.direction);
-
-                        shaderProgram->SetVec3("directionalLight.ambient", App::scene.directionalLight.ambient);
-                        shaderProgram->SetVec3("directionalLight.diffuse", App::scene.directionalLight.diffuse);
-                        shaderProgram->SetVec3("directionalLight.specular", App::scene.directionalLight.specular);
-
-                        shaderProgram->SetBool("directionalShadows", App::settings.directionalShadows);
-
-                        shaderProgram->SetMat4("view", App::camera.View()); // TODO might need to cache viewMatrix
-
-                        shaderProgram->SetInt("cascadeCount", m_CascadeCount);
-
-                        int i = 0;
-                        for (const float& plane : m_CascadingFrustumPlanes) {
-                            shaderProgram->SetFloat("cascadeFrustumPlanes[" + std::to_string(i) + "]", plane);
-
-                            ++i;
-                        }
-
-                        i = 0;
-                        for (const glm::mat4& mat : m_LightSpaceMatrices) {
-                            shaderProgram->SetMat4("lightSpaceMatrices[" + std::to_string(i) + "]", mat);
-                            ++i;
-                        }
-
-                        shaderProgram->SetFloat("farPlane", App::settings.farPlane);
-
-                        glActiveTexture(GL_TEXTURE4);
-                        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
-                        shaderProgram->SetInt("cascadingShadowMap", 4);
-
-                    } else {
-                        shaderProgram->SetBool("haveDirectionalLight", false);
-                        shaderProgram->SetBool("directionalShadows",   false);
-                    }
-
-                    // Point Lights
-                    shaderProgram->SetInt("pointLightCount", static_cast<int>(App::scene.pointLights.size()));
-                    LightIndex lightIndex = 0;
-                    for (const auto& pointLight : App::scene.pointLights) {
-                        std::string prefix = "pointLights[" + std::to_string(lightIndex) + "].";
-
-                        shaderProgram->SetVec3(prefix + "position", pointLight.position);
-
-                        shaderProgram->SetFloat(prefix + "constant", pointLight.constant);
-                        shaderProgram->SetFloat(prefix + "linear", pointLight.linear);
-                        shaderProgram->SetFloat(prefix + "quadratic", pointLight.quadratic);
-
-                        shaderProgram->SetVec3(prefix + "ambient", pointLight.ambient);
-                        shaderProgram->SetVec3(prefix + "diffuse", pointLight.diffuse);
-                        shaderProgram->SetVec3(prefix + "specular", pointLight.specular);
-
-                        shaderProgram->SetFloat(prefix + "farPlane", pointLight.shadowMapFarPlane);
-
-                        glActiveTexture(GL_TEXTURE0 + static_cast<int>(lightIndex));
-                        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[lightIndex]);
-                        switch (lightIndex) {
-                        case 0:
-                            shaderProgram->SetInt("pointLightCubeMap0", static_cast<int>(lightIndex));
-                            break;
-                        case 1:
-                            shaderProgram->SetInt("pointLightCubeMap1", static_cast<int>(lightIndex));
-                            break;
-                        case 2:
-                            shaderProgram->SetInt("pointLightCubeMap2", static_cast<int>(lightIndex));
-                            break;
-                        case 3:
-                            shaderProgram->SetInt("pointLightCubeMap3", static_cast<int>(lightIndex));
-                            break;
-                        }
-                        ++lightIndex;
-                    }
-
-                    // Omnidirectional Shadow map Settings
-                    shaderProgram->SetBool("omnidirectionalShadowMaps", App::settings.omnidirectionalShadowMaps);
-
-                    shaderProgram->SetFloat("omnidirectionalShadowMapBias", App::settings.omnidirectionalShadowMapBias);
-
-                    shaderProgram->SetInt("omnidirectionalShadowMapPCFMode", (int)App::settings.omnidirectionalShadowMapPCFMode);
-
-                    shaderProgram->SetInt("omnidirectionalShadowMapSampleCount", App::settings.omnidirectionalShadowMapSampleCount);
-
-                    shaderProgram->SetInt("omnidirectionalShadowMapDiskRadiusMode", (int)App::settings.omnidirectionalShadowMapDiskRadiusMode);
-                    shaderProgram->SetFloat("omnidirectionalShadowMapDiskRadius", App::settings.omnidirectionalShadowMapDiskRadius);
-
-                    break;
-                }
-            }
-
-            /*
-             *
-            switch (m_MaterialTypes[i]) {
-                case MaterialType::SOLID: {
-                    Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
+            //switch (m_MaterialTypes[i]) {
+                //case MaterialType::SOLID: {
+                    //Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
 
                     shaderProgram = m_SolidShader.get();
                     shaderProgram->Bind();
 
-                    m_SolidShader->SetVec3("color", solid->color);
-                    break;
-                }
+                    m_SolidShader->SetVec3("color", mat->diffuse);
+                    //break;
+                //}
+                /*
                 case MaterialType::PHONG: {
                     Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
 
@@ -784,19 +717,18 @@ namespace Rutile {
                     }
                     break;
                 }
-            }
+                */
+            //}
 
-            */
+            glm::mat4 mvp = m_Projection * App::camera.View() * transform;
 
-        //    glm::mat4 mvp = m_Projection * App::camera.View() * App::scene.transformBank[object.transform].matrix;
+            shaderProgram->SetMat4("mvp", mvp);
 
-        //    shaderProgram->SetMat4("mvp", mvp);
+            glBindVertexArray(m_VAOs[0]);
+            glDrawElements(GL_TRIANGLES, (int)3, GL_UNSIGNED_INT, nullptr); // TODO 3
+        }
 
-        //    glBindVertexArray(m_VAOs[object.geometry]);
-        //    glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
-        //}
-
-        //*/
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {

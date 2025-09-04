@@ -8,6 +8,9 @@
 #include <GLFW/glfw3.h>
 
 #include "Utility/OpenGl/Shader.h"
+#include "Utility/OpenGl/Framebuffer.h"
+#include "Utility/OpenGl/Texture.h"
+#include "Utility/OpenGl/Renderbuffer.h"
 
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
@@ -28,7 +31,6 @@ namespace Rutile {
         void SetScene(Scene& scene) override;
 
     private:
-        std::shared_ptr<Texture2D> target{ };
 
         void RenderOmnidirectionalShadowMaps();
 
@@ -39,6 +41,14 @@ namespace Rutile {
         std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
 
 	public:
+        std::unique_ptr<Framebuffer> framebuffer{ };
+        std::unique_ptr<Renderbuffer> renderbuffer{ };
+        glm::ivec2 fbSize{ 800, 600 };
+
+        Scene scene{ };
+
+
+        std::shared_ptr<Texture2D> targetTexture{ };
         // Events
         //void ProjectionMatrixUpdate() override;
 
