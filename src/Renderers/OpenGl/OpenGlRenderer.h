@@ -16,9 +16,9 @@ namespace Rutile {
 	class OpenGlRenderer : public Renderer {
 	public:
         OpenGlRenderer();
-        OpenGlRenderer(const OpenGlRenderer& other) = default;
+        OpenGlRenderer(const OpenGlRenderer& other) = delete;
         OpenGlRenderer(OpenGlRenderer&& other) noexcept = default;
-        OpenGlRenderer& operator=(const OpenGlRenderer& other) = default;
+        OpenGlRenderer& operator=(const OpenGlRenderer& other) = delete;
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override;
 
