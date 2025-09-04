@@ -40,6 +40,7 @@ int main() {
     Window window{ glm::ivec2{ 1600, 900 } };
     GLEW glew;
 
+    glfw.InitializeCallbacks(window);
     glfw.InitializeOpenGLDebug();
 
     ImGuiInstance imGui{ window };
@@ -49,6 +50,7 @@ int main() {
     Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
     renderer->SetScene(scene);
 
+    // Create framebuffer that renderers render to
     glm::ivec2 fbSize{ 800, 600 };
 
     Framebuffer framebuffer{ };
@@ -78,9 +80,8 @@ int main() {
     while(window.IsOpen()) {
         TimeScope frameTime{ &App::timingData.frameTime };
 
-        //glfw.Poll(); 
-        glfwPollEvents();
-
+        glfw.PollEvents();
+        
         //MoveCamera(); // TODO
 
         // TODO backup opengl state and then restore after

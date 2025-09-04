@@ -3,6 +3,8 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Window.h"
+
 namespace Rutile {
     class GLFW {
     public:
@@ -13,9 +15,9 @@ namespace Rutile {
         GLFW& operator=(GLFW&& other) noexcept = default;
         ~GLFW();
 
+        void InitializeCallbacks(Window& window);
         void InitializeOpenGLDebug();
 
-        void AttachOntoWindow(GLFWwindow* window);
-        void DetachFromWindow(GLFWwindow* window);
+        void PollEvents();
     };
 }

@@ -41,6 +41,11 @@ namespace Rutile {
 
     }
 
+    void GLFW::InitializeCallbacks(Window& window) {
+        glfwSetFramebufferSizeCallback(window.Get(), frameBufferSizeCallback);
+        glfwSetCursorPosCallback(window.Get(), mouseMoveCallback);
+    }
+
     void GLFW::InitializeOpenGLDebug() {
         int flags;
         glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -52,13 +57,7 @@ namespace Rutile {
         }
     }
 
-    void GLFW::AttachOntoWindow(GLFWwindow* window) {
-        glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
-        glfwSetCursorPosCallback(window, mouseMoveCallback);
-    }
-
-    void GLFW::DetachFromWindow(GLFWwindow* window) {
-        glfwSetCursorPosCallback(window, nullptr);
-        glfwSetFramebufferSizeCallback(window, nullptr);
+    void GLFW::PollEvents() {
+        glfwPollEvents();
     }
 }
