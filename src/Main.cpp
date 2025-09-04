@@ -61,7 +61,6 @@ int main() {
 
     glm::ivec2 fbSize{ 800, 600 };
 
-
     Framebuffer framebuffer{ };
     framebuffer.Bind();
 
@@ -89,8 +88,7 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, 0);
     renderbuffer.Unbind();
 
-    //while (glfw.WindowOpen()) { 
-    while(!glfwWindowShouldClose(window.Get())) {
+    while(window.IsOpen()) {
         TimeScope frameTime{ &App::timingData.frameTime };
 
         //glfw.Poll(); 

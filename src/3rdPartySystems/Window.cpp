@@ -19,11 +19,13 @@ namespace Rutile {
 		glfwMakeContextCurrent(m_Window);
 	}
 
-	void Window::Cleanup() {
-
-	}
+	void Window::Cleanup() { }
 
 	GLFWwindow* Window::Get() {
 		return m_Window;
+	}
+
+	bool Window::IsOpen() {
+		return !glfwWindowShouldClose(m_Window);
 	}
 }

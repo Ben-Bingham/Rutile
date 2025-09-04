@@ -15,6 +15,8 @@ namespace Rutile {
 
 		GLFWwindow* Get();
 
+		bool IsOpen();
+
 		glm::ivec2 size{ };
 
 	private:
