@@ -64,60 +64,49 @@ std::unique_ptr<Renderer> CreateRenderer(RendererType type) {
     return renderer;
 }
 
-void ShutdownRenderer(std::unique_ptr<Renderer>& renderer) {
-    App::imGui.Cleanup();
-
-    App::glfw.DetachFromWindow(App::window);
-
-    renderer->Cleanup(App::window);
-    renderer.reset();
-}
-
 int main() {
-    App::glfw.Init();
+    GLFW glfw;
+    glfw.Init();
 
-    App::renderer = CreateRenderer(App::currentRendererType);
+    GLEW glew;
+    glew.Init();
 
-    // Main loop
-    while (!glfwWindowShouldClose(App::window)) {
+    Window window;
+    window.Init();
+
+    ImGui imgui;
+    imgui.init();
+
+    Renderer renderer = OpenGlRenderer{ };
+    renderer->Init();
+
+    Scene scene{ DEFAULT_SCENE };
+
+    renderer->SetScene(DEFAULT_SCENE);
+
+    while (glfw.WindowOpen()) {
         TimeScope frameTime{ &App::timingData.frameTime };
 
-        glfwPollEvents();
-        App::eventManager.Distribute();
+        glfw.Poll(); // glfwPollEvents();
 
-        MoveCamera();
+        MoveCamera(); // TODO
 
-        App::imGui.StartNewFrame();
+        imGui.StartNewFrame();
 
         MainGuiWindow();
 
-        App::imGui.FinishFrame();
+        renderer->ProvideGui(); // TODO
 
-        if (App::restartRenderer || App::currentRendererType != App::lastRendererType) {
-            ShutdownRenderer(App::renderer);
+        imGui.FinishFrame();
 
-            App::renderer = CreateRenderer(App::currentRendererType);
+        renderer->Render();
 
-            App::restartRenderer = false;
-            App::lastRendererType = App::currentRendererType;
-
-            continue;
-        }
-
-        { // Rendering
-            TimeScope renderTime{ &App::timingData.renderTime };
-
-            App::renderer->Render();
-
-            glfwSwapBuffers(App::window);
-        }
+        glfwSwapBuffers(App::window);
     }
 
-    App::imGui.Cleanup();
-
-    App::glfw.DetachFromWindow(App::window);
-
-    App::renderer->Cleanup(App::window);
-
-    App::glfw.Cleanup();
+    renderer->Cleanup();
+    imGui.Cleanup();
+    window.Cleanup();
+    glew.Cleanup();
+    glfw.Cleanup();
 }
