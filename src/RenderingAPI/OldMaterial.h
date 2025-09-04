@@ -10,7 +10,7 @@ namespace Rutile {
         RAY_TRACING
     };
 
-    struct Material {
+    struct OldMaterial {
         std::string name;
 
         struct Solid {

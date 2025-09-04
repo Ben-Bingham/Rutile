@@ -20,38 +20,32 @@ namespace Rutile {
         return m_Scene;
     }
 
-    void SceneFactory::Add(GeometryIndex geometry, TransformIndex transform, MaterialIndex material, const std::string& name) {
+    void SceneFactory::Add(Mesh mesh, glm::mat4 transform, std::shared_ptr<Material> material) {
         Object obj;
 
-        obj.name = name;
-        obj.geometry = geometry;
+        obj.mesh = mesh;
         obj.transform = transform;
         obj.material = material;
 
-        if (name.empty()) {
-            ++m_ObjectNamingIndex;
-            obj.name = "Object #" + std::to_string(m_ObjectNamingIndex);
-        }
-
         m_Scene.objects.push_back(obj);
     }
+    
+    //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
+    //    const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
+    //    const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
+    //    const MaterialIndex materialIndex = m_Scene.materialBank.Add(material);
 
-    void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
-        const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
-        const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
-        const MaterialIndex materialIndex = m_Scene.materialBank.Add(material);
+    //    Add(geoIndex, transformIndex, materialIndex, name);
+    //}
 
-        Add(geoIndex, transformIndex, materialIndex, name);
-    }
+    //void SceneFactory::Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name) {
+    //    Add(geometry, m_Scene.transformBank.Add(transform), m_Scene.materialBank.Add(material), name);
+    //}
 
-    void SceneFactory::Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name) {
-        Add(geometry, m_Scene.transformBank.Add(transform), m_Scene.materialBank.Add(material), name);
-    }
-
-    void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, const Material& material, const std::string& name) {
-        Add(GeometryFactory::Construct(primitive), transform, material, name);
-    }
-
+    //void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, const Material& material, const std::string& name) {
+    //    Add(GeometryFactory::Construct(primitive), transform, material, name);
+    //}
+    /*
     void SceneFactory::Add(const Geometry& geometry, const Transform& transform, MaterialFactory::Color color, const std::string& name) {
         Add(geometry, transform, MaterialFactory::Construct(color), name);
     }
@@ -182,4 +176,5 @@ namespace Rutile {
             LoadAssimpNode(node->mChildren[i], scene, transform, materialIndex);
         }
     }
+    */
 }

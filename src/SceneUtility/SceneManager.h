@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderingAPI/Scene.h"
+#include "Scene/Scene.h"
 
 namespace Rutile {
     enum class SceneType {
@@ -28,21 +28,21 @@ namespace Rutile {
 
     private:
         static Scene GetTriangleScene();
-        static Scene GetOriginalScene();
-        static Scene GetShadowMapTestingScene();
-        static Scene GetOmnidirectionalShadowMapTestingScene();
-        static Scene GetDoublePointLightTestScene();
-        static Scene GetAllSpheresScene();
-        static Scene GetSpheresOnSpheresScene();
-        static Scene GetHollowGlassSphereScene();
-        static Scene GetRayTracingInOneWeekendScene();
-        static Scene GetCornellBoxScene();
-        static Scene GetBackpackScene();
-        static Scene GetCornellBoxVersion2();
-        static Scene GetDragon8K();
-        static Scene GetDragon80K();
-        static Scene GetDragon800K();
-        static Scene GetSportsCarFront();
-        static Scene GetMinecraftWorld();
+        //static Scene GetOriginalScene();
+        //static Scene GetShadowMapTestingScene();
+        //static Scene GetOmnidirectionalShadowMapTestingScene();
+        //static Scene GetDoublePointLightTestScene();
+        //static Scene GetAllSpheresScene();
+        //static Scene GetSpheresOnSpheresScene();
+        //static Scene GetHollowGlassSphereScene();
+        //static Scene GetRayTracingInOneWeekendScene();
+        //static Scene GetCornellBoxScene();
+        //static Scene GetBackpackScene();
+        //static Scene GetCornellBoxVersion2();
+        //static Scene GetDragon8K();
+        //static Scene GetDragon80K();
+        //static Scene GetDragon800K();
+        //static Scene GetSportsCarFront();
+        //static Scene GetMinecraftWorld();
     };
 }

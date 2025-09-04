@@ -13,6 +13,8 @@
 #include "Utility/Random.h"
 #include "Utility/RayTracing/AABBFactory.h"
 
+#include "Scene/Material.h"
+
 namespace Rutile {
     Scene SceneManager::GetScene(SceneType scene) {
         switch (scene) {
@@ -23,68 +25,87 @@ namespace Rutile {
             case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
             }
-            case SceneType::ORIGINAL_SCENE: {
-                return GetOriginalScene();
-            }
-            case SceneType::SHADOW_MAP_TESTING_SCENE: {
-                return GetShadowMapTestingScene();
-            }
-            case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
-                return GetOmnidirectionalShadowMapTestingScene();
-            }
-            case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
-                return GetDoublePointLightTestScene();
-            }
-            case SceneType::ALL_SPHERES: {
-                return GetAllSpheresScene();
-            }
-            case SceneType::SPHERES_ON_SPHERES: {
-                return GetSpheresOnSpheresScene();
-            }
-            case SceneType::HOLLOW_GLASS_SPHERE: {
-                return GetHollowGlassSphereScene();
-            }
-            case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
-                return GetRayTracingInOneWeekendScene();
-            }
-            case SceneType::CORNELL_BOX: {
-                return GetCornellBoxScene();
-            }
-            case SceneType::BACKPACK: {
-                return GetBackpackScene();
-            }
-            case SceneType::CORNELL_BOX_VERSION_2: {
-                return GetCornellBoxVersion2();
-            }
-            case SceneType::DRAGON_8K: {
-                return GetDragon8K();
-            }
-            case SceneType::DRAGON_80K: {
-                return GetDragon80K();
-            }
-            case SceneType::DRAGON_800K: {
-                return GetDragon800K();
-            }
-            case SceneType::SPORTS_CAR_FRONT: {
-                return GetSportsCarFront();
-            }
-            case SceneType::MINECRAFT_WORLD: {
-                return GetMinecraftWorld();
-            }
+            //case SceneType::ORIGINAL_SCENE: {
+            //    return GetOriginalScene();
+            //}
+            //case SceneType::SHADOW_MAP_TESTING_SCENE: {
+            //    return GetShadowMapTestingScene();
+            //}
+            //case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
+            //    return GetOmnidirectionalShadowMapTestingScene();
+            //}
+            //case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
+            //    return GetDoublePointLightTestScene();
+            //}
+            //case SceneType::ALL_SPHERES: {
+            //    return GetAllSpheresScene();
+            //}
+            //case SceneType::SPHERES_ON_SPHERES: {
+            //    return GetSpheresOnSpheresScene();
+            //}
+            //case SceneType::HOLLOW_GLASS_SPHERE: {
+            //    return GetHollowGlassSphereScene();
+            //}
+            //case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
+            //    return GetRayTracingInOneWeekendScene();
+            //}
+            //case SceneType::CORNELL_BOX: {
+            //    return GetCornellBoxScene();
+            //}
+            //case SceneType::BACKPACK: {
+            //    return GetBackpackScene();
+            //}
+            //case SceneType::CORNELL_BOX_VERSION_2: {
+            //    return GetCornellBoxVersion2();
+            //}
+            //case SceneType::DRAGON_8K: {
+            //    return GetDragon8K();
+            //}
+            //case SceneType::DRAGON_80K: {
+            //    return GetDragon80K();
+            //}
+            //case SceneType::DRAGON_800K: {
+            //    return GetDragon800K();
+            //}
+            //case SceneType::SPORTS_CAR_FRONT: {
+            //    return GetSportsCarFront();
+            //}
+            //case SceneType::MINECRAFT_WORLD: {
+            //    return GetMinecraftWorld();
+            //}
         }
     }
 
     Scene SceneManager::GetTriangleScene() {
         SceneFactory sceneFactory{ };
 
-        sceneFactory.Add(GeometryFactory::Primitive::TRIANGLE, Transform{ }, MaterialFactory::Color::RED);
+        std::shared_ptr<Material> redMat{ };
+        redMat->diffuse = glm::vec3{ 1.0f, 0.0f, 0.0f };
+        redMat->ambient = glm::vec3{ 0.8f, 0.0f, 0.0f };
+        redMat->specular = glm::vec3{ 0.1f, 0.0f, 0.0f };
 
-        DirectionalLight dirLight{ };
-        sceneFactory.Add(dirLight);
+        Mesh mesh{ };
+
+        mesh.vertices = {
+            //      Position                         Normal                         Uv
+            Vertex{ glm::vec3{ -0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{  0.0f,  0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.5f } },
+            Vertex{ glm::vec3{  0.5f, -0.5f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+        };
+
+        mesh.indices = {
+            2, 1, 0
+        };
+
+        sceneFactory.Add(mesh, glm::mat4{ 1.0 }, redMat);
+
+        //DirectionalLight dirLight{ }; // TODO
+        //sceneFactory.Add(dirLight);
 
         return sceneFactory.GetScene();
     }
 
+    /*
     Scene SceneManager::GetOriginalScene() {
         SceneFactory sceneFactory{ };
 
@@ -896,4 +917,5 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
+    */
 }
