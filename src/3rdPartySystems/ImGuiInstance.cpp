@@ -6,7 +6,7 @@
 #include "implot.h"
 
 namespace Rutile {
-    void ImGuiInstance::Init(GLFWwindow* window) {
+    void ImGuiInstance::Init(Window& window) {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImPlot::CreateContext();
@@ -16,7 +16,7 @@ namespace Rutile {
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         io.FontGlobalScale = 2.0f;
 
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplGlfw_InitForOpenGL(window.Get(), true);
         ImGui_ImplOpenGL3_Init();
     }
 

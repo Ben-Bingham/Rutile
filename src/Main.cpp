@@ -31,6 +31,7 @@
 #include "3rdPartySystems/ImGuiInstance.h"
 
 #include "imgui.h"
+#include "3rdPartySystems/Window.h"
 
 using namespace Rutile;
 
@@ -38,17 +39,8 @@ int main() {
     GLFW glfw;
     glfw.Init();
 
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
-
-    if (!window) {
-        std::cout << "ERROR: Failed to create window." << std::endl;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    //Window window;
-    //window.Init();
+    Window window{ glm::ivec2{ 1600, 900 } };
+    window.Init();
 
     GLEW glew;
     glew.Init();
@@ -98,7 +90,7 @@ int main() {
     renderbuffer.Unbind();
 
     //while (glfw.WindowOpen()) { 
-    while(!glfwWindowShouldClose(window)) {
+    while(!glfwWindowShouldClose(window.Get())) {
         TimeScope frameTime{ &App::timingData.frameTime };
 
         //glfw.Poll(); 
@@ -124,7 +116,7 @@ int main() {
 
         imGui.FinishFrame();
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(window.Get());
     }
 
     renderer->Cleanup();
