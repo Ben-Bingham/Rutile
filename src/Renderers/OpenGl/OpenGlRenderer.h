@@ -45,7 +45,7 @@ namespace Rutile {
         std::unique_ptr<Renderbuffer> renderbuffer{ };
         glm::ivec2 fbSize{ 800, 600 };
 
-        Scene scene{ };
+        Scene m_Scene{ };
 
 
         std::shared_ptr<Texture2D> targetTexture{ };

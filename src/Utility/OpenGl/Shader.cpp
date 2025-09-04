@@ -121,7 +121,8 @@ namespace Rutile {
     }
 
     void Shader::SetVec3(const std::string& name, const glm::vec3& value) {
-        glUniform3fv(glGetUniformLocation(m_ShaderHandle, name.c_str()), 1, glm::value_ptr(value));
+        auto a = glGetUniformLocation(m_ShaderHandle, name.c_str());
+        glUniform3fv(a, 1, glm::value_ptr(value));
     }
 
     void Shader::SetVec4(const std::string& name, const glm::vec4& value) {
