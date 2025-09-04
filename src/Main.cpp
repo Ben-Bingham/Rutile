@@ -78,7 +78,7 @@ int main() {
     }
 
     framebuffer.Unbind();
-    glBindTexture(GL_TEXTURE_2D, 0);
+    targetTexture.Unbind();
     renderbuffer.Unbind();
 
     while(window.IsOpen()) {

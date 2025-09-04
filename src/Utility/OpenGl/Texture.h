@@ -172,6 +172,10 @@ namespace Rutile {
             glBindTexture(TEXTURE_TYPE, m_TextureHandle);
         }
 
+        void Unbind() {
+            glBindTexture(TEXTURE_TYPE, 0);
+        }
+
         unsigned int Get() {
             return m_TextureHandle;
         }
