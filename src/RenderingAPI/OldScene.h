@@ -9,7 +9,7 @@ namespace Rutile {
     using ObjectIndex = size_t;
     using LightIndex = size_t;
 
-    struct Scene {
+    struct OldScene {
         friend class SceneFactory;
 
         std::vector<Object> objects;
