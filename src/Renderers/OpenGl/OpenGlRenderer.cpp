@@ -49,35 +49,35 @@ namespace Rutile {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 
-        framebuffer = std::make_unique<Framebuffer>();
+        //framebuffer = std::make_unique<Framebuffer>();
 
-        framebuffer->Bind();
+        //framebuffer->Bind();
 
-        targetTexture = std::make_shared<Texture2D>(fbSize, TextureParameters{
-            TextureFormat::RGB,
-            TextureStorageType::UNSIGNED_BYTE,
-            TextureWrapMode::REPEAT,
-            TextureFilteringMode::LINEAR
-        });
+        //targetTexture = std::make_shared<Texture2D>(fbSize, TextureParameters{
+        //    TextureFormat::RGB,
+        //    TextureStorageType::UNSIGNED_BYTE,
+        //    TextureWrapMode::REPEAT,
+        //    TextureFilteringMode::LINEAR
+        //});
 
-        targetTexture->Bind();
+        //targetTexture->Bind();
 
-        Texture2D& tex = *targetTexture.get();
+        //Texture2D& tex = *targetTexture.get();
 
-        framebuffer->AddTexture(tex, Framebuffer::TextureUses::COLOR_0);
+        //framebuffer->AddTexture(tex, Framebuffer::TextureUses::COLOR_0);
 
-        renderbuffer = std::make_unique<Renderbuffer>(fbSize);
+        //renderbuffer = std::make_unique<Renderbuffer>(fbSize);
 
-        framebuffer->AddRenderbuffer(*renderbuffer.get(), Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+        //framebuffer->AddRenderbuffer(*renderbuffer.get(), Framebuffer::RenderbufferUses::DEPTH_STENCIL);
 
-        auto result = framebuffer->Check();
-        if (!result) {
-            std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
-        }
-        
-        framebuffer->Unbind();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        renderbuffer->Unbind();
+        //auto result = framebuffer->Check();
+        //if (!result) {
+        //    std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
+        //}
+        //
+        //framebuffer->Unbind();
+        //glBindTexture(GL_TEXTURE_2D, 0);
+        //renderbuffer->Unbind();
 
 
         // Target framebuffer
@@ -190,7 +190,7 @@ namespace Rutile {
         glEnable(GL_CULL_FACE);
     }
 
-    std::shared_ptr<Texture2D> OpenGlRenderer::Render() {
+    void OpenGlRenderer::Render(Framebuffer& framebuffer) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
         //}
@@ -250,7 +250,11 @@ namespace Rutile {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
         //}
 
+        framebuffer.Bind();
+
         RenderScene();
+
+        framebuffer.Unbind();
 
         //if (App::settings.visualizeCascades) {
         //    //VisualizeShadowCascades();
@@ -262,7 +266,7 @@ namespace Rutile {
 
 
 
-        return targetTexture;
+        //return targetTexture;
     }
 
     void OpenGlRenderer::Cleanup() {
@@ -599,7 +603,7 @@ namespace Rutile {
     }
 
     void OpenGlRenderer::RenderScene() {
-        framebuffer->Bind();
+        //framebuffer->Bind();
         glViewport(0, 0, 800, 600);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -729,7 +733,7 @@ namespace Rutile {
             glDrawElements(GL_TRIANGLES, (int)3, GL_UNSIGNED_INT, nullptr); // TODO 3
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {

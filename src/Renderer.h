@@ -4,6 +4,7 @@
 
 #include "Scene/Scene.h"
 #include "Utility/OpenGl/Texture.h"
+#include "Utility/OpenGl/Framebuffer.h"
 
 namespace Rutile {
 	class Renderer {
@@ -18,8 +19,8 @@ namespace Rutile {
         // Called when renderer is first needed
         virtual void Init() { }
 
-        // Called every frame, the returned texture should contain the output image
-        virtual std::shared_ptr<Texture2D> Render() = 0;
+        // Called every frame, the renderer should render to the given framebuffer
+        virtual void Render(Framebuffer& framebuffer) = 0; // TODO maybe the frambebuffer is just bound and unbound before and after this call?
 
         // Called when renderer is no longer needed
         virtual void Cleanup() { }

@@ -117,7 +117,40 @@ int main() {
 
     renderer->SetScene(scene);
 
-    std::shared_ptr<Texture2D> rendererOutput{ };
+    //std::shared_ptr<Texture2D> rendererOutput{ };
+
+    glm::ivec2 fbSize{ 800, 600 };
+
+
+    Framebuffer framebuffer{ };
+    framebuffer.Bind();
+
+    Texture2D targetTexture{ fbSize, TextureParameters{
+        TextureFormat::RGB,
+        TextureStorageType::UNSIGNED_BYTE,
+        TextureWrapMode::REPEAT,
+        TextureFilteringMode::LINEAR
+    } };
+
+    targetTexture.Bind();
+
+    framebuffer.AddTexture(targetTexture, Framebuffer::TextureUses::COLOR_0);
+
+    Renderbuffer renderbuffer{ fbSize };
+
+    framebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+
+    auto result = framebuffer.Check();
+    if (!result) {
+        std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
+    }
+
+    framebuffer.Unbind();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    renderbuffer.Unbind();
+
+
+
 
     //while (glfw.WindowOpen()) { 
     while(!glfwWindowShouldClose(window)) {
@@ -128,6 +161,9 @@ int main() {
 
         //MoveCamera(); // TODO
 
+        // TODO backup opengl state and then restore after
+        renderer->Render(framebuffer);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         imGui.StartNewFrame();
@@ -135,21 +171,19 @@ int main() {
         //MainGuiWindow();
         ImGui::Begin("Test");
 
-        if (rendererOutput) {
-            ImGui::Image((ImTextureID)rendererOutput->Get(), ImVec2{ 800.0f, 600.0f });
-        }
-        else {
-            std::cout << "RENDERER OUTPUT IS NULLPTR" << std::endl;
-        }
+        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{800.0f, 600.0f});
+        //if (rendererOutput) {
+        //    ImGui::Image((ImTextureID)rendererOutput->Get(), ImVec2{ 800.0f, 600.0f });
+        //}
+        //else {
+        //    std::cout << "RENDERER OUTPUT IS NULLPTR" << std::endl;
+        //}
 
         ImGui::End();
 
         renderer->ProvideGUI(); // TODO
 
         imGui.FinishFrame();
-
-        // TODO backup opengl state and then restore after
-        rendererOutput = renderer->Render();
 
         glfwSwapBuffers(window);
     }

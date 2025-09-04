@@ -24,7 +24,7 @@ namespace Rutile {
 
         void Init() override;
 
-        std::shared_ptr<Texture2D> Render() override;
+        void Render(Framebuffer& framebuffer) override;
 
         void Cleanup() override;
 
@@ -41,14 +41,14 @@ namespace Rutile {
         std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
 
 	public:
-        std::unique_ptr<Framebuffer> framebuffer{ };
-        std::unique_ptr<Renderbuffer> renderbuffer{ };
-        glm::ivec2 fbSize{ 800, 600 };
+        //std::unique_ptr<Framebuffer> framebuffer{ };
+        //std::unique_ptr<Renderbuffer> renderbuffer{ };
+        //glm::ivec2 fbSize{ 800, 600 };
 
         Scene m_Scene{ };
 
 
-        std::shared_ptr<Texture2D> targetTexture{ };
+        //std::shared_ptr<Texture2D> targetTexture{ };
         // Events
         //void ProjectionMatrixUpdate() override;
 
