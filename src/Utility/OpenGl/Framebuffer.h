@@ -32,7 +32,7 @@ namespace Rutile {
         void AddTexture(Texture2D& texture, TextureUses use);
         void AddRenderbuffer(Renderbuffer& renderbuffer, RenderbufferUses use);
 
-        bool Check();
+        bool Check(const std::string& framebufferName);
 
     private:
         unsigned int m_FramebufferHandle;

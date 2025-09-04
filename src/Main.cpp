@@ -47,10 +47,7 @@ int main() {
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
 
     Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
-
     renderer->SetScene(scene);
-
-    //std::shared_ptr<Texture2D> rendererOutput{ };
 
     glm::ivec2 fbSize{ 800, 600 };
 
@@ -72,10 +69,7 @@ int main() {
 
     framebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
 
-    auto result = framebuffer.Check();
-    if (!result) {
-        std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
-    }
+    framebuffer.Check("Renderer Buffer");
 
     framebuffer.Unbind();
     targetTexture.Unbind();

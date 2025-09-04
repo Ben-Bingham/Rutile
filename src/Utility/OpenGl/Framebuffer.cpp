@@ -30,9 +30,15 @@ namespace Rutile {
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, (int)use, GL_RENDERBUFFER, renderbuffer.Get());
     }
 
-    bool Framebuffer::Check() {
+    bool Framebuffer::Check(const std::string& framebufferName) {
         Bind();
 
-        return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+        unsigned int result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+        if (!result == GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR, Framebuffer: " << framebufferName << " is not complete, result is: " << result << std::endl;
+        }
+
+        return result;
     }
 }
