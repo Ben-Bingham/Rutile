@@ -16,7 +16,7 @@
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    void OpenGlRenderer::Init() {
+    OpenGlRenderer::OpenGlRenderer() {
         // Shaders
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
@@ -190,6 +190,40 @@ namespace Rutile {
         glEnable(GL_CULL_FACE);
     }
 
+    OpenGlRenderer::~OpenGlRenderer() {
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+
+        // Cascading Shadow maps
+        glDeleteTextures(1, &m_CascadingShadowMapTexture);
+        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
+
+        // Cubemap Visualization
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
+
+        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
+
+        // Omnidirectional Shadow maps
+        for (const auto& cubeMap : m_PointLightCubeMaps) {
+            glDeleteTextures(1, &cubeMap);
+        }
+
+        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
+
+        // Shaders
+        m_SolidShader.reset();
+        m_PhongShader.reset();
+
+        m_OmnidirectionalShadowMappingShader.reset();
+        m_CubeMapVisualizationShader.reset();
+
+        m_CascadingShadowMapShader.reset();
+        m_CascadingShadowMapVisualizationShader.reset();
+    }
+
     void OpenGlRenderer::Render(Framebuffer& framebuffer) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
@@ -267,40 +301,6 @@ namespace Rutile {
 
 
         //return targetTexture;
-    }
-
-    void OpenGlRenderer::Cleanup() {
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-
-        // Cascading Shadow maps
-        glDeleteTextures(1, &m_CascadingShadowMapTexture);
-        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
-
-        // Cubemap Visualization
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
-
-        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
-
-        // Omnidirectional Shadow maps
-        for (const auto& cubeMap : m_PointLightCubeMaps) {
-            glDeleteTextures(1, &cubeMap);
-        }
-
-        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
-
-        // Shaders
-        m_SolidShader.reset();
-        m_PhongShader.reset();
-
-        m_OmnidirectionalShadowMappingShader.reset();
-        m_CubeMapVisualizationShader.reset();
-
-        m_CascadingShadowMapShader.reset();
-        m_CascadingShadowMapVisualizationShader.reset();
     }
 
     void OpenGlRenderer::SetScene(Scene& scene) {

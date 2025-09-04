@@ -10,20 +10,14 @@ namespace Rutile {
 	class Renderer {
 	public:
         Renderer() = default;
-        Renderer(const Renderer& other) = default;
+        Renderer(const Renderer& other) = delete;
         Renderer(Renderer&& other) noexcept = default;
-        Renderer& operator=(const Renderer& other) = default;
+        Renderer& operator=(const Renderer& other) = delete;
         Renderer& operator=(Renderer&& other) noexcept = default;
         virtual ~Renderer() = default;
 
-        // Called when renderer is first needed
-        virtual void Init() { }
-
         // Called every frame, the renderer should render to the given framebuffer
         virtual void Render(Framebuffer& framebuffer) = 0; // TODO maybe the frambebuffer is just bound and unbound before and after this call?
-
-        // Called when renderer is no longer needed
-        virtual void Cleanup() { }
 
         // Called every frame, facilitates an ImGui gui
         virtual void ProvideGUI() { }
@@ -31,7 +25,7 @@ namespace Rutile {
         // Replaces the entire old scene with a new one
         virtual void SetScene(Scene& scene) { }
 
-        // Optional callbacks inform the renderer of scene, camera, and windows changes
+        // Optional callbacks inform the renderer of scene, camera, and window changes
         virtual void UpdateObjectTransform() { }
         virtual void UpdateObjectMaterial() { }
 

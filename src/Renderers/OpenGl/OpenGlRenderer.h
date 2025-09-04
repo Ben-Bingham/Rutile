@@ -15,18 +15,14 @@
 namespace Rutile {
 	class OpenGlRenderer : public Renderer {
 	public:
-        OpenGlRenderer() = default;
+        OpenGlRenderer();
         OpenGlRenderer(const OpenGlRenderer& other) = default;
         OpenGlRenderer(OpenGlRenderer&& other) noexcept = default;
         OpenGlRenderer& operator=(const OpenGlRenderer& other) = default;
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
-        ~OpenGlRenderer() override = default;
-
-        void Init() override;
+        ~OpenGlRenderer() override;
 
         void Render(Framebuffer& framebuffer) override;
-
-        void Cleanup() override;
 
         void SetScene(Scene& scene) override;
 

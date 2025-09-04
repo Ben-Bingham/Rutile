@@ -38,16 +38,13 @@ using namespace Rutile;
 int main() {
     GLFW glfw{ };
     Window window{ glm::ivec2{ 1600, 900 } };
-
-    glfw.InitializeOpenGLDebug();
-
     GLEW glew;
 
+    glfw.InitializeOpenGLDebug();
 
     ImGuiInstance imGui{ window };
 
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
-    renderer->Init();
 
     Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
 
@@ -112,6 +109,4 @@ int main() {
 
         glfwSwapBuffers(window.Get());
     }
-
-    renderer->Cleanup();
 }
