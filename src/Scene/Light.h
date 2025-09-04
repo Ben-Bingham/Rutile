@@ -19,15 +19,15 @@ namespace Rutile {
 		glm::vec3 specular;
 	};
 
-	class DirectionalLight : public Light {
-	public:
-		DirectionalLight(glm::vec3 position, glm::vec3 direction, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular);
-		DirectionalLight(const DirectionalLight& other) = default;
-		DirectionalLight(DirectionalLight&& other) noexcept = default;
-		DirectionalLight& operator=(const DirectionalLight& other) = default;
-		DirectionalLight& operator=(DirectionalLight&& other) noexcept = default;
-		virtual ~DirectionalLight() override = default;
+	//class DirectionalLight : public Light {
+	//public:
+	//	DirectionalLight(glm::vec3 position, glm::vec3 direction, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular);
+	//	DirectionalLight(const DirectionalLight& other) = default;
+	//	DirectionalLight(DirectionalLight&& other) noexcept = default;
+	//	DirectionalLight& operator=(const DirectionalLight& other) = default;
+	//	DirectionalLight& operator=(DirectionalLight&& other) noexcept = default;
+	//	virtual ~DirectionalLight() override = default;
 
-		glm::vec3 direction;
-	};
+	//	glm::vec3 direction;
+	//};
 }

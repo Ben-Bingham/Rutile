@@ -9,7 +9,7 @@ namespace Rutile {
         Settings settings{ };
 
         settings.shadowMapBiasMode = ShadowMapBiasMode::STATIC;
-        settings.materialType = MaterialType::PHONG;
+        //settings.materialType = MaterialType::PHONG;
         //settings.shadowMapBias = 0.0015f;
         //settings.culledFaceDuringShadowMapping = GeometricFace::BACK;
         //settings.shadowMapPcfMode = DirectionalShadowMapPCFMode::BASIC;

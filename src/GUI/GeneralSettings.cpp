@@ -4,10 +4,10 @@
 
 #include "Settings/App.h"
 
-#include "Utility/events/Events.h"
 
 namespace Rutile {
     void GeneralSettings() {
+        /*
         // Select renderer
         RadioButtons(
             "Select Renderer", 
@@ -92,5 +92,6 @@ namespace Rutile {
                 App::renderer->LoadScene();
             }
         );
+        */
     }
 }

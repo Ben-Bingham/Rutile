@@ -8,10 +8,9 @@
 
 #include "Settings/App.h"
 
-#include "Utility/events/Events.h"
-
 namespace Rutile {
     void SceneObjects() {
+        /*
         if (ImGui::TreeNode("Objects")) {
             int i = 0;
             for (auto object : App::scene.objects) {
@@ -125,5 +124,6 @@ namespace Rutile {
                 ImGui::TreePop();
             }
         }
+        */
     }
 }

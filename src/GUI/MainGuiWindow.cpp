@@ -37,14 +37,14 @@ namespace Rutile {
             }
 
             if (ImGui::CollapsingHeader("Local Renderer Settings")) {
-                App::renderer->ProvideLocalRendererSettings();
+                //App::renderer->ProvideLocalRendererSettings();
             }
 
-            if (App::settings.materialType != MaterialType::SOLID && App::currentRendererType == RendererType::OPENGL) {
-                if (ImGui::CollapsingHeader("Shadows")) {
-                    ShadowSettings();
-                }
-            }
+            //if (App::settings.materialType != MaterialType::SOLID && App::currentRendererType == RendererType::OPENGL) {
+            //    if (ImGui::CollapsingHeader("Shadows")) {
+            //        ShadowSettings();
+            //    }
+            //}
 
             if (ImGui::CollapsingHeader("Scene Objects")) {
                 SceneObjects();

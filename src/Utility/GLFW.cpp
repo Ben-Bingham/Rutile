@@ -4,9 +4,7 @@
 
 #include <iostream>
 
-#include "events/Events.h"
-
-#include "renderers/Renderer.h"
+//#include "renderers/Renderer.h"
 
 void glfwErrorCallback(int error, const char* description) {
     std::cout << "ERROR: GLFW has thrown an error: " << std::endl;
@@ -18,9 +16,9 @@ namespace Rutile {
         App::screenWidth = w;
         App::screenHeight = h;
 
-        if (App::renderer) {
-            App::eventManager.Notify(new WindowResize{ });
-        }
+        //if (App::renderer) {
+            //App::eventManager.Notify(new WindowResize{ });
+        //}
     }
 
     void mouseMoveCallback(GLFWwindow* window, double x, double y) {

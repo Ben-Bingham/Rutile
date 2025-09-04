@@ -6,12 +6,12 @@ namespace Rutile {
 
 	}
 
-	TexturedMaterial::TexturedMaterial(Image diffuse, Image ambient, Image specular) 
-		: Material(GetAverageImageColour(diffuse), GetAverageImageColour(ambient), GetAverageImageColour(specular)) {
+	//TexturedMaterial::TexturedMaterial(Image diffuse, Image ambient, Image specular) 
+	//	: Material(GetAverageImageColour(diffuse), GetAverageImageColour(ambient), GetAverageImageColour(specular)) {
 
-	}
+	//}
 
-	glm::vec3 TexturedMaterial::GetAverageImageColour(Image image) {
+	//glm::vec3 TexturedMaterial::GetAverageImageColour(Image image) {
 
-	}
+	//}
 }

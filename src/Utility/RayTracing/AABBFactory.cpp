@@ -55,7 +55,7 @@ namespace Rutile {
 
         return AABB{ newMin, newMax };
     }
-
+    /*
     AABB AABBFactory::Construct(const Geometry& geometry, Transform transform) {
         if (geometry.type == Geometry::GeometryType::SPHERE) {
             const glm::vec3 sphereCenter = transform.position;
@@ -89,7 +89,7 @@ namespace Rutile {
 
         return mainBbox;
     }
-
+    */
     AABB AABBFactory::Construct(const Triangle& triangle) {
         glm::vec3 min{ std::numeric_limits<float>::max() };
         glm::vec3 max{ -std::numeric_limits<float>::max() };
@@ -119,6 +119,7 @@ namespace Rutile {
         return AABB{ min, max };
     }
 
+    /*
     AABB AABBFactory::Construct(const Object& object) {
         return Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
     }
@@ -134,7 +135,7 @@ namespace Rutile {
 
         return mainBbox;
     }
-
+    */
     AABB AABBFactory::Construct(const std::vector<Triangle>& triangles) {
         AABB mainBbox{ };
 

@@ -2,12 +2,13 @@
 #include "RendererType.h"
 #include "SettingsEnums.h"
 #include <chrono>
+#include <glm/glm.hpp>
 
-#include "RenderingAPI/Material.h"
+//#include "RenderingAPI/Material.h"
 
 namespace Rutile {
     struct Settings {
-        MaterialType materialType = MaterialType::SOLID;
+        //MaterialType materialType = MaterialType::SOLID;
 
         float fieldOfView = 60.0f;
         float nearPlane = 0.1f;

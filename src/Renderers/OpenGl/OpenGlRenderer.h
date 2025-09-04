@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "../Renderer.h"
+#include "Renderer.h"
 
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
@@ -19,18 +19,17 @@ namespace Rutile {
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override = default;
 
-        // Necessities
-        GLFWwindow* Init() override;
-        void Cleanup(GLFWwindow* window) override;
+        void Init() override;
 
-        void Render() override;
+        std::shared_ptr<Texture2D> Render() override;
 
-        void LoadScene() override;
+        void Cleanup() override;
 
-
-        void Notify(Event* event) override;
+        void SetScene(Scene& scene) override;
 
     private:
+        std::shared_ptr<Texture2D> target{ };
+
         void RenderOmnidirectionalShadowMaps();
 
         void RenderCascadingShadowMaps();
@@ -41,12 +40,12 @@ namespace Rutile {
 
 	public:
         // Events
-        void ProjectionMatrixUpdate() override;
+        //void ProjectionMatrixUpdate() override;
 
 
-        void ProvideLightVisualization(LightIndex lightIndex) override;
+        //void ProvideLightVisualization(size_t lightIndex) override; // TODO
 
-        void ProvideCSMVisualization() override;
+        //void ProvideCSMVisualization() override;
 
     private:
 
@@ -81,7 +80,7 @@ namespace Rutile {
         int m_CubeMapVisualizationWidth{ 1024 };
         int m_CubeMapVisualizationHeight{ 512 };
 
-        void VisualizeCubeMap(LightIndex lightIndex);
+        //void VisualizeCubeMap(LightIndex lightIndex);
 
         // Cascading Shadow maps
         unsigned int m_CascadingShadowMapFBO;
@@ -110,10 +109,10 @@ namespace Rutile {
         std::vector<float> m_CascadingFrustumPlanes;
         std::vector<glm::mat4> m_LightSpaceMatrices;
 
-        void VisualizeCascadeShadowMap(int layer);
+        //void VisualizeCascadeShadowMap(int layer);
 
-        void VisualizeShadowCascades();
-        void VisualizeCascadeLights();
+        //void VisualizeShadowCascades();
+        //void VisualizeCascadeLights();
 
         // Objects
         size_t m_ObjectCount;

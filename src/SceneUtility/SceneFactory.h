@@ -4,8 +4,6 @@
 #include <assimp/scene.h>
 
 #include "RenderingAPI/Light.h"
-#include "RenderingAPI/Material.h"
-#include "RenderingAPI/RenderingBanks.h"
 #include "RenderingAPI/Transform.h"
 
 #include "Utility/GeometryFactory.h"

@@ -19,20 +19,20 @@ namespace Rutile {
         glm::vec3 specular;
 	};
 
-    class TexturedMaterial : public Material {
-    public:
-        TexturedMaterial(Image diffuse, Image ambient, Image specular);
-        TexturedMaterial(const TexturedMaterial& other) = default;
-        TexturedMaterial(TexturedMaterial&& other) noexcept = default;
-        TexturedMaterial& operator=(const TexturedMaterial& other) = default;
-        TexturedMaterial& operator=(TexturedMaterial&& other) noexcept = default;
-        virtual ~TexturedMaterial() override = default;
+    //class TexturedMaterial : public Material {
+    //public:
+    //    TexturedMaterial(Image diffuse, Image ambient, Image specular);
+    //    TexturedMaterial(const TexturedMaterial& other) = default;
+    //    TexturedMaterial(TexturedMaterial&& other) noexcept = default;
+    //    TexturedMaterial& operator=(const TexturedMaterial& other) = default;
+    //    TexturedMaterial& operator=(TexturedMaterial&& other) noexcept = default;
+    //    virtual ~TexturedMaterial() override = default;
 
-        Image diffuse;
-        Image ambient;
-        Image specular;
+    //    Image diffuse;
+    //    Image ambient;
+    //    Image specular;
 
-    private:
-        glm::vec3 GetAverageImageColour(Image image);
-    };
+    //private:
+    //    glm::vec3 GetAverageImageColour(Image image);
+    //};
 }

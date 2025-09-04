@@ -3,8 +3,10 @@
 #include <gl/glew.h>
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+
+// TODO
+//#define STB_IMAGE_IMPLEMENTATION
+//#include <stb_image.h>
 
 #include "Settings/App.h"
 
@@ -13,16 +15,15 @@
 #include "Renderer.h"
 #include "Scene/Scene.h"
 
-#include "GUI/MainGUIWindow.h"
+//#include "GUI/MainGUIWindow.h"
 
-#include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
-#include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
-#include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
-#include "Renderers/Software-Phong/SoftwarePhong.h"
+//#include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
+//#include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
+//#include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
+//#include "Renderers/Software-Phong/SoftwarePhong.h"
 #include "renderers/OpenGl/OpenGlRenderer.h"
 
 #include "Utility/CameraMovement.h"
-#include "Utility/events/Events.h"
 #include "Utility/TimeScope.h"
 #include "Utility/OpenGl/GLDebug.h"
 
@@ -123,14 +124,15 @@ int main() {
 
         MoveCamera(); // TODO
 
-        imGui.StartNewFrame();
+        //imGui.StartNewFrame();
 
-        MainGuiWindow();
+        //MainGuiWindow();
 
         renderer->ProvideGUI(); // TODO
 
-        imGui.FinishFrame();
+        //imGui.FinishFrame();
 
+        // TODO backup opengl state and then restore after
         renderer->Render();
 
         glfwSwapBuffers(App::window);

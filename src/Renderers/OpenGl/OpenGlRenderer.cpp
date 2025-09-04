@@ -13,34 +13,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-#include "Utility/events/Events.h"
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    GLFWwindow* OpenGlRenderer::Init() {
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-        GLFWwindow* window = glfwCreateWindow(App::screenWidth, App::screenHeight, App::name.c_str(), nullptr, nullptr);
-        glfwShowWindow(window);
-
-        if (!window) {
-            std::cout << "ERROR: Failed to create window." << std::endl;
-        }
-    
-        glfwMakeContextCurrent(window);
-    
-        if (glewInit() != GLEW_OK) {
-            std::cout << "ERROR: Failed to initialize GLEW." << std::endl;
-        }
-
-        int flags;
-        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-            glEnable(GL_DEBUG_OUTPUT);
-            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-            glDebugMessageCallback(glDebugOutput, nullptr);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-        }
-
+    void OpenGlRenderer::Init() {
         // Shaders
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
@@ -159,55 +135,14 @@ namespace Rutile {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        return window;
+        target = std::make_unique<Texture2D>(glm::ivec2{ 100, 100 });
     }
 
-    void OpenGlRenderer::Notify(Event* event) {
-        if (EVENT_IS(event, WindowResize)) {
-            ProjectionMatrixUpdate();
-        }
-    }
-
-    void OpenGlRenderer::Cleanup(GLFWwindow* window) {
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-
-        // Cascading Shadow maps
-        glDeleteTextures(1, &m_CascadingShadowMapTexture);
-        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
-
-        // Cubemap Visualization
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
-
-        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
-
-        // Omnidirectional Shadow maps
-        for (const auto& cubeMap : m_PointLightCubeMaps) {
-            glDeleteTextures(1, &cubeMap);
-        }
-
-        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
-
-        // Shaders
-        m_SolidShader.reset();
-        m_PhongShader.reset();
-
-        m_OmnidirectionalShadowMappingShader.reset();
-        m_CubeMapVisualizationShader.reset();
-
-        m_CascadingShadowMapShader.reset();
-        m_CascadingShadowMapVisualizationShader.reset();
-
-        glfwDestroyWindow(window);
-    }
-
-    void OpenGlRenderer::Render() {
+    std::shared_ptr<Texture2D> OpenGlRenderer::Render() {
         if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
             glFrontFace(GL_CCW);
-        } else {
+        }
+        else {
             glFrontFace(GL_CW);
         }
 
@@ -258,24 +193,174 @@ namespace Rutile {
 
         RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
-        if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
-            RenderCascadingShadowMaps(); // TODO this should be called sparingly
-        }
+        //if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
+        //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
+        //}
 
         RenderScene();
 
         if (App::settings.visualizeCascades) {
-            VisualizeShadowCascades();
+            //VisualizeShadowCascades();
         }
 
         if (App::settings.visualizeCascadeLights) {
-            VisualizeCascadeLights();
+            //VisualizeCascadeLights();
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        return target;
+    }
+
+    void OpenGlRenderer::Cleanup() {
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+
+        // Cascading Shadow maps
+        glDeleteTextures(1, &m_CascadingShadowMapTexture);
+        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
+
+        // Cubemap Visualization
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
+
+        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
+
+        // Omnidirectional Shadow maps
+        for (const auto& cubeMap : m_PointLightCubeMaps) {
+            glDeleteTextures(1, &cubeMap);
+        }
+
+        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
+
+        // Shaders
+        m_SolidShader.reset();
+        m_PhongShader.reset();
+
+        m_OmnidirectionalShadowMappingShader.reset();
+        m_CubeMapVisualizationShader.reset();
+
+        m_CascadingShadowMapShader.reset();
+        m_CascadingShadowMapVisualizationShader.reset();
+    }
+
+    void OpenGlRenderer::SetScene(Scene& scene) {
+        /*
+        // Lights
+
+        // Cleanup old Point Lights
+        for (const auto& cubeMap : m_PointLightCubeMaps) {
+            glDeleteTextures(1, &cubeMap);
+        }
+
+        m_PointLightCubeMaps.clear();
+
+        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
+        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
+
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
+
+        m_CubeMapVisualizationTextures.clear();
+
+        // Create new Point Lights
+        LightIndex pointLightIndex = 0;
+        for (const auto& pointLight : App::scene.pointLights) {
+            // Cube map
+            unsigned int cubeMap;
+
+            glGenTextures(1, &cubeMap);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+            for (int i = 0; i < 6; ++i) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth,
+                    m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            }
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+            m_PointLightCubeMaps.push_back(cubeMap);
+
+            // Cube map Visualization
+            unsigned int cubeMapVisualizationTexture;
+
+            glGenTextures(1, &cubeMapVisualizationTexture);
+            glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            ++pointLightIndex;
+        }
+
+        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
+        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
+
+        // Geometry
+
+        // Clean up old Geometry
+        glDeleteBuffers(static_cast<GLsizei>(m_EBOs.size()), m_EBOs.data());
+        glDeleteBuffers(static_cast<GLsizei>(m_VBOs.size()), m_VBOs.data());
+        glDeleteVertexArrays(static_cast<GLsizei>(m_VAOs.size()), m_VAOs.data());
+
+        m_VAOs.clear();
+        m_VBOs.clear();
+        m_EBOs.clear();
+
+        const size_t geometryCount = App::scene.geometryBank.Size();
+
+        m_VAOs.resize(geometryCount);
+        m_VBOs.resize(geometryCount);
+        m_EBOs.resize(geometryCount);
+
+        glGenVertexArrays(static_cast<GLsizei>(geometryCount), m_VAOs.data());
+        glGenBuffers(static_cast<GLsizei>(geometryCount), m_VBOs.data());
+        glGenBuffers(static_cast<GLsizei>(geometryCount), m_EBOs.data());
+
+        for (size_t i = 0; i < geometryCount; ++i) {
+            const Geometry& geo = App::scene.geometryBank[i];
+
+            std::vector<Vertex> vertices = geo.vertices;
+            std::vector<Index> indices = geo.indices;
+
+            glBindVertexArray(m_VAOs[i]);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[i]);
+            glBufferData(GL_ARRAY_BUFFER, static_cast<int>(vertices.size()) * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBOs[i]);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int>(indices.size()) * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glEnableVertexAttribArray(1);
+
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+            glEnableVertexAttribArray(2);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
+        */
     }
 
     void OpenGlRenderer::RenderOmnidirectionalShadowMaps() {
+        /*
         if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
             glCullFace(GL_FRONT);
         } else {
@@ -330,9 +415,11 @@ namespace Rutile {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             ++pointLightIndex;
         }
+        */
     }
 
     void OpenGlRenderer::RenderCascadingShadowMaps() {
+        /*
         float distance = abs(App::settings.farPlane - App::settings.nearPlane);
 
         // There should be one more plane than cascades
@@ -452,9 +539,12 @@ namespace Rutile {
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        */
     }
 
     void OpenGlRenderer::RenderScene() {
+        /*
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, App::screenWidth, App::screenHeight);
 
@@ -698,13 +788,15 @@ namespace Rutile {
 
             */
 
-            glm::mat4 mvp = m_Projection * App::camera.View() * App::scene.transformBank[object.transform].matrix;
+        //    glm::mat4 mvp = m_Projection * App::camera.View() * App::scene.transformBank[object.transform].matrix;
 
-            shaderProgram->SetMat4("mvp", mvp);
+        //    shaderProgram->SetMat4("mvp", mvp);
 
-            glBindVertexArray(m_VAOs[object.geometry]);
-            glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
-        }
+        //    glBindVertexArray(m_VAOs[object.geometry]);
+        //    glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+        //}
+
+        //*/
     }
 
     std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
@@ -724,493 +816,382 @@ namespace Rutile {
         return frustumCorners;
     }
 
-    void OpenGlRenderer::ProjectionMatrixUpdate() {
-        m_Projection = glm::mat4{ 1.0f };
-        m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
-    }
+    //void OpenGlRenderer::ProjectionMatrixUpdate() {
+    //    m_Projection = glm::mat4{ 1.0f };
+    //    m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
+    //}
 
-    void OpenGlRenderer::LoadScene() {
-        // Lights
+    //void OpenGlRenderer::ProvideLightVisualization(size_t lightIndex) {
+    //    if (ImGui::TreeNode("Shadow Map##pointLight")) {
+    //        ImGui::Text("Texture");
+    //        ImGui::DragInt(("Shadow Map Width##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapWidth);
+    //        ImGui::DragInt(("Shadow Map Height##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapHeight);
 
-        // Cleanup old Point Lights
-        for (const auto& cubeMap : m_PointLightCubeMaps) {
-            glDeleteTextures(1, &cubeMap);
-        }
+    //        ImGui::Text("Depth map");
 
-        m_PointLightCubeMaps.clear();
+    //        float vertical = glm::degrees(m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
+    //        float horizontal = glm::degrees(m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
 
-        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
-        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
+    //        ImGui::DragFloat(("Vertical shift##pointLight" + std::to_string(lightIndex)).c_str(), &vertical, 1.0f, -360.0f, 360.0f);
+    //        ImGui::DragFloat(("Horizontal shift##pointLight" + std::to_string(lightIndex)).c_str(), &horizontal, 1.0f, -360.0f, 360.0f);
 
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
+    //        m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex] = glm::radians(vertical);
+    //        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex] = glm::radians(horizontal);
 
-        m_CubeMapVisualizationTextures.clear();
+    //        VisualizeCubeMap(lightIndex);
+    //        ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{ (float)m_CubeMapVisualizationWidth, (float)m_CubeMapVisualizationHeight });
 
-        // Create new Point Lights
-        LightIndex pointLightIndex = 0;
-        for (const auto& pointLight : App::scene.pointLights) {
-            // Cube map
-            unsigned int cubeMap;
+    //        ImGui::TreePop();
+    //    }
+    //}
 
-            glGenTextures(1, &cubeMap);
+    //void OpenGlRenderer::ProvideCSMVisualization() {
+    //    if (ImGui::TreeNode("Shadow Map##dirLight")) {
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-            for (int i = 0; i < 6; ++i) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth,
-                    m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            }
+    //        ImGui::DragFloat("Frustum Plane Minimum Multiplier", &m_ZMinMultiplier, 0.1f, 0.0f, 100.0f);
+    //        ImGui::DragFloat("Frustum Plane Maximum Multiplier", &m_ZMaxMultiplier, 0.1f, 0.0f, 100.0f);
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    //        ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
+    //        ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
 
-            m_PointLightCubeMaps.push_back(cubeMap);
+    //        if (ImGui::DragInt("Number of Layers##cascadeVisualization", &m_CascadeCount, 0.01f, 1, m_MaxCascadeCount)) {
+    //            glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+    //            glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    //        }
 
-            // Cube map Visualization
-            unsigned int cubeMapVisualizationTexture;
+    //        if (m_CascadeCount != 1) {
+    //            ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.01f, 0, m_CascadeCount - 1);
+    //        }
 
-            glGenTextures(1, &cubeMapVisualizationTexture);
-            glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //        VisualizeCascadeShadowMap(m_DisplayedCascadeLayer);
+    //        ImGui::Image((ImTextureID)m_ShadowCascadesVisualizationTexture, ImVec2{ (float)m_CascadeVisualizationWidth, (float)m_CascadeVisualizationHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 
-            m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
+    //        ImGui::TreePop();
+    //    }
+    //}
 
-            glBindTexture(GL_TEXTURE_2D, 0);
+    //void OpenGlRenderer::VisualizeCubeMap(LightIndex lightIndex) {
+    //    glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
-            ++pointLightIndex;
-        }
+    //    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTextures[lightIndex], 0);
 
-        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
-        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
+    //    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    //        std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+    //    }
 
-        // Geometry
+    //    std::vector<Vertex> vertices = {
+    //        //      Position                         Normal                         Uv
+    //        Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+    //        Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
+    //        Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
+    //        Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+    //    };
 
-        // Clean up old Geometry
-        glDeleteBuffers(     static_cast<GLsizei>(m_EBOs.size()), m_EBOs.data());
-        glDeleteBuffers(     static_cast<GLsizei>(m_VBOs.size()), m_VBOs.data());
-        glDeleteVertexArrays(static_cast<GLsizei>(m_VAOs.size()), m_VAOs.data());
+    //    std::vector<unsigned int> indices = {
+    //        2, 1, 0,
+    //        3, 2, 0
+    //    };
 
-        m_VAOs.clear();
-        m_VBOs.clear();
-        m_EBOs.clear();
+    //    unsigned int VAO;
+    //    unsigned int VBO;
+    //    unsigned int EBO;
 
-        const size_t geometryCount = App::scene.geometryBank.Size();
+    //    glGenVertexArrays(1, &VAO);
+    //    glGenBuffers(1, &VBO);
+    //    glGenBuffers(1, &EBO);
 
-        m_VAOs.resize(geometryCount);
-        m_VBOs.resize(geometryCount);
-        m_EBOs.resize(geometryCount);
+    //    glBindVertexArray(VAO);
 
-        glGenVertexArrays(static_cast<GLsizei>(geometryCount), m_VAOs.data());
-        glGenBuffers(     static_cast<GLsizei>(geometryCount), m_VBOs.data());
-        glGenBuffers(     static_cast<GLsizei>(geometryCount), m_EBOs.data());
+    //    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-        for (size_t i = 0; i < geometryCount; ++i) {
-            const Geometry& geo = App::scene.geometryBank[i];
+    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
 
-            std::vector<Vertex> vertices = geo.vertices;
-            std::vector<Index> indices   = geo.indices;
+    //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    //    glEnableVertexAttribArray(0);
 
-            glBindVertexArray(m_VAOs[i]);
+    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    //    glEnableVertexAttribArray(1);
 
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[i]);
-            glBufferData(GL_ARRAY_BUFFER, static_cast<int>(vertices.size()) * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+    //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    //    glEnableVertexAttribArray(2);
 
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBOs[i]);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int>(indices.size()) * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+    //    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    //    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-            glEnableVertexAttribArray(0);
+    //    m_CubeMapVisualizationShader->Bind();
 
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-            glEnableVertexAttribArray(1);
+    //    m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
+    //    m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
 
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-            glEnableVertexAttribArray(2);
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[lightIndex]);
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        }
-    }
+    //    m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
 
-    void OpenGlRenderer::ProvideLightVisualization(LightIndex lightIndex) {
-        if (ImGui::TreeNode("Shadow Map##pointLight")) {
-            ImGui::Text("Texture");
-            ImGui::DragInt(("Shadow Map Width##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapWidth);
-            ImGui::DragInt(("Shadow Map Height##pointLight" + std::to_string(lightIndex)).c_str(), &m_OmnidirectionalShadowMapHeight);
+    //    glBindVertexArray(VAO);
+    //    glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
 
-            ImGui::Text("Depth map");
+    //    glDeleteBuffers(1, &VBO);
+    //    glDeleteBuffers(1, &EBO);
+    //    glDeleteVertexArrays(1, &VAO);
+    //}
 
-            float vertical = glm::degrees(m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
-            float horizontal = glm::degrees(m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
+    //void OpenGlRenderer::VisualizeCascadeShadowMap(int layer) {
+    //    glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
 
-            ImGui::DragFloat(("Vertical shift##pointLight" + std::to_string(lightIndex)).c_str(), &vertical, 1.0f, -360.0f, 360.0f);
-            ImGui::DragFloat(("Horizontal shift##pointLight" + std::to_string(lightIndex)).c_str(), &horizontal, 1.0f, -360.0f, 360.0f);
+    //    glViewport(0, 0, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
 
-            m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex] = glm::radians(vertical);
-            m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex] = glm::radians(horizontal);
+    //    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    //        std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+    //    }
+
+    //    std::vector<Vertex> vertices = {
+    //        //      Position                         Normal                         Uv
+    //        Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+    //        Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
+    //        Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
+    //        Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+    //    };
+
+    //    std::vector<unsigned int> indices = {
+    //        2, 1, 0,
+    //        3, 2, 0
+    //    };
 
-            VisualizeCubeMap(lightIndex);
-            ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[lightIndex], ImVec2{ (float)m_CubeMapVisualizationWidth, (float)m_CubeMapVisualizationHeight });
+    //    unsigned int VAO;
+    //    unsigned int VBO;
+    //    unsigned int EBO;
 
-            ImGui::TreePop();
-        }
-    }
+    //    glGenVertexArrays(1, &VAO);
+    //    glGenBuffers(1, &VBO);
+    //    glGenBuffers(1, &EBO);
 
-    void OpenGlRenderer::ProvideCSMVisualization() {
-        if (ImGui::TreeNode("Shadow Map##dirLight")) {
+    //    glBindVertexArray(VAO);
 
-            ImGui::DragFloat("Frustum Plane Minimum Multiplier", &m_ZMinMultiplier, 0.1f, 0.0f, 100.0f);
-            ImGui::DragFloat("Frustum Plane Maximum Multiplier", &m_ZMaxMultiplier, 0.1f, 0.0f, 100.0f);
+    //    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-            ImGui::DragInt("Cascade Visualization Width##cascadeVisualization", &m_CascadeVisualizationWidth, 1.0f, 0, 4096);
-            ImGui::DragInt("Cascade Visualization Height##cascadeVisualization", &m_CascadeVisualizationHeight, 1.0f, 0, 4096);
+    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
 
-            if (ImGui::DragInt("Number of Layers##cascadeVisualization", &m_CascadeCount, 0.01f, 1, m_MaxCascadeCount)) {
-                glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
-                glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-            }
+    //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    //    glEnableVertexAttribArray(0);
 
-            if (m_CascadeCount != 1) {
-                ImGui::DragInt("Visualized Layer##cascadeVisualization", &m_DisplayedCascadeLayer, 0.01f, 0, m_CascadeCount - 1);
-            }
+    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    //    glEnableVertexAttribArray(1);
 
-            VisualizeCascadeShadowMap(m_DisplayedCascadeLayer);
-            ImGui::Image((ImTextureID)m_ShadowCascadesVisualizationTexture, ImVec2{ (float)m_CascadeVisualizationWidth, (float)m_CascadeVisualizationHeight }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+    //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+    //    glEnableVertexAttribArray(2);
 
-            ImGui::TreePop();
-        }
-    }
+    //    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    //    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    void OpenGlRenderer::VisualizeCubeMap(LightIndex lightIndex) {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+    //    m_CascadingShadowMapVisualizationShader->Bind();
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTextures[lightIndex], 0);
+    //    m_CascadingShadowMapVisualizationShader->SetInt("layer", layer);
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        }
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+    //    m_CascadingShadowMapVisualizationShader->SetInt("shadowMap", 0);
 
-        std::vector<Vertex> vertices = {
-            //      Position                         Normal                         Uv
-            Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
-            Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
-            Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
-            Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
-        };
-
-        std::vector<unsigned int> indices = {
-            2, 1, 0,
-            3, 2, 0
-        };
-
-        unsigned int VAO;
-        unsigned int VBO;
-        unsigned int EBO;
-
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-
-        glBindVertexArray(VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-        glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-        glEnableVertexAttribArray(2);
-
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-        m_CubeMapVisualizationShader->Bind();
-
-        m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
-        m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[lightIndex]);
-
-        m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        glDeleteVertexArrays(1, &VAO);
-    }
-
-    void OpenGlRenderer::VisualizeCascadeShadowMap(int layer) {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
-
-        glViewport(0, 0, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        }
-
-        std::vector<Vertex> vertices = {
-            //      Position                         Normal                         Uv
-            Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
-            Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
-            Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
-            Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
-        };
-
-        std::vector<unsigned int> indices = {
-            2, 1, 0,
-            3, 2, 0
-        };
-
-        unsigned int VAO;
-        unsigned int VBO;
-        unsigned int EBO;
-
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-
-        glBindVertexArray(VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-        glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-        glEnableVertexAttribArray(2);
-
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-        m_CascadingShadowMapVisualizationShader->Bind();
-
-        m_CascadingShadowMapVisualizationShader->SetInt("layer", layer);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
-        m_CascadingShadowMapVisualizationShader->SetInt("shadowMap", 0);
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        glDeleteVertexArrays(1, &VAO);
-    }
-
-    void OpenGlRenderer::VisualizeShadowCascades() {
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        std::vector<glm::vec3> colors {
-            { 1.0f, 1.0f, 0.0f },
-            { 1.0f, 0.0f, 1.0f },
-            { 0.0f, 1.0f, 1.0f },
-            { 1.0f, 0.0f, 0.0f },
-            { 0.0f, 1.0f, 0.0f },
-            { 0.0f, 0.0f, 1.0f },
-            { 0.5f, 0.5f, 0.0f },
-            { 0.5f, 0.0f, 0.5f },
-            { 0.0f, 0.5f, 0.5f },
-            { 1.0f, 1.0f, 1.0f }
-        };
-
-        int i = 0;
-        for (const auto& frustum : m_CascadeCameraProjections) {
-            std::vector<glm::vec4> frustumCorners = GetFrustumCornersInWorldSpace(frustum);
-
-            std::vector<float> vertices{ };
-
-            for (auto corner : frustumCorners) {
-                vertices.push_back(corner.x);
-                vertices.push_back(corner.y);
-                vertices.push_back(corner.z);
-            }
-
-            std::vector<Index> indices = {
-                0, 2, 3,
-                0, 3, 1,
-                4, 6, 2,
-                4, 2, 0,
-                5, 7, 6,
-                5, 6, 4,
-                1, 3, 7,
-                1, 7, 5,
-                6, 7, 3,
-                6, 3, 2,
-                1, 5, 4,
-                0, 1, 4
-            };
-
-            unsigned int VAO;
-            unsigned int VBO;
-            unsigned int EBO;
-
-            glGenVertexArrays(1, &VAO);
-            glGenBuffers(1, &VBO);
-            glGenBuffers(1, &EBO);
-
-            glBindVertexArray(VAO);
-
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-            glEnableVertexAttribArray(0);
-
-            m_SolidShader->Bind();
-
-            m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
-            m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
-
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-            glDeleteBuffers(1, &VBO);
-            glDeleteBuffers(1, &EBO);
-            glDeleteVertexArrays(1, &VAO);
-
-            ++i;
-        }
-        glDisable(GL_BLEND);
-        glEnable(GL_CULL_FACE);
-    }
-
-    void OpenGlRenderer::VisualizeCascadeLights() {
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        std::vector<glm::vec3> colors {
-            { 1.0f, 1.0f, 1.0f },
-            { 0.0f, 0.5f, 0.5f },
-            { 0.5f, 0.0f, 0.5f },
-            { 0.5f, 0.5f, 0.0f },
-            { 0.0f, 0.0f, 1.0f },
-            { 0.0f, 1.0f, 0.0f },
-            { 1.0f, 0.0f, 0.0f },
-            { 0.0f, 1.0f, 1.0f },
-            { 1.0f, 0.0f, 1.0f },
-            { 1.0f, 1.0f, 0.0f }
-        };
-
-        int i = 0;
-        for (const auto& corners : m_CascadeLightBoxes) {
-            std::vector<float> vertices{ };
-
-            glm::vec3 min = corners.first;
-            glm::vec3 max = corners.second;
-
-            vertices.push_back(min.x);
-            vertices.push_back(min.y);
-            vertices.push_back(min.z);
-
-            vertices.push_back(min.x);
-            vertices.push_back(min.y);
-            vertices.push_back(max.z);
-
-            vertices.push_back(min.x);
-            vertices.push_back(max.y);
-            vertices.push_back(min.z);
-
-            vertices.push_back(min.x);
-            vertices.push_back(max.y);
-            vertices.push_back(max.z);
-
-            vertices.push_back(max.x);
-            vertices.push_back(min.y);
-            vertices.push_back(min.z);
-
-            vertices.push_back(max.x);
-            vertices.push_back(min.y);
-            vertices.push_back(max.z);
-
-            vertices.push_back(max.x);
-            vertices.push_back(max.y);
-            vertices.push_back(min.z);
-
-            vertices.push_back(max.x);
-            vertices.push_back(max.y);
-            vertices.push_back(max.z);
-
-            std::vector<Index> indices = {
-                0, 2, 3,
-                0, 3, 1,
-                4, 6, 2,
-                4, 2, 0,
-                5, 7, 6,
-                5, 6, 4,
-                1, 3, 7,
-                1, 7, 5,
-                6, 7, 3,
-                6, 3, 2,
-                1, 5, 4,
-                0, 1, 4
-            };
-
-            unsigned int VAO;
-            unsigned int VBO;
-            unsigned int EBO;
-
-            glGenVertexArrays(1, &VAO);
-            glGenBuffers(1, &VBO);
-            glGenBuffers(1, &EBO);
-
-            glBindVertexArray(VAO);
-
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-            glEnableVertexAttribArray(0);
-
-            m_SolidShader->Bind();
-
-            m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
-            m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
-
-            glBindVertexArray(VAO);
-            glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-            glDeleteBuffers(1, &VBO);
-            glDeleteBuffers(1, &EBO);
-            glDeleteVertexArrays(1, &VAO);
-
-            ++i;
-        }
-        glDisable(GL_BLEND);
-        glEnable(GL_CULL_FACE);
-    }
+    //    glBindVertexArray(VAO);
+    //    glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    //    glDeleteBuffers(1, &VBO);
+    //    glDeleteBuffers(1, &EBO);
+    //    glDeleteVertexArrays(1, &VAO);
+    //}
+
+    //void OpenGlRenderer::VisualizeShadowCascades() {
+    //    glDisable(GL_CULL_FACE);
+    //    glEnable(GL_BLEND);
+    //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //    std::vector<glm::vec3> colors {
+    //        { 1.0f, 1.0f, 0.0f },
+    //        { 1.0f, 0.0f, 1.0f },
+    //        { 0.0f, 1.0f, 1.0f },
+    //        { 1.0f, 0.0f, 0.0f },
+    //        { 0.0f, 1.0f, 0.0f },
+    //        { 0.0f, 0.0f, 1.0f },
+    //        { 0.5f, 0.5f, 0.0f },
+    //        { 0.5f, 0.0f, 0.5f },
+    //        { 0.0f, 0.5f, 0.5f },
+    //        { 1.0f, 1.0f, 1.0f }
+    //    };
+
+    //    int i = 0;
+    //    for (const auto& frustum : m_CascadeCameraProjections) {
+    //        std::vector<glm::vec4> frustumCorners = GetFrustumCornersInWorldSpace(frustum);
+
+    //        std::vector<float> vertices{ };
+
+    //        for (auto corner : frustumCorners) {
+    //            vertices.push_back(corner.x);
+    //            vertices.push_back(corner.y);
+    //            vertices.push_back(corner.z);
+    //        }
+
+    //        std::vector<Index> indices = {
+    //            0, 2, 3,
+    //            0, 3, 1,
+    //            4, 6, 2,
+    //            4, 2, 0,
+    //            5, 7, 6,
+    //            5, 6, 4,
+    //            1, 3, 7,
+    //            1, 7, 5,
+    //            6, 7, 3,
+    //            6, 3, 2,
+    //            1, 5, 4,
+    //            0, 1, 4
+    //        };
+
+    //        unsigned int VAO;
+    //        unsigned int VBO;
+    //        unsigned int EBO;
+
+    //        glGenVertexArrays(1, &VAO);
+    //        glGenBuffers(1, &VBO);
+    //        glGenBuffers(1, &EBO);
+
+    //        glBindVertexArray(VAO);
+
+    //        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    //        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+    //        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+    //        glEnableVertexAttribArray(0);
+
+    //        m_SolidShader->Bind();
+
+    //        m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
+    //        m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
+
+    //        glBindVertexArray(VAO);
+    //        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    //        glDeleteBuffers(1, &VBO);
+    //        glDeleteBuffers(1, &EBO);
+    //        glDeleteVertexArrays(1, &VAO);
+
+    //        ++i;
+    //    }
+    //    glDisable(GL_BLEND);
+    //    glEnable(GL_CULL_FACE);
+    //}
+
+    //void OpenGlRenderer::VisualizeCascadeLights() {
+    //    glDisable(GL_CULL_FACE);
+    //    glEnable(GL_BLEND);
+    //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //    std::vector<glm::vec3> colors {
+    //        { 1.0f, 1.0f, 1.0f },
+    //        { 0.0f, 0.5f, 0.5f },
+    //        { 0.5f, 0.0f, 0.5f },
+    //        { 0.5f, 0.5f, 0.0f },
+    //        { 0.0f, 0.0f, 1.0f },
+    //        { 0.0f, 1.0f, 0.0f },
+    //        { 1.0f, 0.0f, 0.0f },
+    //        { 0.0f, 1.0f, 1.0f },
+    //        { 1.0f, 0.0f, 1.0f },
+    //        { 1.0f, 1.0f, 0.0f }
+    //    };
+
+    //    int i = 0;
+    //    for (const auto& corners : m_CascadeLightBoxes) {
+    //        std::vector<float> vertices{ };
+
+    //        glm::vec3 min = corners.first;
+    //        glm::vec3 max = corners.second;
+
+    //        vertices.push_back(min.x);
+    //        vertices.push_back(min.y);
+    //        vertices.push_back(min.z);
+
+    //        vertices.push_back(min.x);
+    //        vertices.push_back(min.y);
+    //        vertices.push_back(max.z);
+
+    //        vertices.push_back(min.x);
+    //        vertices.push_back(max.y);
+    //        vertices.push_back(min.z);
+
+    //        vertices.push_back(min.x);
+    //        vertices.push_back(max.y);
+    //        vertices.push_back(max.z);
+
+    //        vertices.push_back(max.x);
+    //        vertices.push_back(min.y);
+    //        vertices.push_back(min.z);
+
+    //        vertices.push_back(max.x);
+    //        vertices.push_back(min.y);
+    //        vertices.push_back(max.z);
+
+    //        vertices.push_back(max.x);
+    //        vertices.push_back(max.y);
+    //        vertices.push_back(min.z);
+
+    //        vertices.push_back(max.x);
+    //        vertices.push_back(max.y);
+    //        vertices.push_back(max.z);
+
+    //        std::vector<Index> indices = {
+    //            0, 2, 3,
+    //            0, 3, 1,
+    //            4, 6, 2,
+    //            4, 2, 0,
+    //            5, 7, 6,
+    //            5, 6, 4,
+    //            1, 3, 7,
+    //            1, 7, 5,
+    //            6, 7, 3,
+    //            6, 3, 2,
+    //            1, 5, 4,
+    //            0, 1, 4
+    //        };
+
+    //        unsigned int VAO;
+    //        unsigned int VBO;
+    //        unsigned int EBO;
+
+    //        glGenVertexArrays(1, &VAO);
+    //        glGenBuffers(1, &VBO);
+    //        glGenBuffers(1, &EBO);
+
+    //        glBindVertexArray(VAO);
+
+    //        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    //        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+    //        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+    //        glEnableVertexAttribArray(0);
+
+    //        m_SolidShader->Bind();
+
+    //        m_SolidShader->SetMat4("mvp", m_Projection * App::camera.View());
+    //        m_SolidShader->SetVec4("color", glm::vec4{ colors[i], 0.5f });
+
+    //        glBindVertexArray(VAO);
+    //        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+    //        glDeleteBuffers(1, &VBO);
+    //        glDeleteBuffers(1, &EBO);
+    //        glDeleteVertexArrays(1, &VAO);
+
+    //        ++i;
+    //    }
+    //    glDisable(GL_BLEND);
+    //    glEnable(GL_CULL_FACE);
+    //}
 }

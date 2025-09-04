@@ -1,7 +1,7 @@
 #pragma once
 #include "BVHBank.h"
 
-#include "RenderingAPI/Scene.h"
+//#include "RenderingAPI/Scene.h"
 
 #include "Utility/RayTracing/AABB.h"
 #include "Utility/RayTracing/Triangle.h"
@@ -14,7 +14,7 @@ namespace Rutile {
     class BVHUtility {
     public:
         static glm::vec3 Center(const Triangle& triangle);
-        static glm::vec3 Center(const Object& object);
+        //static glm::vec3 Center(const Object& object);
         static glm::vec3 Center(const AABB& bbox);
     };
 

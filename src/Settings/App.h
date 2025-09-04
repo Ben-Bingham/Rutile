@@ -9,15 +9,15 @@
 #include "Utility/ImGuiInstance.h"
 #include "Utility/GLFW.h"
 
-#include "renderers/Renderer.h"
+//#include "renderers/Renderer.h"
 
 #include "RenderingAPI/Camera.h"
-#include "RenderingAPI/RenderingBanks.h"
+//#include "RenderingAPI/RenderingBanks.h"
 
 #include "SceneUtility/SceneManager.h"
 
 #include "Utility/TimingData.h"
-#include "Utility/events/EventManager.h"
+//#include "Utility/events/EventManager.h"
 
 namespace Rutile {
     struct App {
@@ -35,7 +35,7 @@ namespace Rutile {
         inline static SceneType sceneType = SceneType::CORNELL_BOX;
         inline static Scene scene = SceneManager::GetScene(sceneType);
 
-        inline static std::unique_ptr<Renderer> renderer = nullptr;
+        //inline static std::unique_ptr<Renderer> renderer = nullptr;
 
         inline static RendererType currentRendererType = RendererType::SOFTWARE_PHONG;
         inline static RendererType lastRendererType = currentRendererType;
@@ -50,6 +50,6 @@ namespace Rutile {
 
         inline static TimingData timingData{ };
 
-        inline static EventManager eventManager;
+        //inline static EventManager eventManager;
     };
 }

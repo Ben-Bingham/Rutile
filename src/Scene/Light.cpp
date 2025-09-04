@@ -6,8 +6,8 @@ namespace Rutile {
 
 	}
 
-	DirectionalLight::DirectionalLight(glm::vec3 position, glm::vec3 direction, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular) 
-		: direction(direction), Light(position, diffuse, ambient, specular) {
+	//DirectionalLight::DirectionalLight(glm::vec3 position, glm::vec3 direction, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular) 
+	//	: direction(direction), Light(position, diffuse, ambient, specular) {
 
-	}
+	//}
 }
