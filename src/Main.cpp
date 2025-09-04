@@ -27,6 +27,8 @@
 #include "Utility/TimeScope.h"
 #include "Utility/OpenGl/GLDebug.h"
 
+#include "imgui.h"
+
 using namespace Rutile;
 
 //std::unique_ptr<Renderer> CreateRenderer(RendererType type) {
@@ -105,8 +107,8 @@ int main() {
     //Window window;
     //window.Init();
 
-    ImGuiInstance imgui;
-    imgui.Init(window);
+    ImGuiInstance imGui;
+    imGui.Init(window);
 
     std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
     renderer->Init();
@@ -124,13 +126,18 @@ int main() {
 
         //MoveCamera(); // TODO
 
-        //imGui.StartNewFrame();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        imGui.StartNewFrame();
 
         //MainGuiWindow();
+        ImGui::Begin("Test");
+
+        ImGui::End();
 
         renderer->ProvideGUI(); // TODO
 
-        //imGui.FinishFrame();
+        imGui.FinishFrame();
 
         // TODO backup opengl state and then restore after
         renderer->Render();
@@ -139,7 +146,7 @@ int main() {
     }
 
     renderer->Cleanup();
-    //imGui.Cleanup();
+    imGui.Cleanup();
     //window.Cleanup();
     //glew.Cleanup();
     glfw.Cleanup();
