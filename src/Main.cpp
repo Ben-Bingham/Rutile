@@ -1,37 +1,16 @@
 #include <memory>
 
-#include <gl/glew.h>
-#include <GLFW/glfw3.h>
-
-// TODO
-//#define STB_IMAGE_IMPLEMENTATION
-//#include <stb_image.h>
-
-#include "Settings/App.h"
-
-//#include "renderers/renderer.h"
-
-#include "Renderer.h"
-#include "Scene/Scene.h"
-
-//#include "GUI/MainGUIWindow.h"
-
-//#include "renderers/CPU-Ray-Tracing/CPURayTracing.h"
-//#include "renderers/GPU-Ray-Tracing/GPURayTracing.h"
-//#include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
-//#include "Renderers/Software-Phong/SoftwarePhong.h"
-#include "renderers/OpenGl/OpenGlRenderer.h"
-
-#include "Utility/CameraMovement.h"
-#include "Utility/TimeScope.h"
-#include "Utility/OpenGl/GLDebug.h"
-
 #include "3rdPartySystems/GLFW.h"
+#include "3rdPartySystems/Window.h"
 #include "3rdPartySystems/GLEW.h"
 #include "3rdPartySystems/ImGuiInstance.h"
 
+#include "renderers/OpenGl/OpenGlRenderer.h"
+
+#include "SceneUtility/SceneManager.h"
+#include "Utility/TimeScope.h"
+
 #include "imgui.h"
-#include "3rdPartySystems/Window.h"
 
 using namespace Rutile;
 
@@ -78,7 +57,7 @@ int main() {
     renderbuffer.Unbind();
 
     while(window.IsOpen()) {
-        TimeScope frameTime{ &App::timingData.frameTime };
+        //TimeScope frameTime{ &App::timingData.frameTime }; // TODO
 
         glfw.PollEvents();
         
