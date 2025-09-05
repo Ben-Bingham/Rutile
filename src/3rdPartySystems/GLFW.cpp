@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-//#include "renderers/Renderer.h"
+#include "Statics.h"
 
 #include "Utility/OpenGl/GLDebug.h"
 
@@ -15,17 +15,12 @@ void glfwErrorCallback(int error, const char* description) {
 
 namespace Rutile {
     void frameBufferSizeCallback(GLFWwindow* window, int w, int h) {
-        App::screenWidth = w;
-        App::screenHeight = h;
-
-        //if (App::renderer) {
-            //App::eventManager.Notify(new WindowResize{ });
-        //}
+        // TODO
     }
 
     void mouseMoveCallback(GLFWwindow* window, double x, double y) {
-        App::mousePosition.x = static_cast<int>(x);
-        App::mousePosition.y = static_cast<int>(y);
+        Statics::mousePosition.x = static_cast<int>(x);
+        Statics::mousePosition.y = static_cast<int>(y);
     }
 
     GLFW::GLFW() {

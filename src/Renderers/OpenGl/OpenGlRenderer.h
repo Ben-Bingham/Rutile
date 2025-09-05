@@ -22,7 +22,7 @@ namespace Rutile {
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override;
 
-        void Render(Framebuffer& framebuffer) override;
+        void Render(Framebuffer& framebuffer, const Camera& camera) override;
 
         void SetScene(Scene& scene) override;
 
@@ -32,7 +32,7 @@ namespace Rutile {
 
         void RenderCascadingShadowMaps();
 
-        void RenderScene();
+        void RenderScene(const Camera& camera);
 
         std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
 

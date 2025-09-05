@@ -9,7 +9,6 @@
 #include <GLFW/glfw3.h>
 //#include "renderers/Renderer.h"
 
-#include "RenderingAPI/Camera.h"
 //#include "RenderingAPI/RenderingBanks.h"
 
 #include "SceneUtility/SceneManager.h"
@@ -39,7 +38,7 @@ namespace Rutile {
         inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
 
-        inline static Camera camera;
+        //inline static Camera camera;
         inline static bool updateCameraVectors = false;
 
         inline static bool mouseDown = false;

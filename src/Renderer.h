@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "Scene/Scene.h"
+#include "Scene/Camera.h"
+
 #include "Utility/OpenGl/Texture.h"
 #include "Utility/OpenGl/Framebuffer.h"
 
@@ -17,7 +19,7 @@ namespace Rutile {
         virtual ~Renderer() = default;
 
         // Called every frame, the renderer should render to the given framebuffer
-        virtual void Render(Framebuffer& framebuffer) = 0; // TODO maybe the frambebuffer is just bound and unbound before and after this call?
+        virtual void Render(Framebuffer& framebuffer, const Camera& camera) = 0; // TODO maybe the frambebuffer is just bound and unbound before and after this call?
 
         // Called every frame, facilitates an ImGui gui
         virtual void ProvideGUI() { }
@@ -32,6 +34,7 @@ namespace Rutile {
         virtual void UpdateSceneLight() { }
 
         virtual void UpdateCameraPosition() { }
+        virtual void UpdateCameraDirection() { }
         virtual void UpdateCameraFOV() { }
 
         virtual void UpdateWindowSize() { };

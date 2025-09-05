@@ -224,7 +224,7 @@ namespace Rutile {
         m_CascadingShadowMapVisualizationShader.reset();
     }
 
-    void OpenGlRenderer::Render(Framebuffer& framebuffer) {
+    void OpenGlRenderer::Render(Framebuffer& framebuffer, const Camera& camera) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
         //}
@@ -286,7 +286,7 @@ namespace Rutile {
 
         framebuffer.Bind();
 
-        RenderScene();
+        RenderScene(camera);
 
         framebuffer.Unbind();
 
@@ -602,7 +602,7 @@ namespace Rutile {
         */
     }
 
-    void OpenGlRenderer::RenderScene() {
+    void OpenGlRenderer::RenderScene(const Camera& camera) {
         //framebuffer->Bind();
         glViewport(0, 0, 800, 600);
 
@@ -725,7 +725,7 @@ namespace Rutile {
             //}
             
             m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
-            glm::mat4 mvp = m_Projection * App::camera.View() * transform;
+            glm::mat4 mvp = m_Projection * camera.View() * transform;
 
             m_SolidShader->SetMat4("mvp", mvp);
 
