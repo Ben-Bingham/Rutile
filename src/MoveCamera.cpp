@@ -33,11 +33,11 @@ namespace Rutile {
         }
         if (glfwGetKey(window.Get(), GLFW_KEY_SPACE) == GLFW_PRESS) {
             positionChange = true;
-            camera.position += camera.upVector * velocity;
+            camera.position -= camera.upVector * velocity;
         }
         if (glfwGetKey(window.Get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             positionChange = true;
-            camera.position -= camera.upVector * velocity;
+            camera.position += camera.upVector * velocity;
         }
 
         if (glfwGetMouseButton(window.Get(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
