@@ -79,12 +79,15 @@ int main() {
     // The offset from the top left corner of the viewport to the top left corner of the window
     glm::ivec2 viewportOffset{ };
 
-    std::chrono::duration<double> frameTime;
-    std::chrono::duration<double> renderTime;
+    std::chrono::duration<double> frameTime{ };
+    std::chrono::duration<double> renderTime{ };
+    std::chrono::duration<double> rendererStartupTime{ };
 
     while (window.IsOpen()) {
         if (restartRenderer) {
             renderer.reset();
+
+            TimeScope rendererStartupTimescope{ &rendererStartupTime };
 
             switch (newRendererType) {
                 case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlRenderer>();
@@ -144,6 +147,9 @@ int main() {
             }
 
             if (ImGui::CollapsingHeader("Timing Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text(std::string{ "Renderer Startup Time: " + ChronoTimeToString(rendererStartupTime) }.c_str());
+                ImGui::Separator();
+
                 ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
                 ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
             }

@@ -4,6 +4,7 @@
 #include <string>
 
 namespace Rutile {
+	// Measures the amount of time it takes to reach the end of the current scope
 	class TimeScope {
 	public:
 		TimeScope(std::chrono::duration<double>* output = nullptr, const std::string& name = "");
