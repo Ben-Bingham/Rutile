@@ -81,8 +81,14 @@ int main() {
 
         imGui.StartNewFrame();
 
-        //ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()); // TODO
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
         //MainGuiWindow();
+
+        ImGui::Begin("Sidebar");
+        ImGui::End();
+
+        ImGui::Begin("Bottombar");
+        ImGui::End();
 
         ImGui::Begin("Viewport");
 
@@ -92,7 +98,7 @@ int main() {
         // Render the last frame with the last frames viewport size
         ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
 
-        //viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
+        viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
         ImGui::End();
 
