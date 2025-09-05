@@ -1,4 +1,5 @@
 #include <memory>
+#include <chrono>
 
 #include "3rdPartySystems/GLFW.h"
 #include "3rdPartySystems/Window.h"
@@ -10,6 +11,8 @@
 #include "SceneUtility/SceneManager.h"
 #include "Utility/TimeScope.h"
 
+#include "GUI/ImGuiUtil.h"
+
 #include "Scene/Camera.h"
 
 #include "Statics.h"
@@ -18,7 +21,7 @@
 
 using namespace Rutile;
 
-void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize);
+void MoveCamera(Camera& camera, Window& window, float dt, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize);
 
 int main() {
     GLFW glfw{ };
@@ -69,14 +72,17 @@ int main() {
     // The offset from the top left corner of the viewport to the top left corner of the window
     glm::ivec2 viewportOffset{ };
 
-    while(window.IsOpen()) {
-        //TimeScope frameTime{ &App::timingData.frameTime }; // TODO
+    std::chrono::duration<double> frameTime;
+    std::chrono::duration<double> renderTime;
+
+    while (window.IsOpen()) {
+        TimeScope frameTimeScope{ &frameTime };
 
         glfw.PollEvents();
-        
+
         glm::ivec2 mousePositionWRTViewport{ Statics::mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - Statics::mousePosition.y) };
 
-        MoveCamera(camera, window, mousePositionWRTViewport, lastFrameViewportSize);
+        MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -88,6 +94,8 @@ int main() {
         //MainGuiWindow();
 
         ImGui::Begin("Sidebar");
+        ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
+        ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
         ImGui::End();
 
         ImGui::Begin("Bottombar");
@@ -128,9 +136,13 @@ int main() {
             renderbuffer.Unbind();
         }
 
-        // TODO backup opengl state and then restore after
-        // Render the next frames image
-        renderer->Render(rendererFramebuffer, newViewportSize, camera);
+        {
+            TimeScope renderTimeScope{ &renderTime };
+
+            // TODO backup opengl state and then restore after
+            // Render the next frames image
+            renderer->Render(rendererFramebuffer, newViewportSize, camera);
+        }
 
         lastFrameViewportSize = newViewportSize;
 
@@ -138,7 +150,7 @@ int main() {
     }
 }
 
-void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize) {
+void MoveCamera(Camera& camera, Window& window, float dt, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize) {
     static bool mouseDown{ false };
     static bool hasMoved{ false };
     static glm::ivec2 lastMousePosition{ };
@@ -150,8 +162,6 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePositionW
 
     bool positionChange{ false };
     bool directionChange{ false };
-    //const float dt = static_cast<float>(App::timingData.frameTime.count()); // TODO
-    float dt = 1.0f / 60.0f;
     const float velocity = camera.speed * dt;
 
     if (glfwGetKey(window.Get(), GLFW_KEY_W) == GLFW_PRESS) {

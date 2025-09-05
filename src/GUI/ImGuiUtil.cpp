@@ -15,4 +15,9 @@ namespace Rutile {
             ++i;
         }
     }
+
+    std::string ChronoTimeToString(const std::chrono::duration<double>& time) {
+        const auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(time);
+        return std::to_string((double)t.count() / 1000000.0) + "ms";
+    }
 }
