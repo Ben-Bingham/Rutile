@@ -1,5 +1,5 @@
 #pragma once
-#include "RendererType.h"
+//#include "RendererType.h"
 #include "SettingsEnums.h"
 #include <chrono>
 #include <glm/glm.hpp>
@@ -16,7 +16,7 @@ namespace Rutile {
 
         std::chrono::duration<double> idealFrameTime = std::chrono::duration<double>(1.0 / 60.0);
 
-        RendererType defaultRenderer = RendererType::OPENGL;
+        //RendererType defaultRenderer = RendererType::OPENGL;
 
         // Rendering
         GeometricFace culledFaceDuringRendering = GeometricFace::BACK;

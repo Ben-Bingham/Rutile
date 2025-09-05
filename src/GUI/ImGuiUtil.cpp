@@ -2,7 +2,6 @@
 
 namespace Rutile {
     void RadioButtons(const std::string& name, std::vector<std::string> optionNames, int* setting, const std::function<void()>& func) {
-        bool sentEvent = false;
         ImGui::Text(name.c_str());
         int i = 0;
         for (auto optionName : optionNames) {

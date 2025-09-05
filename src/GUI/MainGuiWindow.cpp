@@ -30,11 +30,11 @@ namespace Rutile {
                 RenderingSettings();
             }
 
-            if (App::currentRendererType == RendererType::CPU_RAY_TRACING || App::currentRendererType == RendererType::GPU_RAY_TRACING || App::currentRendererType == RendererType::VOXEL_RAY_TRACING) {
-                if (ImGui::CollapsingHeader("Ray Tracing Settings")) {
-                    RayTracingSettings();
-                }
-            }
+            //if (App::currentRendererType == RendererType::CPU_RAY_TRACING || App::currentRendererType == RendererType::GPU_RAY_TRACING || App::currentRendererType == RendererType::VOXEL_RAY_TRACING) {
+            //    if (ImGui::CollapsingHeader("Ray Tracing Settings")) {
+            //        RayTracingSettings();
+            //    }
+            //}
 
             if (ImGui::CollapsingHeader("Local Renderer Settings")) {
                 //App::renderer->ProvideLocalRendererSettings();

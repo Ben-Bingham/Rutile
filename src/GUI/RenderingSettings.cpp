@@ -8,23 +8,23 @@
 
 namespace Rutile {
     void RenderingSettings() {
-        if (App::currentRendererType == RendererType::OPENGL) {
-            RadioButtons("Front Face Winding Order", { "Clock-Wise##rs", "Counter-Clock-Wise##rs" }, (int*)&App::settings.frontFace, nullptr);
+        //if (App::currentRendererType == RendererType::OPENGL) {
+        //    RadioButtons("Front Face Winding Order", { "Clock-Wise##rs", "Counter-Clock-Wise##rs" }, (int*)&App::settings.frontFace, nullptr);
 
-            ImGui::Separator();
+        //    ImGui::Separator();
 
-            RadioButtons("Culled Face During Rendering", { "Front##rs", "Back##rs" }, (int*)&App::settings.culledFaceDuringRendering, nullptr);
+        //    RadioButtons("Culled Face During Rendering", { "Front##rs", "Back##rs" }, (int*)&App::settings.culledFaceDuringRendering, nullptr);
 
-            ImGui::Separator();
-        }
+        //    ImGui::Separator();
+        //}
 
         ImGui::Text("View Frustum");
         //if (ImGui::DragFloat("Field of View",       &App::settings.fieldOfView, 0.1f, 0.0f, 180.0f))      { App::renderer->ProjectionMatrixUpdate(); }
 
-        if (App::currentRendererType == RendererType::OPENGL) {
-            //if (ImGui::DragFloat("Near Clipping Plane", &App::settings.nearPlane, 0.1f, 0.0f, 10000000.0f)) { App::renderer->ProjectionMatrixUpdate(); }
-            //if (ImGui::DragFloat("Far Clipping Plane", &App::settings.farPlane, 0.1f, 0.0f, 10000000.0f)) { App::renderer->ProjectionMatrixUpdate(); }
-        }
+        //if (App::currentRendererType == RendererType::OPENGL) {
+        //    //if (ImGui::DragFloat("Near Clipping Plane", &App::settings.nearPlane, 0.1f, 0.0f, 10000000.0f)) { App::renderer->ProjectionMatrixUpdate(); }
+        //    //if (ImGui::DragFloat("Far Clipping Plane", &App::settings.farPlane, 0.1f, 0.0f, 10000000.0f)) { App::renderer->ProjectionMatrixUpdate(); }
+        //}
 
         ImGui::Separator();
 

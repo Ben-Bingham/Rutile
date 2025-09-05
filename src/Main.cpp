@@ -6,7 +6,8 @@
 #include "3rdPartySystems/GLEW.h"
 #include "3rdPartySystems/ImGuiInstance.h"
 
-#include "renderers/OpenGl/OpenGlRenderer.h"
+#include "Renderers/RendererType.h"
+#include "renderers/OpenGlSolidShading/OpenGlRenderer.h"
 
 #include "SceneUtility/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -33,15 +34,21 @@ int main() {
 
     ImGuiInstance imGui{ window };
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<OpenGlRenderer>();
+    std::unique_ptr<Renderer> renderer{ };
+
+    // The current renderer type on any given frame
+    RendererType currentRendererType{ RendererType::OPENGL_SOLID_SHADING };
+
+    // If the renderer type is changed part way through a frame, this values is updated to reflect the new type
+    RendererType newRendererType{ currentRendererType };
+    bool restartRenderer{ true };
 
     Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
-    renderer->SetScene(scene);
+    //renderer->SetScene(scene);
 
     // Create framebuffer that renderers render to
     glm::ivec2 defaultFramebufferSize{ 800, 600 };
-
-    glm::ivec2 lastFrameViewportSize{ -1, -1 };
+    glm::ivec2 lastFrameViewportSize{ defaultFramebufferSize };
 
     Framebuffer rendererFramebuffer{ };
     rendererFramebuffer.Bind();
@@ -76,9 +83,30 @@ int main() {
     std::chrono::duration<double> renderTime;
 
     while (window.IsOpen()) {
+        if (restartRenderer) {
+            renderer.reset();
+
+            switch (newRendererType) {
+                case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlRenderer>();
+            }
+
+            renderer->SetScene(scene);
+
+            currentRendererType = newRendererType;
+            restartRenderer = false;
+        }
+
         TimeScope frameTimeScope{ &frameTime };
 
         glfw.PollEvents();
+
+        {
+            TimeScope renderTimeScope{ &renderTime };
+
+            // TODO backup opengl state and then restore after
+            // Render the current frames image using the last frames viewport size
+            if (renderer) renderer->Render(rendererFramebuffer, lastFrameViewportSize, camera);
+        }
 
         glm::ivec2 mousePositionWRTViewport{ Statics::mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - Statics::mousePosition.y) };
 
@@ -94,8 +122,32 @@ int main() {
         //MainGuiWindow();
 
         { ImGui::Begin("Sidebar");
-            ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
-            ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
+            if (ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+                if (ImGui::Button("Restart Renderer")) {
+                    restartRenderer = true;
+                    newRendererType = currentRendererType;
+                }
+
+                RendererType tempRendererType{ };
+
+                RadioButtons(
+                    "Select Renderer",
+                    { "OpenGl Solid Shading" },
+                    (int*)&tempRendererType
+                );
+
+                if (tempRendererType != currentRendererType) {
+                    restartRenderer = true;
+                    newRendererType = tempRendererType;
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Timing Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
+                ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
+            }
+
         } ImGui::End(); // Sidebar
 
         { ImGui::Begin("Bottombar");
@@ -107,14 +159,14 @@ int main() {
             // Needs to be the first call after "Begin"
             newViewportSize = glm::ivec2{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
 
-            // Render the last frame with the last frames viewport size
+            // Display the frame with the last frames viewport size (The same size it was rendered with)
             ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
 
             viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
         } ImGui::End(); // Viewport
 
-        renderer->ProvideGUI(); // TODO
+        if (renderer) renderer->ProvideGUI(); // TODO
 
         imGui.FinishFrame();
 
@@ -135,14 +187,6 @@ int main() {
             rendererFramebuffer.Unbind();
             targetTexture.Unbind();
             renderbuffer.Unbind();
-        }
-
-        {
-            TimeScope renderTimeScope{ &renderTime };
-
-            // TODO backup opengl state and then restore after
-            // Render the next frames image
-            renderer->Render(rendererFramebuffer, newViewportSize, camera);
         }
 
         lastFrameViewportSize = newViewportSize;

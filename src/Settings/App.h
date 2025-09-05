@@ -1,5 +1,5 @@
 #pragma once
-#include "RendererType.h"
+//#include "RendererType.h"
 #include "Settings.h"
 #include <chrono>
 #include <memory>
@@ -34,8 +34,8 @@ namespace Rutile {
 
         //inline static std::unique_ptr<Renderer> renderer = nullptr;
 
-        inline static RendererType currentRendererType = RendererType::SOFTWARE_PHONG;
-        inline static RendererType lastRendererType = currentRendererType;
+        //inline static RendererType currentRendererType = RendererType::SOFTWARE_PHONG;
+        //inline static RendererType lastRendererType = currentRendererType;
         inline static bool restartRenderer = false;
 
         //inline static Camera camera;
