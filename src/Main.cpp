@@ -66,12 +66,14 @@ int main() {
         // TODO backup opengl state and then restore after
         renderer->Render(framebuffer);
 
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         imGui.StartNewFrame();
 
         //MainGuiWindow();
-        ImGui::Begin("Test");
+
+        ImGui::Begin("Viewport");
 
         ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ 800.0f, 600.0f });
 
@@ -81,6 +83,6 @@ int main() {
 
         imGui.FinishFrame();
 
-        glfwSwapBuffers(window.Get());
+        window.SwapBuffers();
     }
 }

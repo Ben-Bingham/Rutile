@@ -27,4 +27,8 @@ namespace Rutile {
 	bool Window::IsOpen() {
 		return !glfwWindowShouldClose(m_Window);
 	}
+
+	void Window::SwapBuffers() {
+		glfwSwapBuffers(m_Window);
+	}
 }
