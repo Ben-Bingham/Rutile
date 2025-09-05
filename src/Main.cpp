@@ -51,7 +51,6 @@ int main() {
     glm::ivec2 lastFrameViewportSize{ defaultFramebufferSize };
 
     Framebuffer rendererFramebuffer{ };
-    rendererFramebuffer.Bind();
 
     Texture2D targetTexture{ defaultFramebufferSize, TextureParameters{
         TextureFormat::RGB,
@@ -60,11 +59,13 @@ int main() {
         TextureFilteringMode::LINEAR
     } };
 
+    Renderbuffer renderbuffer{ defaultFramebufferSize };
+
+    rendererFramebuffer.Bind();
+
     targetTexture.Bind();
 
     rendererFramebuffer.AddTexture(targetTexture, Framebuffer::TextureUses::COLOR_0);
-
-    Renderbuffer renderbuffer{ defaultFramebufferSize };
 
     rendererFramebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
 
