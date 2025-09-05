@@ -93,25 +93,26 @@ int main() {
 
         //MainGuiWindow();
 
-        ImGui::Begin("Sidebar");
-        ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
-        ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
-        ImGui::End();
+        { ImGui::Begin("Sidebar");
+            ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
+            ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
+        } ImGui::End(); // Sidebar
 
-        ImGui::Begin("Bottombar");
-        ImGui::End();
+        { ImGui::Begin("Bottombar");
+        } ImGui::End(); // Bottombar
 
-        ImGui::Begin("Viewport");
+        glm::ivec2 newViewportSize{ };
 
-        // Needs to be the first call after "Begin"
-        glm::ivec2 newViewportSize{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
+        { ImGui::Begin("Viewport");
+            // Needs to be the first call after "Begin"
+            newViewportSize = glm::ivec2{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
 
-        // Render the last frame with the last frames viewport size
-        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
+            // Render the last frame with the last frames viewport size
+            ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
 
-        viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
+            viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
-        ImGui::End();
+        } ImGui::End(); // Viewport
 
         renderer->ProvideGUI(); // TODO
 
