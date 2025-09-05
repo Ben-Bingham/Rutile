@@ -13,14 +13,14 @@
 #include "Utility/OpenGl/Renderbuffer.h"
 
 namespace Rutile {
-	class OpenGlRenderer : public Renderer {
+	class OpenGlSolidShading : public Renderer {
 	public:
-        OpenGlRenderer();
-        OpenGlRenderer(const OpenGlRenderer& other) = delete;
-        OpenGlRenderer(OpenGlRenderer&& other) noexcept = default;
-        OpenGlRenderer& operator=(const OpenGlRenderer& other) = delete;
-        OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
-        ~OpenGlRenderer() override;
+        OpenGlSolidShading();
+        OpenGlSolidShading(const OpenGlSolidShading& other) = delete;
+        OpenGlSolidShading(OpenGlSolidShading&& other) noexcept = default;
+        OpenGlSolidShading& operator=(const OpenGlSolidShading& other) = delete;
+        OpenGlSolidShading& operator=(OpenGlSolidShading&& other) noexcept = default;
+        ~OpenGlSolidShading() override;
 
         void Render(RenderTarget& target, const Camera& camera) override;
 

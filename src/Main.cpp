@@ -7,7 +7,7 @@
 #include "3rdPartySystems/ImGuiInstance.h"
 
 #include "Renderers/RendererType.h"
-#include "renderers/OpenGlSolidShading/OpenGlRenderer.h"
+#include "renderers/OpenGlSolidShading/OpenGlSolidShading.h"
 
 #include "SceneUtility/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -70,7 +70,7 @@ int main() {
             TimeScope rendererStartupTimescope{ &rendererStartupTime };
 
             switch (newRendererType) {
-                case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlRenderer>();
+                case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlSolidShading>();
             }
 
             renderer->SetScene(scene);

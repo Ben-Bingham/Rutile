@@ -1,4 +1,4 @@
-#include "OpenGlRenderer.h"
+#include "OpenGlSolidShading.h"
 #include "Settings/App.h"
 #include "imgui.h"
 
@@ -16,7 +16,7 @@
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    OpenGlRenderer::OpenGlRenderer() {
+    OpenGlSolidShading::OpenGlSolidShading() {
         // Shaders
         m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
@@ -190,7 +190,7 @@ namespace Rutile {
         glEnable(GL_CULL_FACE);
     }
 
-    OpenGlRenderer::~OpenGlRenderer() {
+    OpenGlSolidShading::~OpenGlSolidShading() {
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
@@ -224,7 +224,7 @@ namespace Rutile {
         m_CascadingShadowMapVisualizationShader.reset();
     }
 
-    void OpenGlRenderer::Render(RenderTarget& target, const Camera& camera) {
+    void OpenGlSolidShading::Render(RenderTarget& target, const Camera& camera) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
         //}
@@ -303,7 +303,7 @@ namespace Rutile {
         //return targetTexture;
     }
 
-    void OpenGlRenderer::SetScene(Scene& scene) {
+    void OpenGlSolidShading::SetScene(Scene& scene) {
         m_Scene = scene;
         /*
         // Lights
@@ -418,7 +418,7 @@ namespace Rutile {
         }
     }
 
-    void OpenGlRenderer::RenderOmnidirectionalShadowMaps() {
+    void OpenGlSolidShading::RenderOmnidirectionalShadowMaps() {
         /*
         if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
             glCullFace(GL_FRONT);
@@ -477,7 +477,7 @@ namespace Rutile {
         */
     }
 
-    void OpenGlRenderer::RenderCascadingShadowMaps() {
+    void OpenGlSolidShading::RenderCascadingShadowMaps() {
         /*
         float distance = abs(App::settings.farPlane - App::settings.nearPlane);
 
@@ -602,7 +602,7 @@ namespace Rutile {
         */
     }
 
-    void OpenGlRenderer::RenderScene(const Camera& camera, const glm::ivec2& viewportSize) {
+    void OpenGlSolidShading::RenderScene(const Camera& camera, const glm::ivec2& viewportSize) {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -731,7 +731,7 @@ namespace Rutile {
         }
     }
 
-    std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
+    std::vector<glm::vec4> OpenGlSolidShading::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
         glm::mat4 invFrustum = glm::inverse(frustum);
 
         std::vector<glm::vec4> frustumCorners;
