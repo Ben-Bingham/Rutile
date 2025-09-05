@@ -2,8 +2,8 @@
 
 out vec4 outFragColor;
 
-uniform vec4 color;
+uniform vec3 color;
 
 void main() {
-   outFragColor = color;
+   outFragColor = vec4(color.xyz, 1.0);
 }

@@ -24,9 +24,9 @@ namespace Rutile {
         void SetScene(Scene& scene) override;
 
     private:
-        Scene m_Scene{ }; // TODO remove
+        void CalculateProjectionMatrix(RenderTarget& target, const Camera& camera);
 
-        glm::mat4 m_Projection { 1.0f };
+        glm::mat4 m_Projection{ 1.0f };
 
         // Shaders
         std::unique_ptr<Shader> m_SolidShader;
@@ -34,8 +34,12 @@ namespace Rutile {
         // Objects
         size_t m_ObjectCount;
 
+        // This object format allows for single command VAO, VBO and EBO creation
         std::vector<unsigned int> m_VAOs;
         std::vector<unsigned int> m_VBOs;
         std::vector<unsigned int> m_EBOs;
+        std::vector<int> m_IndexCounts;
+        std::vector<glm::vec3> m_Colours;
+        std::vector<glm::mat4> m_Transforms;
 	};
 }

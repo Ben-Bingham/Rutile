@@ -16,36 +16,33 @@ namespace Rutile {
     }
 
     void OpenGlSolidShading::Render(RenderTarget& target, const Camera& camera) {
+        CalculateProjectionMatrix(target, camera);
+
         target.Bind();
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (const auto& object : m_Scene.objects) {
-            glm::mat4 transform = object.transform;
+        m_SolidShader->Bind();
 
-            std::shared_ptr<Material> mat = object.material;
-
-            m_SolidShader->Bind();
-
-            m_SolidShader->SetVec4("color", glm::vec4{ mat->diffuse.x, mat->diffuse.y, mat->diffuse.z, 1.0f });
+        for (size_t i = 0; i < m_ObjectCount; ++i) {
+            m_SolidShader->SetVec3("color", m_Colours[i]);
    
-            glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
-            glm::mat4 mvp = projection * camera.View() * transform;
+            glm::mat4 mvp = m_Projection * camera.View() * m_Transforms[i];
 
             m_SolidShader->SetMat4("mvp", mvp);
 
-            glBindVertexArray(m_VAOs[0]);
-            glDrawElements(GL_TRIANGLES, (int)3, GL_UNSIGNED_INT, nullptr); // TODO 3
+            glBindVertexArray(m_VAOs[i]);
+            glDrawElements(GL_TRIANGLES, m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
 
         target.Unbind();
     }
 
     void OpenGlSolidShading::SetScene(Scene& scene) {
-        m_Scene = scene;
+        m_ObjectCount = scene.objects.size();
 
-        // Clean up old Geometry
+        // Clean up old objects
         glDeleteBuffers(static_cast<GLsizei>(m_EBOs.size()), m_EBOs.data());
         glDeleteBuffers(static_cast<GLsizei>(m_VBOs.size()), m_VBOs.data());
         glDeleteVertexArrays(static_cast<GLsizei>(m_VAOs.size()), m_VAOs.data());
@@ -54,18 +51,25 @@ namespace Rutile {
         m_VBOs.clear();
         m_EBOs.clear();
 
-        const size_t geometryCount = m_Scene.objects.size();
+        m_IndexCounts.clear();
+        m_Colours.clear();
+        m_Transforms.clear();
 
-        m_VAOs.resize(geometryCount);
-        m_VBOs.resize(geometryCount);
-        m_EBOs.resize(geometryCount);
+        // Store new Geometry
+        m_VAOs.resize(m_ObjectCount);
+        m_VBOs.resize(m_ObjectCount);
+        m_EBOs.resize(m_ObjectCount);
 
-        glGenVertexArrays(static_cast<GLsizei>(geometryCount), m_VAOs.data());
-        glGenBuffers(static_cast<GLsizei>(geometryCount), m_VBOs.data());
-        glGenBuffers(static_cast<GLsizei>(geometryCount), m_EBOs.data());
+        m_IndexCounts.resize(m_ObjectCount);
+        m_Colours.resize(m_ObjectCount);
+        m_Transforms.resize(m_ObjectCount);
 
-        for (size_t i = 0; i < geometryCount; ++i) {
-            const Mesh& mesh = m_Scene.objects[i].mesh;
+        glGenVertexArrays(static_cast<GLsizei>(m_ObjectCount), m_VAOs.data());
+        glGenBuffers(static_cast<GLsizei>(m_ObjectCount), m_VBOs.data());
+        glGenBuffers(static_cast<GLsizei>(m_ObjectCount), m_EBOs.data());
+
+        for (size_t i = 0; i < m_ObjectCount; ++i) {
+            const Mesh& mesh = scene.objects[i].mesh;
 
             std::vector<Vertex> vertices = mesh.vertices;
             std::vector<Index> indices = mesh.indices;
@@ -90,6 +94,38 @@ namespace Rutile {
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            m_IndexCounts[i] = indices.size();
+
+            m_Colours[i] = scene.objects[i].material->diffuse;
+
+            m_Transforms[i] = scene.objects[i].transform;
         }
+    }
+
+    void OpenGlSolidShading::CalculateProjectionMatrix(RenderTarget& target, const Camera& camera) {
+        static glm::ivec2 oldTargetSize{ };
+        static float oldFov{ };
+        static float oldNearPlane{ };
+        static float oldFarPlane{ };
+        static bool firstTime{ false };
+
+        if (!firstTime) {
+            oldTargetSize = target.GetSize();
+            oldFov = camera.fov;
+            oldNearPlane = camera.nearPlane;
+            oldFarPlane = camera.farPlane;
+
+            firstTime = true;
+        }
+
+        if (oldTargetSize != target.GetSize() || oldFov != camera.fov || oldNearPlane != camera.nearPlane || oldFarPlane != camera.farPlane) {
+            m_Projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
+        }
+
+        oldTargetSize = target.GetSize();
+        oldFov = camera.fov;
+        oldNearPlane = camera.nearPlane;
+        oldFarPlane = camera.farPlane;
     }
 }

@@ -32,10 +32,6 @@ namespace Rutile {
 
         virtual void UpdateSceneLight() { }
 
-        virtual void UpdateCameraPosition() { }
-        virtual void UpdateCameraDirection() { }
-        virtual void UpdateCameraFOV() { }
-
-        virtual void UpdateWindowSize() { };
+        virtual void UpdateViewportSize() { }
 	};
 }
