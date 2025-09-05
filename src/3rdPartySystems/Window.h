@@ -19,6 +19,8 @@ namespace Rutile {
 
 		bool IsOpen();
 
+		void SwapBuffers();
+
 		glm::ivec2 size{ };
 
 	private:

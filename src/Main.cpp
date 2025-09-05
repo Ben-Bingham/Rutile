@@ -10,6 +10,8 @@
 #include "SceneUtility/SceneManager.h"
 #include "Utility/TimeScope.h"
 
+#include "Scene/Camera.h"
+
 #include "imgui.h"
 
 using namespace Rutile;
@@ -56,12 +58,14 @@ int main() {
     targetTexture.Unbind();
     renderbuffer.Unbind();
 
+    Camera camera;
+
     while(window.IsOpen()) {
         //TimeScope frameTime{ &App::timingData.frameTime }; // TODO
 
         glfw.PollEvents();
         
-        //MoveCamera(); // TODO
+        MoveCamera();
 
         // TODO backup opengl state and then restore after
         renderer->Render(framebuffer);
