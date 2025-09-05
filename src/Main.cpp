@@ -18,7 +18,7 @@
 
 using namespace Rutile;
 
-void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition);
+void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize);
 
 int main() {
     GLFW glfw{ };
@@ -74,7 +74,9 @@ int main() {
 
         glfw.PollEvents();
         
-        MoveCamera(camera, window, Statics::mousePosition);
+        glm::ivec2 mousePositionWRTViewport{ Statics::mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - Statics::mousePosition.y) };
+
+        MoveCamera(camera, window, mousePositionWRTViewport, lastFrameViewportSize);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -136,13 +138,13 @@ int main() {
     }
 }
 
-void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition) {
+void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize) {
     static bool mouseDown{ false };
     static bool hasMoved{ false };
     static glm::ivec2 lastMousePosition{ };
 
     if (!hasMoved) {
-        lastMousePosition = mousePosition;
+        lastMousePosition = mousePositionWRTViewport;
         hasMoved = true;
     }
 
@@ -179,8 +181,8 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition)
 
     if (glfwGetMouseButton(window.Get(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
         if (mouseDown == false) {
-            lastMousePosition.x = mousePosition.x;
-            lastMousePosition.y = mousePosition.y;
+            lastMousePosition.x = mousePositionWRTViewport.x;
+            lastMousePosition.y = mousePositionWRTViewport.y;
         }
 
         mouseDown = true;
@@ -190,11 +192,18 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition)
         mouseDown = false;
     }
 
-    //bool mouseOverViewport // TODO
+    bool mouseOverViewport = mousePositionWRTViewport.x >= 0 && 
+                             mousePositionWRTViewport.y >= 0 &&
+                             mousePositionWRTViewport.x < viewportSize.x &&
+                             mousePositionWRTViewport.y < viewportSize.y;
 
-    if (mouseDown) {
-        const float xDelta = (float)mousePosition.x - (float)lastMousePosition.x;
-        const float yDelta = (float)mousePosition.y - (float)lastMousePosition.y;
+    if (!mouseOverViewport) {
+        hasMoved = false;
+    }
+
+    if (mouseDown && mouseOverViewport) {
+        const float xDelta = (float)mousePositionWRTViewport.x - (float)lastMousePosition.x;
+        const float yDelta = (float)mousePositionWRTViewport.y - (float)lastMousePosition.y;
 
         camera.yaw += xDelta * camera.lookSensitivity;
         camera.pitch += yDelta * camera.lookSensitivity;
@@ -211,7 +220,7 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition)
 
     if (mouseDown 
         //|| updateCameraVectors  // TODO add back if you can adjust camera from IMGUI
-        ) {
+        && mouseOverViewport) {
         camera.frontVector.x = cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
         camera.frontVector.y = sin(glm::radians(camera.pitch));
         camera.frontVector.z = sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch));
@@ -219,8 +228,8 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition)
 
         camera.rightVector = glm::normalize(glm::cross(camera.frontVector, camera.upVector));
 
-        lastMousePosition.x = mousePosition.x;
-        lastMousePosition.y = mousePosition.y;
+        lastMousePosition.x = mousePositionWRTViewport.x;
+        lastMousePosition.y = mousePositionWRTViewport.y;
 
         //App::updateCameraVectors = false;
     }
