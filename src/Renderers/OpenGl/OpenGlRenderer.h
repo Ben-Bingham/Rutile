@@ -32,7 +32,7 @@ namespace Rutile {
 
         void RenderCascadingShadowMaps();
 
-        void RenderScene(const Camera& camera);
+        void RenderScene(const Camera& camera, const glm::ivec2& viewportSize);
 
         std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
 

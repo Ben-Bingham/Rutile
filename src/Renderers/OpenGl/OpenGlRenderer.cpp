@@ -287,7 +287,7 @@ namespace Rutile {
         framebuffer.Bind();
         glViewport(0, 0, viewportSize.x, viewportSize.y);
 
-        RenderScene(camera);
+        RenderScene(camera, viewportSize);
 
         framebuffer.Unbind();
 
@@ -603,10 +603,7 @@ namespace Rutile {
         */
     }
 
-    void OpenGlRenderer::RenderScene(const Camera& camera) {
-        //framebuffer->Bind();
-        glViewport(0, 0, 800, 600);
-
+    void OpenGlRenderer::RenderScene(const Camera& camera, const glm::ivec2& viewportSize) {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -725,16 +722,14 @@ namespace Rutile {
                 */
             //}
             
-            m_Projection = glm::perspective(glm::radians(App::settings.fieldOfView), (float)App::screenWidth / (float)App::screenHeight, App::settings.nearPlane, App::settings.farPlane);
-            glm::mat4 mvp = m_Projection * camera.View() * transform;
+            glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)viewportSize.x / (float)viewportSize.y, camera.nearPlane, camera.farPlane);
+            glm::mat4 mvp = projection * camera.View() * transform;
 
             m_SolidShader->SetMat4("mvp", mvp);
 
             glBindVertexArray(m_VAOs[0]);
             glDrawElements(GL_TRIANGLES, (int)3, GL_UNSIGNED_INT, nullptr); // TODO 3
         }
-
-        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     std::vector<glm::vec4> OpenGlRenderer::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {

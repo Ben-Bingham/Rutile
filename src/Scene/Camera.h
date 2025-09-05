@@ -13,6 +13,11 @@ namespace Rutile {
         float pitch = 0.0f;
         float lookSensitivity = 0.25f;
 
+        float nearPlane = 0.05f;
+        float farPlane = 100.0f;
+
+        float fov = 60.0f;
+
         glm::mat4 View() const;
     };
 }

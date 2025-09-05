@@ -82,6 +82,7 @@ int main() {
         imGui.StartNewFrame();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
         //MainGuiWindow();
 
         ImGui::Begin("Sidebar");
@@ -115,7 +116,6 @@ int main() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture.Get(), 0);
-
 
             renderbuffer.Bind();
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, newViewportSize.x, newViewportSize.y);
@@ -189,6 +189,8 @@ void MoveCamera(Camera& camera, Window& window, const glm::ivec2& mousePosition)
     if (glfwGetMouseButton(window.Get(), GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
         mouseDown = false;
     }
+
+    //bool mouseOverViewport // TODO
 
     if (mouseDown) {
         const float xDelta = (float)mousePosition.x - (float)lastMousePosition.x;
