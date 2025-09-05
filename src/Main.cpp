@@ -36,12 +36,14 @@ int main() {
     renderer->SetScene(scene);
 
     // Create framebuffer that renderers render to
-    glm::ivec2 fbSize{ 800, 600 };
+    glm::ivec2 defaultFramebufferSize{ 800, 600 };
 
-    Framebuffer framebuffer{ };
-    framebuffer.Bind();
+    glm::ivec2 lastFrameViewportSize{ -1, -1 };
 
-    Texture2D targetTexture{ fbSize, TextureParameters{
+    Framebuffer rendererFramebuffer{ };
+    rendererFramebuffer.Bind();
+
+    Texture2D targetTexture{ defaultFramebufferSize, TextureParameters{
         TextureFormat::RGB,
         TextureStorageType::UNSIGNED_BYTE,
         TextureWrapMode::REPEAT,
@@ -50,19 +52,22 @@ int main() {
 
     targetTexture.Bind();
 
-    framebuffer.AddTexture(targetTexture, Framebuffer::TextureUses::COLOR_0);
+    rendererFramebuffer.AddTexture(targetTexture, Framebuffer::TextureUses::COLOR_0);
 
-    Renderbuffer renderbuffer{ fbSize };
+    Renderbuffer renderbuffer{ defaultFramebufferSize };
 
-    framebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+    rendererFramebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
 
-    framebuffer.Check("Renderer Buffer");
+    rendererFramebuffer.Check("Renderer Buffer");
 
-    framebuffer.Unbind();
+    rendererFramebuffer.Unbind();
     targetTexture.Unbind();
     renderbuffer.Unbind();
 
     Camera camera;
+
+    // The offset from the top left corner of the viewport to the top left corner of the window
+    glm::ivec2 viewportOffset{ };
 
     while(window.IsOpen()) {
         //TimeScope frameTime{ &App::timingData.frameTime }; // TODO
@@ -71,25 +76,55 @@ int main() {
         
         MoveCamera(camera, window, Statics::mousePosition);
 
-        // TODO backup opengl state and then restore after
-        renderer->Render(framebuffer, camera);
-
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         imGui.StartNewFrame();
 
+        //ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()); // TODO
         //MainGuiWindow();
 
         ImGui::Begin("Viewport");
 
-        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ 800.0f, 600.0f });
+        // Needs to be the first call after "Begin"
+        glm::ivec2 newViewportSize{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
+
+        // Render the last frame with the last frames viewport size
+        ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
+
+        //viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
         ImGui::End();
 
         renderer->ProvideGUI(); // TODO
 
         imGui.FinishFrame();
+
+        // After ImGui has rendered its frame, we resize the framebuffer if needed for next frame
+        if (newViewportSize != lastFrameViewportSize) {
+            rendererFramebuffer.Bind();
+
+            targetTexture.Bind();
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newViewportSize.x, newViewportSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture.Get(), 0);
+
+
+            renderbuffer.Bind();
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, newViewportSize.x, newViewportSize.y);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer.Get());
+
+            rendererFramebuffer.Unbind();
+            targetTexture.Unbind();
+            renderbuffer.Unbind();
+        }
+
+        // TODO backup opengl state and then restore after
+        // Render the next frames image
+        renderer->Render(rendererFramebuffer, newViewportSize, camera);
+
+        lastFrameViewportSize = newViewportSize;
 
         window.SwapBuffers();
     }

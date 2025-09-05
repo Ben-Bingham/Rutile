@@ -19,7 +19,7 @@ namespace Rutile {
         virtual ~Renderer() = default;
 
         // Called every frame, the renderer should render to the given framebuffer
-        virtual void Render(Framebuffer& framebuffer, const Camera& camera) = 0; // TODO maybe the frambebuffer is just bound and unbound before and after this call?
+        virtual void Render(Framebuffer& framebuffer, const glm::ivec2& viewportSize, const Camera& camera) = 0;
 
         // Called every frame, facilitates an ImGui gui
         virtual void ProvideGUI() { }

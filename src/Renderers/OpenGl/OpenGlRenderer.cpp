@@ -224,7 +224,7 @@ namespace Rutile {
         m_CascadingShadowMapVisualizationShader.reset();
     }
 
-    void OpenGlRenderer::Render(Framebuffer& framebuffer, const Camera& camera) {
+    void OpenGlRenderer::Render(Framebuffer& framebuffer, const glm::ivec2& viewportSize, const Camera& camera) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
         //}
@@ -285,6 +285,7 @@ namespace Rutile {
         //}
 
         framebuffer.Bind();
+        glViewport(0, 0, viewportSize.x, viewportSize.y);
 
         RenderScene(camera);
 
