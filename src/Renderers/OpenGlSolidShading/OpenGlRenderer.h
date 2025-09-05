@@ -22,7 +22,7 @@ namespace Rutile {
         OpenGlRenderer& operator=(OpenGlRenderer&& other) noexcept = default;
         ~OpenGlRenderer() override;
 
-        void Render(Framebuffer& framebuffer, const glm::ivec2& viewportSize, const Camera& camera) override;
+        void Render(RenderTarget& target, const Camera& camera) override;
 
         void SetScene(Scene& scene) override;
 

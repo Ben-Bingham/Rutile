@@ -16,14 +16,18 @@ namespace Rutile {
 		RenderTarget& operator=(RenderTarget&& other) noexcept = default;
 		~RenderTarget();
 
-		glm::ivec2 size;
 
 		void Resize(const glm::ivec2& newSize);
 
 		void Bind();
 		void Unbind();
 
-	//private:
+		glm::ivec2 GetSize();
+		Texture2D& GetTexture();
+
+	private:
+		glm::ivec2 m_Size;
+
 		Framebuffer m_Framebuffer;
 		Renderbuffer m_Renderbuffer;
 		Texture2D m_Texture;

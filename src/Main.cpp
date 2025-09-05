@@ -22,6 +22,8 @@
 
 #include "imgui.h"
 
+#include "Utility/OpenGl/RenderTarget.h"
+
 using namespace Rutile;
 
 int main() {
@@ -50,30 +52,7 @@ int main() {
     glm::ivec2 defaultFramebufferSize{ 800, 600 };
     glm::ivec2 lastFrameViewportSize{ defaultFramebufferSize };
 
-    Framebuffer rendererFramebuffer{ };
-
-    Texture2D targetTexture{ defaultFramebufferSize, TextureParameters{
-        TextureFormat::RGB,
-        TextureStorageType::UNSIGNED_BYTE,
-        TextureWrapMode::REPEAT,
-        TextureFilteringMode::LINEAR
-    } };
-
-    Renderbuffer renderbuffer{ defaultFramebufferSize };
-
-    rendererFramebuffer.Bind();
-
-    targetTexture.Bind();
-
-    rendererFramebuffer.AddTexture(targetTexture, Framebuffer::TextureUses::COLOR_0);
-
-    rendererFramebuffer.AddRenderbuffer(renderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
-
-    rendererFramebuffer.Check("Renderer Buffer");
-
-    rendererFramebuffer.Unbind();
-    targetTexture.Unbind();
-    renderbuffer.Unbind();
+    RenderTarget rendererTarget{ defaultFramebufferSize };
 
     Camera camera;
 
@@ -109,7 +88,7 @@ int main() {
 
             // TODO backup opengl state and then restore after
             // Render the current frames image using the last frames viewport size
-            if (renderer) renderer->Render(rendererFramebuffer, lastFrameViewportSize, camera);
+            if (renderer) renderer->Render(rendererTarget, camera);
         }
 
         glm::ivec2 mousePositionWRTViewport{ Statics::mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - Statics::mousePosition.y) };
@@ -167,7 +146,7 @@ int main() {
             newViewportSize = glm::ivec2{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
 
             // Display the frame with the last frames viewport size (The same size it was rendered with)
-            ImGui::Image((ImTextureID)targetTexture.Get(), ImVec2{ (float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y });
+            ImGui::Image((ImTextureID)rendererTarget.GetTexture().Get(), ImVec2{(float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y});
 
             viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
@@ -179,21 +158,7 @@ int main() {
 
         // After ImGui has rendered its frame, we resize the framebuffer if needed for next frame
         if (newViewportSize != lastFrameViewportSize) {
-            rendererFramebuffer.Bind();
-
-            targetTexture.Bind();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newViewportSize.x, newViewportSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture.Get(), 0);
-
-            renderbuffer.Bind();
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, newViewportSize.x, newViewportSize.y);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer.Get());
-
-            rendererFramebuffer.Unbind();
-            targetTexture.Unbind();
-            renderbuffer.Unbind();
+            rendererTarget.Resize(newViewportSize);
         }
 
         lastFrameViewportSize = newViewportSize;
