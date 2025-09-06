@@ -27,7 +27,7 @@ namespace Rutile {
         virtual void SetScene(Scene scene) { }
 
         // Optional callbacks inform the renderer of scene, camera, and window changes
-        virtual void UpdateObjectTransform() { }
+        virtual void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) { }
         virtual void UpdateObjectMaterial() { }
 
         virtual void UpdateSceneLight() { }

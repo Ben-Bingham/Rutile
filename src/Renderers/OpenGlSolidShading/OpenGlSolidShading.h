@@ -23,6 +23,8 @@ namespace Rutile {
 
         void SetScene(Scene scene) override;
 
+        void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
+
     private:
         // Shaders
         std::unique_ptr<Shader> m_SolidShader;

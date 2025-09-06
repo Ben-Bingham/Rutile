@@ -101,4 +101,8 @@ namespace Rutile {
             m_Transforms[i] = scene.objects[i].transform;
         }
     }
+
+    void OpenGlSolidShading::UpdateObjectTransform(size_t i, const glm::mat4& newTransform) {
+        m_Transforms[i] = newTransform;
+    }
 }

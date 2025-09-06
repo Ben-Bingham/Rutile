@@ -1,6 +1,10 @@
 #include <memory>
 #include <chrono>
 
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+
 #include "3rdPartySystems/GLFW.h"
 #include "3rdPartySystems/Window.h"
 #include "3rdPartySystems/GLEW.h"
@@ -24,6 +28,7 @@
 #include "imgui.h"
 
 #include "Utility/OpenGl/RenderTarget.h"
+#include "RenderingAPI/Transform.h"
 
 using namespace Rutile;
 
@@ -48,10 +53,12 @@ int main() {
 
     // The current scene type on any given frame
     SceneType currentSceneType{ SceneType::ORIGINAL_SCENE };
+    Scene scene{ };
 
     // If the scene type is changed part way through a frame, this values is updated to reflect the new type
     SceneType newSceneType{ currentSceneType };
-    bool resetScene{ true };
+    bool resetScene{ true }; // Fully regenerate the scene, loses all changes
+    bool reApplyScene{ true }; // Keep the scene data, just reload it into the renderer
 
     // Create framebuffer that renderers render to
     glm::ivec2 defaultFramebufferSize{ 800, 600 };
@@ -70,7 +77,7 @@ int main() {
 
     while (window.IsOpen()) {
         if (restartRenderer) {
-            resetScene = true;
+            reApplyScene = true;
 
             renderer.reset();
 
@@ -88,10 +95,19 @@ int main() {
         }
 
         if (resetScene) {
-            renderer->SetScene(SceneManager::GetScene(newSceneType));
+            scene = SceneManager::GetScene(newSceneType);
+            reApplyScene = true;
 
             currentSceneType = newSceneType;
             resetScene = false;
+
+            continue;
+        }
+
+        if (reApplyScene) {
+            renderer->SetScene(scene);
+
+            reApplyScene = false;
 
             continue;
         }
@@ -116,6 +132,8 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         imGui.StartNewFrame();
+
+        //ImGui::ShowDemoWindow();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
@@ -185,6 +203,67 @@ int main() {
         } ImGui::End(); // Sidebar
 
         { ImGui::Begin("Bottombar");
+            if (ImGui::CollapsingHeader("Objects", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGuiStyle& style = ImGui::GetStyle();
+                int objectCount = scene.objects.size();
+                ImVec2 button_sz(100, 100); // TODO
+                float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+                for (int n = 0; n < objectCount; n++) {
+                    ImGui::PushID(n);
+
+                    if (ImGui::Button(("Obj " + std::to_string(n)).c_str(), button_sz))
+                        ImGui::OpenPopup("obj_popup");
+                    if (ImGui::BeginPopup("obj_popup")) {
+                        glm::mat4 currentTransform = scene.objects[n].transform;
+
+                        glm::vec3 scale{ };
+                        glm::quat rotation{ };
+                        glm::vec3 translation{ };
+                        glm::vec3 skew{ };
+                        glm::vec4 perspective{ };
+
+                        bool success = glm::decompose(currentTransform, scale, rotation, translation, skew, perspective);
+
+                        if (success) {
+                            ImGui::Text("Transform");
+
+                            bool change{ false };
+                            if (ImGui::DragFloat3("Translation", glm::value_ptr(translation), 0.01f)) change = true;
+                            if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.01f)) change = true;
+                            if (ImGui::DragFloat4("Rotation", glm::value_ptr(rotation), 0.01f)) change = true;
+
+                            if (change) {
+                                if (scale.x < 0.001) scale.x = 0.001;
+                                if (scale.y < 0.001) scale.y = 0.001;
+                                if (scale.z < 0.001) scale.z = 0.001;
+
+                                Transform transform{ };
+                                transform.position = translation;
+                                transform.scale = scale;
+                                transform.rotation = rotation;
+
+                                transform.CalculateMatrix();
+
+                                scene.objects[n].transform = transform.matrix;
+                                renderer->UpdateObjectTransform((size_t)n, transform.matrix);
+                            }
+                        }
+                        else {
+                            ImGui::Text("Failed to decompose transform data");
+                        }
+
+                        ImGui::Text("Material");
+
+                        ImGui::EndPopup();
+                    }
+
+                    float last_button_x2 = ImGui::GetItemRectMax().x;
+                    float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
+                    if (n + 1 < objectCount && next_button_x2 < window_visible_x2)
+                        ImGui::SameLine();
+                    ImGui::PopID();
+                }
+            }
         } ImGui::End(); // Bottombar
 
         glm::ivec2 newViewportSize{ };

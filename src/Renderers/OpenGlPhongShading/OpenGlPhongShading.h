@@ -26,6 +26,8 @@ namespace Rutile {
 
         void SetScene(Scene scene) override;
 
+        void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
+
     private:
         glm::mat4 m_Projection{ 1.0f };
 

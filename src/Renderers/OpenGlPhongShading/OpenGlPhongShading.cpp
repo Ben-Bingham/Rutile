@@ -428,6 +428,10 @@ namespace Rutile {
         }
     }
 
+    void OpenGlPhongShading::UpdateObjectTransform(size_t i, const glm::mat4& newTransform) {
+        m_Transforms[i] = newTransform;
+    }
+
     void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
         /*
         if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
