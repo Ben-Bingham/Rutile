@@ -4,7 +4,7 @@
 
 namespace Rutile {
     OpenGlSolidShading::OpenGlSolidShading() {
-        m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
+        m_SolidShader = std::make_unique<Shader>("assets\\shaders\\OpenGlSolidShading\\solid.vert", "assets\\shaders\\OpenGlSolidShading\\solid.frag");
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
