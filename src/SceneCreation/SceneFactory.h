@@ -6,8 +6,8 @@
 #include "RenderingAPI/Light.h"
 #include "RenderingAPI/Transform.h"
 
-#include "Utility/GeometryFactory.h"
-#include "Utility/MaterialFactory.h"
+#include "GeometryFactory.h"
+#include "MaterialFactory.h"
 
 #include "Scene/Scene.h"
 

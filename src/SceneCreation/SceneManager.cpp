@@ -8,8 +8,8 @@
 
 #include "Settings/App.h"
 
-#include "Utility/MaterialFactory.h"
-#include "Utility/GeometryFactory.h"
+#include "MaterialFactory.h"
+#include "GeometryFactory.h"
 #include "Utility/Random.h"
 #include "Utility/RayTracing/AABBFactory.h"
 
@@ -25,9 +25,9 @@ namespace Rutile {
             case SceneType::TRIANGLE_SCENE: {
                 return GetTriangleScene();
             }
-            //case SceneType::ORIGINAL_SCENE: {
-            //    return GetOriginalScene();
-            //}
+            case SceneType::ORIGINAL_SCENE: {
+                return GetOriginalScene();
+            }
             //case SceneType::SHADOW_MAP_TESTING_SCENE: {
             //    return GetShadowMapTestingScene();
             //}
@@ -113,25 +113,11 @@ namespace Rutile {
             0.032
         };
 
-        //pointLight.position = glm::vec3{ 5.0f, 5.0f, 5.0f };
-
-        //pointLight.ambient = glm::vec3{ 1.0f, 1.0f, 1.0f };
-        //pointLight.diffuse = glm::vec3{ 0.8f, 0.8f, 0.8f };
-        //pointLight.specular = glm::vec3{ 0.05f, 0.05f, 0.05f };
-
-        //pointLight.constant = 1.0;
-        //pointLight.linear = 0.65;
-        //pointLight.quadratic = 0.032;
-
         sceneFactory.Add(pointLight);
-
-        //DirectionalLight dirLight{ }; // TODO
-        //sceneFactory.Add(dirLight);
 
         return sceneFactory.GetScene();
     }
 
-    /*
     Scene SceneManager::GetOriginalScene() {
         SceneFactory sceneFactory{ };
 
@@ -219,7 +205,7 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-
+    /*
     Scene SceneManager::GetShadowMapTestingScene() {
         SceneFactory sceneFactory{};
 

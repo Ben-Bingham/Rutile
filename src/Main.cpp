@@ -46,7 +46,7 @@ int main() {
     RendererType newRendererType{ currentRendererType };
     bool restartRenderer{ true };
 
-    Scene scene = SceneManager::GetScene(SceneType::TRIANGLE_SCENE);
+    Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
     //renderer->SetScene(scene);
 
     // Create framebuffer that renderers render to
@@ -134,6 +134,10 @@ int main() {
 
                 ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
                 ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
+            }
+
+            if (ImGui::CollapsingHeader("Scene Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
+
             }
 
         } ImGui::End(); // Sidebar
