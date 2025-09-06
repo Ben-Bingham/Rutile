@@ -33,11 +33,11 @@ namespace Rutile {
         }
         if (glfwGetKey(window.Get(), GLFW_KEY_SPACE) == GLFW_PRESS) {
             positionChange = true;
-            camera.position -= camera.upVector * velocity;
+            camera.position += camera.upVector * velocity;
         }
         if (glfwGetKey(window.Get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
             positionChange = true;
-            camera.position += camera.upVector * velocity;
+            camera.position -= camera.upVector * velocity;
         }
 
         if (glfwGetMouseButton(window.Get(), GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
@@ -64,7 +64,7 @@ namespace Rutile {
 
         if (mouseDown && mouseOverViewport) {
             const float xDelta = (float)mousePositionWRTViewport.x - (float)lastMousePosition.x;
-            const float yDelta = (float)mousePositionWRTViewport.y - (float)lastMousePosition.y;
+            const float yDelta = (float)lastMousePosition.y - (float)mousePositionWRTViewport.y;
 
             camera.yaw += xDelta * camera.lookSensitivity;
             camera.pitch += yDelta * camera.lookSensitivity;

@@ -152,7 +152,7 @@ int main() {
             newViewportSize = glm::ivec2{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
 
             // Display the frame with the last frames viewport size (The same size it was rendered with)
-            ImGui::Image((ImTextureID)rendererTarget.GetTexture().Get(), ImVec2{(float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y});
+            ImGui::Image((ImTextureID)rendererTarget.GetTexture().Get(), ImVec2{(float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y}, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 
             viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
