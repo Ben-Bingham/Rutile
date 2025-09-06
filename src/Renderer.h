@@ -28,7 +28,7 @@ namespace Rutile {
 
         // Optional callbacks inform the renderer of scene, camera, and window changes
         virtual void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) { }
-        virtual void UpdateObjectMaterial() { }
+        virtual void UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) { }
 
         virtual void UpdateSceneLight() { }
 

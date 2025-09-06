@@ -432,6 +432,16 @@ namespace Rutile {
         m_Transforms[i] = newTransform;
     }
 
+    void OpenGlPhongShading::UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) {
+        Phong phong{ };
+        phong.diffuse = newMaterial->diffuse;
+        phong.ambient = newMaterial->ambient;
+        phong.specular = newMaterial->specular;
+        phong.shininess = newMaterial->shininess;
+
+        m_Materials[i] = phong;
+    }
+
     void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
         /*
         if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {

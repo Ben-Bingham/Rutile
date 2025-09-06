@@ -96,7 +96,9 @@ namespace Rutile {
 
             m_IndexCounts[i] = indices.size();
 
-            m_Colours[i] = scene.objects[i].material->diffuse;
+            // TODO make this a weighted average, specular is too significant
+            m_Colours[i] = scene.objects[i].material->ambient + scene.objects[i].material->diffuse + scene.objects[i].material->specular;
+            m_Colours[i] /= 3.0f;
 
             m_Transforms[i] = scene.objects[i].transform;
         }
@@ -104,5 +106,10 @@ namespace Rutile {
 
     void OpenGlSolidShading::UpdateObjectTransform(size_t i, const glm::mat4& newTransform) {
         m_Transforms[i] = newTransform;
+    }
+
+    void OpenGlSolidShading::UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) {
+        m_Colours[i] = newMaterial->ambient + newMaterial->diffuse + newMaterial->specular;
+        m_Colours[i] /= 3.0f;
     }
 }

@@ -133,7 +133,7 @@ int main() {
 
         imGui.StartNewFrame();
 
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
@@ -214,6 +214,7 @@ int main() {
                     if (ImGui::Button(("Obj " + std::to_string(i)).c_str(), button_sz))
                         ImGui::OpenPopup("obj_popup");
                     if (ImGui::BeginPopup("obj_popup")) {
+                        // TODO transform editor modes: mode 1 current, mode 2 direct edit of the matrix
                         glm::mat4 currentTransform = scene.objects[i].transform;
 
                         glm::vec3 scale{ };
@@ -253,6 +254,21 @@ int main() {
                         }
 
                         ImGui::Text("Material");
+                        // TODO add a mode switch, mode 1 is just modifying the solid colour, 2 is modifying the phong colors, and 3 could be tinting textures
+                        // TODO for phong mode add a switch between settings ambient diffsue and specular seperatly and also by having ambient and specular being a percentage of diffuse
+                        std::shared_ptr<Material> material = scene.objects[i].material;
+
+                        bool change{ false };
+
+                        if (ImGui::ColorEdit3("Ambient", glm::value_ptr(material->ambient))) change = true;
+                        if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(material->diffuse))) change = true;
+                        if (ImGui::ColorEdit3("Specular", glm::value_ptr(material->specular))) change = true;
+
+                        if (ImGui::DragFloat("Shininess", &material->shininess)) change = true;
+
+                        if (change) {
+                            renderer->UpdateObjectMaterial(i, material);
+                        }
 
                         ImGui::EndPopup();
                     }
