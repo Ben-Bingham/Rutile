@@ -7,7 +7,7 @@
 namespace Rutile {
 	class Material {
 	public:
-        Material(glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular);
+        Material(glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular, float shininess);
         Material(const Material& other) = default;
         Material(Material&& other) noexcept = default;
         Material& operator=(const Material& other) = default;

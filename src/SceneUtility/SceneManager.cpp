@@ -82,7 +82,8 @@ namespace Rutile {
         std::shared_ptr<Material> redMat = std::make_shared<Material>(
             glm::vec3{ 1.0f, 0.0f, 0.0f },
             glm::vec3{ 0.8f, 0.0f, 0.0f },
-            glm::vec3{ 0.1f, 0.0f, 0.0f }
+            glm::vec3{ 0.1f, 0.0f, 0.0f },
+            32.0f
         );
 
         Mesh mesh{ };

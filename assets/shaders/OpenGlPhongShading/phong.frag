@@ -141,15 +141,28 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
     
+    PointLight pointLight;
+    pointLight.position = vec3(5.0, 5.0, 5.0);
+
+    pointLight.ambient = vec3(1.0, 1.0, 1.0);
+    pointLight.diffuse = vec3(0.8, 0.8, 0.8);
+    pointLight.specular = vec3(0.05, 0.05, 0.05);
+
+    pointLight.constant = 1.0;
+    pointLight.linear = 0.65;
+    pointLight.quadratic = 0.032;
+
+    //for (int i = 0; i < pointLightCount; ++i) {
+        //float shadow = 0.0;
+        //if (omnidirectionalShadowMaps) {
+          //  shadow = calculateOmnidirectionalShadow(i, fragPosition);
+        //}
+        //result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
+    //}
+    result += pointLightAddition(pointLight, norm, viewDir, 0.0);
+
     /*
-    for (int i = 0; i < pointLightCount; ++i) {
-        float shadow = 0.0;
-        if (omnidirectionalShadowMaps) {
-            shadow = calculateOmnidirectionalShadow(i, fragPosition);
-        }
-        result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
-    }
-    
+
     float shadow = calculateDirectionalShadow();
     if (haveDirectionalLight) {
         float shadow = 0.0;
@@ -163,7 +176,7 @@ void main() {
     result = LinearToGamma(result);
 
     outFragColor = vec4(result, 1.0);
-    outFragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    //outFragColor = vec4(norm, 1.0);
 }
 
 vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
