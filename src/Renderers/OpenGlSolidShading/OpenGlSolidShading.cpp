@@ -38,7 +38,7 @@ namespace Rutile {
         target.Unbind();
     }
 
-    void OpenGlSolidShading::SetScene(Scene& scene) {
+    void OpenGlSolidShading::SetScene(Scene scene) {
         m_ObjectCount = scene.objects.size();
 
         // Clean up old objects

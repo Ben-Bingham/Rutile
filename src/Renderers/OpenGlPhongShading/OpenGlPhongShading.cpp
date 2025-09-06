@@ -284,7 +284,7 @@ namespace Rutile {
         //return targetTexture;
     }
 
-    void OpenGlPhongShading::SetScene(Scene& scene) {
+    void OpenGlPhongShading::SetScene(Scene scene) {
         // Lights
         m_PointLights.clear();
 

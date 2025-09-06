@@ -24,7 +24,7 @@ namespace Rutile {
 
         void Render(RenderTarget& target, const Camera& camera) override;
 
-        void SetScene(Scene& scene) override;
+        void SetScene(Scene scene) override;
 
     private:
         glm::mat4 m_Projection{ 1.0f };

@@ -24,7 +24,7 @@ namespace Rutile {
         virtual void ProvideGUI() { }
 
         // Replaces the entire old scene with a new one
-        virtual void SetScene(Scene& scene) { }
+        virtual void SetScene(Scene scene) { }
 
         // Optional callbacks inform the renderer of scene, camera, and window changes
         virtual void UpdateObjectTransform() { }

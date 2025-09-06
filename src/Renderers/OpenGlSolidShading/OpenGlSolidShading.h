@@ -21,7 +21,7 @@ namespace Rutile {
 
         void Render(RenderTarget& target, const Camera& camera) override;
 
-        void SetScene(Scene& scene) override;
+        void SetScene(Scene scene) override;
 
     private:
         // Shaders

@@ -46,8 +46,12 @@ int main() {
     RendererType newRendererType{ currentRendererType };
     bool restartRenderer{ true };
 
-    Scene scene = SceneManager::GetScene(SceneType::ORIGINAL_SCENE);
-    //renderer->SetScene(scene);
+    // The current scene type on any given frame
+    SceneType currentSceneType{ SceneType::ORIGINAL_SCENE };
+
+    // If the scene type is changed part way through a frame, this values is updated to reflect the new type
+    SceneType newSceneType{ currentSceneType };
+    bool resetScene{ true };
 
     // Create framebuffer that renderers render to
     glm::ivec2 defaultFramebufferSize{ 800, 600 };
@@ -66,6 +70,8 @@ int main() {
 
     while (window.IsOpen()) {
         if (restartRenderer) {
+            resetScene = true;
+
             renderer.reset();
 
             TimeScope rendererStartupTimescope{ &rendererStartupTime };
@@ -75,10 +81,19 @@ int main() {
                 case RendererType::OPENGL_PHONG_SHADING: renderer = std::make_unique<OpenGlPhongShading>(); break;
             }
 
-            renderer->SetScene(scene);
-
             currentRendererType = newRendererType;
             restartRenderer = false;
+
+            continue;
+        }
+
+        if (resetScene) {
+            renderer->SetScene(SceneManager::GetScene(newSceneType));
+
+            currentSceneType = newSceneType;
+            resetScene = false;
+
+            continue;
         }
 
         TimeScope frameTimeScope{ &frameTime };
@@ -104,9 +119,15 @@ int main() {
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-        //MainGuiWindow();
-
         { ImGui::Begin("Sidebar");
+            if (ImGui::CollapsingHeader("Timing Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text(std::string{ "Renderer Startup Time: " + ChronoTimeToString(rendererStartupTime) }.c_str());
+                ImGui::Separator();
+
+                ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
+                ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
+            }
+
             if (ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
 
                 if (ImGui::Button("Restart Renderer")) {
@@ -128,16 +149,37 @@ int main() {
                 }
             }
 
-            if (ImGui::CollapsingHeader("Timing Statistics", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Text(std::string{ "Renderer Startup Time: " + ChronoTimeToString(rendererStartupTime) }.c_str());
-                ImGui::Separator();
-
-                ImGui::Text(std::string{ "Frame Time: " + ChronoTimeToString(frameTime) }.c_str());
-                ImGui::Text(std::string{ "Render Time: " + ChronoTimeToString(renderTime) }.c_str());
-            }
-
             if (ImGui::CollapsingHeader("Scene Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
+                SceneType tempSceneType{ currentSceneType };
 
+                RadioButtons(
+                    "Select Scene",
+                    {
+                        "Hello Triangle",
+                        "Original Scene",
+                        "Shadow map Testing Scene",
+                        "Omnidirectional Shadow map Testing Scene",
+                        "Double Point Light Test Scene",
+                        "All Spheres",
+                        "Spheres on Spheres",
+                        "Hollow Glass Sphere",
+                        "Ray Tracing In One Weekend",
+                        "Cornell Box",
+                        "Backpack",
+                        "Cornell Box 2.0",
+                        "8K Triangle Dragon",
+                        "80K Triangle Dragon",
+                        "800K Triangle Dragon",
+                        "Sports Car Front 3/4",
+                        "Minecraft World"
+                    },
+                    (int*)&tempSceneType
+                );
+
+                if (tempSceneType != currentSceneType) {
+                    resetScene = true;
+                    newSceneType = tempSceneType;
+                }
             }
 
         } ImGui::End(); // Sidebar
