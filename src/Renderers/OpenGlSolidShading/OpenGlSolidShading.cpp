@@ -16,8 +16,6 @@ namespace Rutile {
     }
 
     void OpenGlSolidShading::Render(RenderTarget& target, const Camera& camera) {
-        CalculateProjectionMatrix(target, camera);
-
         target.Bind();
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -28,7 +26,8 @@ namespace Rutile {
         for (size_t i = 0; i < m_ObjectCount; ++i) {
             m_SolidShader->SetVec3("color", m_Colours[i]);
    
-            glm::mat4 mvp = m_Projection * camera.View() * m_Transforms[i];
+            glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
+            glm::mat4 mvp = projection * camera.View() * m_Transforms[i];
 
             m_SolidShader->SetMat4("mvp", mvp);
 
@@ -101,31 +100,5 @@ namespace Rutile {
 
             m_Transforms[i] = scene.objects[i].transform;
         }
-    }
-
-    void OpenGlSolidShading::CalculateProjectionMatrix(RenderTarget& target, const Camera& camera) {
-        static glm::ivec2 oldTargetSize{ };
-        static float oldFov{ };
-        static float oldNearPlane{ };
-        static float oldFarPlane{ };
-        static bool firstTime{ false };
-
-        if (!firstTime) {
-            oldTargetSize = target.GetSize();
-            oldFov = camera.fov;
-            oldNearPlane = camera.nearPlane;
-            oldFarPlane = camera.farPlane;
-
-            firstTime = true;
-        }
-
-        if (oldTargetSize != target.GetSize() || oldFov != camera.fov || oldNearPlane != camera.nearPlane || oldFarPlane != camera.farPlane) {
-            m_Projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
-        }
-
-        oldTargetSize = target.GetSize();
-        oldFov = camera.fov;
-        oldNearPlane = camera.nearPlane;
-        oldFarPlane = camera.farPlane;
     }
 }

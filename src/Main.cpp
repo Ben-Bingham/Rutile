@@ -8,6 +8,7 @@
 
 #include "Renderers/RendererType.h"
 #include "renderers/OpenGlSolidShading/OpenGlSolidShading.h"
+#include "renderers/OpenGlPhongShading/OpenGlPhongShading.h"
 
 #include "SceneUtility/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -39,7 +40,7 @@ int main() {
     std::unique_ptr<Renderer> renderer{ };
 
     // The current renderer type on any given frame
-    RendererType currentRendererType{ RendererType::OPENGL_SOLID_SHADING };
+    RendererType currentRendererType{ RendererType::OPENGL_PHONG_SHADING };
 
     // If the renderer type is changed part way through a frame, this values is updated to reflect the new type
     RendererType newRendererType{ currentRendererType };
@@ -70,7 +71,8 @@ int main() {
             TimeScope rendererStartupTimescope{ &rendererStartupTime };
 
             switch (newRendererType) {
-                case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlSolidShading>();
+                case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlSolidShading>(); break;
+                case RendererType::OPENGL_PHONG_SHADING: renderer = std::make_unique<OpenGlPhongShading>(); break;
             }
 
             renderer->SetScene(scene);
@@ -112,11 +114,11 @@ int main() {
                     newRendererType = currentRendererType;
                 }
 
-                RendererType tempRendererType{ };
+                RendererType tempRendererType{ currentRendererType };
 
                 RadioButtons(
                     "Select Renderer",
-                    { "OpenGl Solid Shading" },
+                    { "OpenGl Solid Shading", "OpenGl Phong Shading"},
                     (int*)&tempRendererType
                 );
 

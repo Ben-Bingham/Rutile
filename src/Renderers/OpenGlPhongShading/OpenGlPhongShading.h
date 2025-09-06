@@ -13,20 +13,21 @@
 #include "Utility/OpenGl/Renderbuffer.h"
 
 namespace Rutile {
-	class OpenGlPhong : public Renderer {
+	class OpenGlPhongShading : public Renderer {
 	public:
-        OpenGlPhong();
-        OpenGlPhong(const OpenGlPhong& other) = delete;
-        OpenGlPhong(OpenGlPhong&& other) noexcept = default;
-        OpenGlPhong& operator=(const OpenGlPhong& other) = delete;
-        OpenGlPhong& operator=(OpenGlPhong&& other) noexcept = default;
-        ~OpenGlPhong() override;
+        OpenGlPhongShading();
+        OpenGlPhongShading(const OpenGlPhongShading& other) = delete;
+        OpenGlPhongShading(OpenGlPhongShading&& other) noexcept = default;
+        OpenGlPhongShading& operator=(const OpenGlPhongShading& other) = delete;
+        OpenGlPhongShading& operator=(OpenGlPhongShading&& other) noexcept = default;
+        ~OpenGlPhongShading() override;
 
         void Render(RenderTarget& target, const Camera& camera) override;
 
         void SetScene(Scene& scene) override;
 
     private:
+        glm::mat4 m_Projection{ 1.0f };
 
         void RenderOmnidirectionalShadowMaps();
 
@@ -52,7 +53,6 @@ namespace Rutile {
 
     private:
 
-        glm::mat4 m_Projection { 1.0f };
 
         // Shaders
         std::unique_ptr<Shader> m_PhongShader;
@@ -116,12 +116,22 @@ namespace Rutile {
         //void VisualizeShadowCascades();
         //void VisualizeCascadeLights();
 
+        struct Phong {
+            glm::vec3 diffuse{ };
+            glm::vec3 ambient{ };
+            glm::vec3 specular{ };
+            float shininess{ };
+        };
+
         // Objects
         size_t m_ObjectCount;
 
         std::vector<unsigned int> m_VAOs;
         std::vector<unsigned int> m_VBOs;
         std::vector<unsigned int> m_EBOs;
+        std::vector<int> m_IndexCounts;
+        std::vector<Phong> m_Materials;
+        std::vector<glm::mat4> m_Transforms;
 
         // Shadow Map
         //unsigned int m_DepthMapFBO;

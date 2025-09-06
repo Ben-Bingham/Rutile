@@ -141,6 +141,7 @@ void main() {
     vec3 norm = normalize(normal);
     vec3 viewDir = normalize(cameraPosition - fragPosition);
     
+    /*
     for (int i = 0; i < pointLightCount; ++i) {
         float shadow = 0.0;
         if (omnidirectionalShadowMaps) {
@@ -158,10 +159,11 @@ void main() {
     
         result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
     }
-    
+    */
     result = LinearToGamma(result);
 
     outFragColor = vec4(result, 1.0);
+    outFragColor = vec4(1.0, 1.0, 0.0, 1.0);
 }
 
 vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {

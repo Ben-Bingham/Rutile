@@ -24,10 +24,6 @@ namespace Rutile {
         void SetScene(Scene& scene) override;
 
     private:
-        void CalculateProjectionMatrix(RenderTarget& target, const Camera& camera);
-
-        glm::mat4 m_Projection{ 1.0f };
-
         // Shaders
         std::unique_ptr<Shader> m_SolidShader;
 

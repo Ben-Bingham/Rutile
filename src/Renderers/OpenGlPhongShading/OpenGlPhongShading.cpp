@@ -1,4 +1,4 @@
-#include "OpenGlPhong.h"
+#include "OpenGlPhongShading.h"
 #include "Settings/App.h"
 #include "imgui.h"
 
@@ -16,215 +16,202 @@
 #include "Utility/OpenGl/GLDebug.h"
 
 namespace Rutile {
-    OpenGlPhong::OpenGlPhong() {
-        // Shaders
-        m_SolidShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\solid.vert", "assets\\shaders\\renderers\\OpenGl\\solid.frag");
-        m_PhongShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\phong.vert", "assets\\shaders\\renderers\\OpenGl\\phong.frag");
+    OpenGlPhongShading::OpenGlPhongShading() {
+        m_PhongShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\phong.vert", "assets\\shaders\\OpenGlPhongShading\\phong.frag");
 
-        m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
-        m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
-        m_CascadingShadowMapShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.geom");
-        m_CascadingShadowMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.frag");
+        //m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
+        //m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
 
-        // Omnidirectional Shadow maps
-        glGenFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
+        //m_CascadingShadowMapShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.geom");
+        //m_CascadingShadowMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.frag");
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //// Omnidirectional Shadow maps
+        //glGenFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
 
-        // Cubemap Visualization
-        glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+        //glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
+        //glDrawBuffer(GL_NONE);
+        //glReadBuffer(GL_NONE);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+        //// Cubemap Visualization
+        //glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
+        //glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        //glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
+        //glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
+        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        ////glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 
-        //framebuffer = std::make_unique<Framebuffer>();
+        ////framebuffer = std::make_unique<Framebuffer>();
 
-        //framebuffer->Bind();
+        ////framebuffer->Bind();
 
-        //targetTexture = std::make_shared<Texture2D>(fbSize, TextureParameters{
-        //    TextureFormat::RGB,
-        //    TextureStorageType::UNSIGNED_BYTE,
-        //    TextureWrapMode::REPEAT,
-        //    TextureFilteringMode::LINEAR
-        //});
+        ////targetTexture = std::make_shared<Texture2D>(fbSize, TextureParameters{
+        ////    TextureFormat::RGB,
+        ////    TextureStorageType::UNSIGNED_BYTE,
+        ////    TextureWrapMode::REPEAT,
+        ////    TextureFilteringMode::LINEAR
+        ////});
 
-        //targetTexture->Bind();
+        ////targetTexture->Bind();
 
-        //Texture2D& tex = *targetTexture.get();
+        ////Texture2D& tex = *targetTexture.get();
 
-        //framebuffer->AddTexture(tex, Framebuffer::TextureUses::COLOR_0);
+        ////framebuffer->AddTexture(tex, Framebuffer::TextureUses::COLOR_0);
 
-        //renderbuffer = std::make_unique<Renderbuffer>(fbSize);
+        ////renderbuffer = std::make_unique<Renderbuffer>(fbSize);
 
-        //framebuffer->AddRenderbuffer(*renderbuffer.get(), Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+        ////framebuffer->AddRenderbuffer(*renderbuffer.get(), Framebuffer::RenderbufferUses::DEPTH_STENCIL);
 
-        //auto result = framebuffer->Check();
-        //if (!result) {
-        //    std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
+        ////auto result = framebuffer->Check();
+        ////if (!result) {
+        ////    std::cout << "ERROR, Framebuffer is not complete, result is: " << result << std::endl;
+        ////}
+        ////
+        ////framebuffer->Unbind();
+        ////glBindTexture(GL_TEXTURE_2D, 0);
+        ////renderbuffer->Unbind();
+
+
+        //// Target framebuffer
+        ////glGenFramebuffers(1, &targetFBO);
+        ////glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
+
+        ////glGenRenderbuffers(1, &targetRBO);
+        ////glBindRenderbuffer(GL_RENDERBUFFER, targetRBO);
+        ////glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, targetRBO, 0);
+        ////glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, targetRBO);
+
+        ////targetTexture = std::make_shared<Texture2D>(glm::ivec2{ 100, 100 });
+
+        ////glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture->Get(), 0);
+
+        ////glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        ////glBindTexture(GL_TEXTURE_2D, 0);
+        ////glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+
+
+
+
+        ///*glGenFramebuffers(1, &m_DepthMapFBO);
+
+        //glGenTextures(1, &m_ShadowMapTexture);
+        //glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        //float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        //glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapTexture, 0);
+
+        //glDrawBuffer(GL_NONE);
+        //glReadBuffer(GL_NONE);
+
+        //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        //    std::cout << "ERROR: Shadow map frame buffer is not complete" << std::endl;
         //}
-        //
-        //framebuffer->Unbind();
-        //glBindTexture(GL_TEXTURE_2D, 0);
-        //renderbuffer->Unbind();
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // Target framebuffer
-        //glGenFramebuffers(1, &targetFBO);
-        //glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
 
-        //glGenRenderbuffers(1, &targetRBO);
-        //glBindRenderbuffer(GL_RENDERBUFFER, targetRBO);
-        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, targetRBO, 0);
-        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, targetRBO);
 
-        //targetTexture = std::make_shared<Texture2D>(glm::ivec2{ 100, 100 });
+        //*/
 
-        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTexture->Get(), 0);
+        //// Cascading Shadow maps
+        //glGenFramebuffers(1, &m_CascadingShadowMapFBO);
+
+        //glGenTextures(1, &m_CascadingShadowMapTexture);
+        //glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
+        //glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+        //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+        //constexpr float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        //glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, m_CascadingShadowMapFBO);
+        //glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_CascadingShadowMapTexture, 0);
+        //glDrawBuffer(GL_NONE);
+        //glReadBuffer(GL_NONE);
+
+        //int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        //if (status != GL_FRAMEBUFFER_COMPLETE) {
+        //    std::cout << "Error: Framebuffer is not complete" << std::endl;
+        //}
+
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //// Cascading Shadow map Visualization
+        //glGenFramebuffers(1, &m_ShadowCascadesVisualizationFBO);
+        //glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
+
+        //glGenTextures(1, &m_ShadowCascadesVisualizationTexture);
+        //glBindTexture(GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture);
+
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture, 0);
+
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        //glGenRenderbuffers(1, &m_ShadowCascadesVisualizationRBO);
+        //glBindRenderbuffer(GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
+
+        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
+        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
+
+        //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        //    std::cout << "ERROR: Cascading shadow map visualization framebuffer is not complete" << std::endl;
+        //}
 
         //glBindFramebuffer(GL_FRAMEBUFFER, 0);
         //glBindTexture(GL_TEXTURE_2D, 0);
         //glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-
-
-
-
-
-        /*glGenFramebuffers(1, &m_DepthMapFBO);
-
-        glGenTextures(1, &m_ShadowMapTexture);
-        glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, m_DirectionalShadowMapWidth, m_DirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapTexture, 0);
-
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Shadow map frame buffer is not complete" << std::endl;
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-
-        */
-
-        // Cascading Shadow maps
-        glGenFramebuffers(1, &m_CascadingShadowMapFBO);
-
-        glGenTextures(1, &m_CascadingShadowMapTexture);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, m_CascadingShadowMapTexture);
-        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, m_CascadingShadowMapWidth, m_CascadingShadowMapHeight, (int)m_CascadeCount, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-        constexpr float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, m_CascadingShadowMapFBO);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_CascadingShadowMapTexture, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-
-        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "Error: Framebuffer is not complete" << std::endl;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Cascading Shadow map Visualization
-        glGenFramebuffers(1, &m_ShadowCascadesVisualizationFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
-
-        glGenTextures(1, &m_ShadowCascadesVisualizationTexture);
-        glBindTexture(GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ShadowCascadesVisualizationTexture, 0);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight, 0, GL_RGB, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glGenRenderbuffers(1, &m_ShadowCascadesVisualizationRBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
-
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CascadeVisualizationWidth, m_CascadeVisualizationHeight);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ShadowCascadesVisualizationRBO);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Cascading shadow map visualization framebuffer is not complete" << std::endl;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        // OpenGl settings
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
     }
 
-    OpenGlPhong::~OpenGlPhong() {
+    OpenGlPhongShading::~OpenGlPhongShading() {
         glDisable(GL_CULL_FACE);
         glDisable(GL_DEPTH_TEST);
 
-        // Cascading Shadow maps
-        glDeleteTextures(1, &m_CascadingShadowMapTexture);
-        glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
+        //// Cascading Shadow maps
+        //glDeleteTextures(1, &m_CascadingShadowMapTexture);
+        //glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
 
-        // Cubemap Visualization
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
+        //// Cubemap Visualization
+        //for (auto& texture : m_CubeMapVisualizationTextures) {
+        //    glDeleteTextures(1, &texture);
+        //}
 
-        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
+        //glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
+        //glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
 
-        // Omnidirectional Shadow maps
-        for (const auto& cubeMap : m_PointLightCubeMaps) {
-            glDeleteTextures(1, &cubeMap);
-        }
+        //// Omnidirectional Shadow maps
+        //for (const auto& cubeMap : m_PointLightCubeMaps) {
+        //    glDeleteTextures(1, &cubeMap);
+        //}
 
-        glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
-
-        // Shaders
-        m_SolidShader.reset();
-        m_PhongShader.reset();
-
-        m_OmnidirectionalShadowMappingShader.reset();
-        m_CubeMapVisualizationShader.reset();
-
-        m_CascadingShadowMapShader.reset();
-        m_CascadingShadowMapVisualizationShader.reset();
+        //glDeleteFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
     }
 
-    void OpenGlPhong::Render(RenderTarget& target, const Camera& camera) {
+    void OpenGlPhongShading::Render(RenderTarget& target, const Camera& camera) {
         //if (App::settings.frontFace == WindingOrder::COUNTER_CLOCK_WISE) {
         //    glFrontFace(GL_CCW);
         //}
@@ -284,12 +271,7 @@ namespace Rutile {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
         //}
 
-        framebuffer.Bind();
-        glViewport(0, 0, viewportSize.x, viewportSize.y);
-
-        RenderScene(camera, viewportSize);
-
-        framebuffer.Unbind();
+        RenderScene(target, camera);
 
         //if (App::settings.visualizeCascades) {
         //    //VisualizeShadowCascades();
@@ -299,13 +281,11 @@ namespace Rutile {
         //    //VisualizeCascadeLights();
         //}
 
-
-
         //return targetTexture;
     }
 
-    void OpenGlPhong::SetScene(Scene& scene) {
-        m_Scene = scene;
+    void OpenGlPhongShading::SetScene(Scene& scene) {
+        //m_Scene = scene;
         /*
         // Lights
 
@@ -371,7 +351,9 @@ namespace Rutile {
 
         // Geometry
 
-        // Clean up old Geometry
+        m_ObjectCount = scene.objects.size();
+
+        // Clean up old objects
         glDeleteBuffers(static_cast<GLsizei>(m_EBOs.size()), m_EBOs.data());
         glDeleteBuffers(static_cast<GLsizei>(m_VBOs.size()), m_VBOs.data());
         glDeleteVertexArrays(static_cast<GLsizei>(m_VAOs.size()), m_VAOs.data());
@@ -380,18 +362,25 @@ namespace Rutile {
         m_VBOs.clear();
         m_EBOs.clear();
 
-        const size_t geometryCount = m_Scene.objects.size();
+        m_IndexCounts.clear();
+        m_Materials.clear();
+        m_Transforms.clear();
 
-        m_VAOs.resize(geometryCount);
-        m_VBOs.resize(geometryCount);
-        m_EBOs.resize(geometryCount);
+        // Store new Geometry
+        m_VAOs.resize(m_ObjectCount);
+        m_VBOs.resize(m_ObjectCount);
+        m_EBOs.resize(m_ObjectCount);
 
-        glGenVertexArrays(static_cast<GLsizei>(geometryCount), m_VAOs.data());
-        glGenBuffers(static_cast<GLsizei>(geometryCount), m_VBOs.data());
-        glGenBuffers(static_cast<GLsizei>(geometryCount), m_EBOs.data());
+        m_IndexCounts.resize(m_ObjectCount);
+        m_Materials.resize(m_ObjectCount);
+        m_Transforms.resize(m_ObjectCount);
 
-        for (size_t i = 0; i < geometryCount; ++i) {
-            const Mesh& mesh = m_Scene.objects[i].mesh;
+        glGenVertexArrays(static_cast<GLsizei>(m_ObjectCount), m_VAOs.data());
+        glGenBuffers(static_cast<GLsizei>(m_ObjectCount), m_VBOs.data());
+        glGenBuffers(static_cast<GLsizei>(m_ObjectCount), m_EBOs.data());
+
+        for (size_t i = 0; i < m_ObjectCount; ++i) {
+            const Mesh& mesh = scene.objects[i].mesh;
 
             std::vector<Vertex> vertices = mesh.vertices;
             std::vector<Index> indices = mesh.indices;
@@ -416,10 +405,19 @@ namespace Rutile {
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            m_IndexCounts[i] = indices.size();
+
+            m_Materials[i].diffuse = scene.objects[i].material->diffuse;
+            m_Materials[i].ambient = scene.objects[i].material->ambient;
+            m_Materials[i].specular = scene.objects[i].material->specular;
+            m_Materials[i].shininess = scene.objects[i].material->shininess;
+
+            m_Transforms[i] = scene.objects[i].transform;
         }
     }
 
-    void OpenGlPhong::RenderOmnidirectionalShadowMaps() {
+    void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
         /*
         if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
             glCullFace(GL_FRONT);
@@ -478,7 +476,7 @@ namespace Rutile {
         */
     }
 
-    void OpenGlPhong::RenderCascadingShadowMaps() {
+    void OpenGlPhongShading::RenderCascadingShadowMaps() {
         /*
         float distance = abs(App::settings.farPlane - App::settings.nearPlane);
 
@@ -603,136 +601,134 @@ namespace Rutile {
         */
     }
 
-    void OpenGlPhong::RenderScene(RenderTarget& target, const Camera& camera) {
+    void OpenGlPhongShading::RenderScene(RenderTarget& target, const Camera& camera) {
+        target.Bind();
+
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (App::settings.culledFaceDuringRendering == GeometricFace::FRONT) {
-            glCullFace(GL_FRONT);
-        }
-        else {
-            glCullFace(GL_BACK);
-        }
+        m_PhongShader->Bind();
 
+        for (size_t i = 0; i < m_ObjectCount; ++i) {
+            m_PhongShader->SetVec3("phong.ambient", m_Materials[i].ambient);
+            m_PhongShader->SetVec3("phong.diffuse", m_Materials[i].diffuse);
+            m_PhongShader->SetVec3("phong.specular", m_Materials[i].specular);
+            m_PhongShader->SetFloat("phong.shininess", m_Materials[i].shininess);
+
+            m_PhongShader->SetMat4("model", m_Transforms[i]);
+
+            //m_PhongShader->SetVec3("cameraPosition", App::camera.position);
+
+            //m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
+
+            glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
+            glm::mat4 mvp = projection * camera.View() * m_Transforms[i];
+
+            m_PhongShader->SetMat4("mvp", mvp);
+
+            glBindVertexArray(m_VAOs[i]);
+            glDrawElements(GL_TRIANGLES, m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+        }
+        /*
         for (const auto& object : m_Scene.objects) {
-            //Shader* shaderProgram = nullptr;
-
-            //Transform& transform = App::scene.transformBank[object.transform];
             glm::mat4 transform = object.transform;
 
             std::shared_ptr<Material> mat = object.material;
 
-            //switch (m_MaterialTypes[i]) {
-                //case MaterialType::SOLID: {
-                    //Solid* solid = dynamic_cast<Solid*>(m_Materials[i]);
+            Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
 
-                    //shaderProgram = m_SolidShader.get();
-                       m_SolidShader->Bind();
+            //m_PhongShader->SetVec3("phong.ambient", phong->ambient);
+            //m_PhongShader->SetVec3("phong.diffuse", phong->diffuse);
+            //m_PhongShader->SetVec3("phong.specular", phong->specular);
 
-                       m_SolidShader->SetVec4("color", glm::vec4{ mat->diffuse.x, mat->diffuse.y, mat->diffuse.z, 1.0f });
-                    //break;
-                //}
-                /*
-                case MaterialType::PHONG: {
-                    Phong* phong = dynamic_cast<Phong*>(m_Materials[i]);
+            m_PhongShader->SetFloat("phong.shininess", phong->shininess);
 
-                    shaderProgram = m_PhongShader.get();
-                    shaderProgram->Bind();
+            shaderProgram->SetMat4("model", m_Transforms[i]->matrix);
 
-                    m_PhongShader->SetVec3("phong.ambient", phong->ambient);
-                    m_PhongShader->SetVec3("phong.diffuse", phong->diffuse);
-                    m_PhongShader->SetVec3("phong.specular", phong->specular);
+            m_PhongShader->SetVec3("cameraPosition", App::camera.position);
 
-                    m_PhongShader->SetFloat("phong.shininess", phong->shininess);
+            m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
 
-                    shaderProgram->SetMat4("model", m_Transforms[i]->matrix);
-
-                    m_PhongShader->SetVec3("cameraPosition", App::camera.position);
-
-                    m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
-
-                    // Lighting
-                    m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
-                    for (size_t j = 0; j < m_PointLights.size(); ++j) {
-                        if (m_PointLights[j] == nullptr) {
-                            continue;
-                        }
-
-                        std::string prefix = "pointLights[" + std::to_string(j) + "].";
-
-                        m_PhongShader->SetVec3(prefix + "position", m_PointLights[j]->position);
-
-                        m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j]->constant);
-                        m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j]->linear);
-                        m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j]->quadratic);
-
-
-                        m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
-                        m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
-                        m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
-
-
-                        prefix = "omnidirectionalShadowMaps[" + std::to_string(j) + "]";
-
-                        glActiveTexture(GL_TEXTURE0 + (unsigned int)j);
-                        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[j]);
-                        m_PhongShader->SetInt(prefix, (int)j);
-
-                        m_PhongShader->SetFloat("farPlane", 25.0f); // TODO
-                    }
-
-                    glActiveTexture(GL_TEXTURE0 + 5);
-                    glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
-
-                    m_PhongShader->SetInt("shadowMap", 0 + 5);
-
-                    if (m_DirectionalLight) {
-                        m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
-
-                        m_PhongShader->SetVec3("directionalLight.ambient", m_DirectionalLight->ambient);
-                        m_PhongShader->SetVec3("directionalLight.diffuse", m_DirectionalLight->diffuse);
-                        m_PhongShader->SetVec3("directionalLight.specular", m_DirectionalLight->specular);
-                    }
-
-                    m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
-
-                    for (size_t j = 0; j < m_SpotLights.size(); ++j) {
-                        if (m_SpotLights[j] == nullptr) {
-                            continue;
-                        }
-
-                        std::string prefix = "spotLights[" + std::to_string(j) + "].";
-
-                        m_PhongShader->SetVec3(prefix + "position", m_SpotLights[j]->position);
-                        m_PhongShader->SetVec3(prefix + "direction", m_SpotLights[j]->direction);
-
-                        m_PhongShader->SetFloat(prefix + "cutOff", m_SpotLights[j]->cutOff);
-                        m_PhongShader->SetFloat(prefix + "outerCutOff", m_SpotLights[j]->outerCutOff);
-
-                        m_PhongShader->SetFloat(prefix + "constant", m_SpotLights[j]->constant);
-                        m_PhongShader->SetFloat(prefix + "linear", m_SpotLights[j]->linear);
-                        m_PhongShader->SetFloat(prefix + "quadratic", m_SpotLights[j]->quadratic);
-
-                        m_PhongShader->SetVec3(prefix + "ambient", m_SpotLights[j]->ambient);
-                        m_PhongShader->SetVec3(prefix + "diffuse", m_SpotLights[j]->diffuse);
-                        m_PhongShader->SetVec3(prefix + "specular", m_SpotLights[j]->specular);
-                    }
-                    break;
+            // Lighting
+            m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
+            for (size_t j = 0; j < m_PointLights.size(); ++j) {
+                if (m_PointLights[j] == nullptr) {
+                    continue;
                 }
-                */
-            //}
+
+                std::string prefix = "pointLights[" + std::to_string(j) + "].";
+
+                m_PhongShader->SetVec3(prefix + "position", m_PointLights[j]->position);
+
+                m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j]->constant);
+                m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j]->linear);
+                m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j]->quadratic);
+
+
+                m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
+                m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
+                m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
+
+
+                prefix = "omnidirectionalShadowMaps[" + std::to_string(j) + "]";
+
+                glActiveTexture(GL_TEXTURE0 + (unsigned int)j);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[j]);
+                m_PhongShader->SetInt(prefix, (int)j);
+
+                m_PhongShader->SetFloat("farPlane", 25.0f); // TODO
+            }
+
+            glActiveTexture(GL_TEXTURE0 + 5);
+            glBindTexture(GL_TEXTURE_2D, m_ShadowMapTexture);
+
+            m_PhongShader->SetInt("shadowMap", 0 + 5);
+
+            if (m_DirectionalLight) {
+                m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
+
+                m_PhongShader->SetVec3("directionalLight.ambient", m_DirectionalLight->ambient);
+                m_PhongShader->SetVec3("directionalLight.diffuse", m_DirectionalLight->diffuse);
+                m_PhongShader->SetVec3("directionalLight.specular", m_DirectionalLight->specular);
+            }
+
+            m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
+
+            for (size_t j = 0; j < m_SpotLights.size(); ++j) {
+                if (m_SpotLights[j] == nullptr) {
+                    continue;
+                }
+
+                std::string prefix = "spotLights[" + std::to_string(j) + "].";
+
+                m_PhongShader->SetVec3(prefix + "position", m_SpotLights[j]->position);
+                m_PhongShader->SetVec3(prefix + "direction", m_SpotLights[j]->direction);
+
+                m_PhongShader->SetFloat(prefix + "cutOff", m_SpotLights[j]->cutOff);
+                m_PhongShader->SetFloat(prefix + "outerCutOff", m_SpotLights[j]->outerCutOff);
+
+                m_PhongShader->SetFloat(prefix + "constant", m_SpotLights[j]->constant);
+                m_PhongShader->SetFloat(prefix + "linear", m_SpotLights[j]->linear);
+                m_PhongShader->SetFloat(prefix + "quadratic", m_SpotLights[j]->quadratic);
+
+                m_PhongShader->SetVec3(prefix + "ambient", m_SpotLights[j]->ambient);
+                m_PhongShader->SetVec3(prefix + "diffuse", m_SpotLights[j]->diffuse);
+                m_PhongShader->SetVec3(prefix + "specular", m_SpotLights[j]->specular);
+            }
             
-            glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)viewportSize.x / (float)viewportSize.y, camera.nearPlane, camera.farPlane);
-            glm::mat4 mvp = projection * camera.View() * transform;
+            glm::mat4 mvp = m_Projection * camera.View() * transform;
 
             m_SolidShader->SetMat4("mvp", mvp);
 
             glBindVertexArray(m_VAOs[0]);
             glDrawElements(GL_TRIANGLES, (int)3, GL_UNSIGNED_INT, nullptr); // TODO 3
         }
+        */
+
+        target.Unbind();
     }
 
-    std::vector<glm::vec4> OpenGlPhong::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
+    std::vector<glm::vec4> OpenGlPhongShading::GetFrustumCornersInWorldSpace(const glm::mat4& frustum) {
         glm::mat4 invFrustum = glm::inverse(frustum);
 
         std::vector<glm::vec4> frustumCorners;
