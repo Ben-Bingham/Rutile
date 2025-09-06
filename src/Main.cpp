@@ -205,16 +205,16 @@ int main() {
         { ImGui::Begin("Bottombar");
             if (ImGui::CollapsingHeader("Objects", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGuiStyle& style = ImGui::GetStyle();
-                int objectCount = scene.objects.size();
+                size_t objectCount = scene.objects.size();
                 ImVec2 button_sz(100, 100); // TODO
                 float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-                for (int n = 0; n < objectCount; n++) {
-                    ImGui::PushID(n);
+                for (size_t i = 0; i < objectCount; i++) {
+                    ImGui::PushID(i);
 
-                    if (ImGui::Button(("Obj " + std::to_string(n)).c_str(), button_sz))
+                    if (ImGui::Button(("Obj " + std::to_string(i)).c_str(), button_sz))
                         ImGui::OpenPopup("obj_popup");
                     if (ImGui::BeginPopup("obj_popup")) {
-                        glm::mat4 currentTransform = scene.objects[n].transform;
+                        glm::mat4 currentTransform = scene.objects[i].transform;
 
                         glm::vec3 scale{ };
                         glm::quat rotation{ };
@@ -244,8 +244,8 @@ int main() {
 
                                 transform.CalculateMatrix();
 
-                                scene.objects[n].transform = transform.matrix;
-                                renderer->UpdateObjectTransform((size_t)n, transform.matrix);
+                                scene.objects[i].transform = transform.matrix;
+                                renderer->UpdateObjectTransform(i, transform.matrix);
                             }
                         }
                         else {
@@ -259,7 +259,7 @@ int main() {
 
                     float last_button_x2 = ImGui::GetItemRectMax().x;
                     float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
-                    if (n + 1 < objectCount && next_button_x2 < window_visible_x2)
+                    if (i + 1 < objectCount && next_button_x2 < window_visible_x2)
                         ImGui::SameLine();
                     ImGui::PopID();
                 }
