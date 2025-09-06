@@ -10,7 +10,7 @@
 #include "renderers/OpenGlSolidShading/OpenGlSolidShading.h"
 #include "renderers/OpenGlPhongShading/OpenGlPhongShading.h"
 
-#include "SceneUtility/SceneManager.h"
+#include "SceneCreation/SceneManager.h"
 #include "Utility/TimeScope.h"
 
 #include "GUI/ImGuiUtil.h"

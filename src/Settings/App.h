@@ -11,8 +11,6 @@
 
 //#include "RenderingAPI/RenderingBanks.h"
 
-#include "SceneUtility/SceneManager.h"
-
 #include "Utility/TimingData.h"
 //#include "Utility/events/EventManager.h"
 
@@ -29,8 +27,8 @@ namespace Rutile {
         //inline static ImGuiInstance imGui{ };
         inline static GLFWwindow* window = nullptr;
 
-        inline static SceneType sceneType = SceneType::CORNELL_BOX;
-        inline static Scene scene = SceneManager::GetScene(sceneType);
+        //inline static SceneType sceneType = SceneType::CORNELL_BOX;
+        //inline static Scene scene = SceneManager::GetScene(sceneType);
 
         //inline static std::unique_ptr<Renderer> renderer = nullptr;
 

@@ -17,12 +17,15 @@ namespace Rutile {
 		Scene& GetScene();
 
 		void Add(Mesh mesh, glm::mat4 transform, std::shared_ptr<Material> material);
+		void Add(Mesh mesh, glm::mat4 transform, Material material);
+
+		void Add(GeometryFactory::Primitive primitive, Transform transform, std::shared_ptr<Material> material);
+		void Add(GeometryFactory::Primitive primitive, Transform transform, Material material);
 
 		//void Add(const Geometry& geometry,			   const Transform& transform, const Material& material,     const std::string& name = "");
 
 		//void Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name = "");
 
-		//void Add(GeometryFactory::Primitive primitive, const Transform& transform, const std::shared_ptr<Material> material,	 const std::string& name = "");
 		//void Add(const Geometry& geometry,			   const Transform& transform, MaterialFactory::Color color, const std::string& name = "");
 		//void Add(const Geometry& geometry,			   const Transform& transform, MaterialIndex material,		 const std::string& name = "");
 
