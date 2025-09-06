@@ -1,5 +1,6 @@
 #include "SceneFactory.h"
 #include <fstream>
+#include <memory>
 
 #include "Settings/App.h"
 
@@ -30,6 +31,10 @@ namespace Rutile {
         m_Scene.objects.push_back(obj);
     }
     
+    void SceneFactory::Add(const Light& light) {
+        m_Scene.lights.push_back(std::make_shared<Light>(light));
+    }
+
     //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
     //    const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
     //    const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
@@ -62,9 +67,7 @@ namespace Rutile {
         Add(m_Scene.geometryBank.Add(GeometryFactory::Construct(primitive)), m_Scene.transformBank.Add(transform), material, name);
     }
 
-    void SceneFactory::Add(const PointLight& pointLight) {
-        m_Scene.pointLights.push_back(pointLight);
-    }
+
 
     void SceneFactory::Add(const DirectionalLight& light) {
         m_Scene.directionalLight = light;

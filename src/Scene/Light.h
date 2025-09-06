@@ -5,7 +5,7 @@
 namespace Rutile {
 	class Light {
 	public:
-		Light(glm::vec3 position, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular);
+		Light(glm::vec3 position, glm::vec3 diffuse, glm::vec3 ambient, glm::vec3 specular, float constant, float linear, float quadratic);
 		Light(const Light& other) = default;
 		Light(Light&& other) noexcept = default;
 		Light& operator=(const Light& other) = default;
@@ -17,6 +17,10 @@ namespace Rutile {
 		glm::vec3 diffuse;
 		glm::vec3 ambient;
 		glm::vec3 specular;
+
+		float constant;
+		float linear;
+		float quadratic;
 	};
 
 	//class DirectionalLight : public Light {

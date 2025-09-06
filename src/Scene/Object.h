@@ -12,6 +12,6 @@ namespace Rutile {
 		glm::mat4 transform{ 1.0 };
 
 		Mesh mesh;
-		std::shared_ptr<Material> material;
+		std::shared_ptr<Material> material; // TODO make into unique ptr
 	};
 }

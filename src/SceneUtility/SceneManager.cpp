@@ -101,6 +101,30 @@ namespace Rutile {
 
         sceneFactory.Add(mesh, glm::mat4{ 1.0 }, redMat);
 
+        Light pointLight{ 
+            glm::vec3{ 5.0f, 5.0f, 5.0f },
+
+            glm::vec3{ 1.0f, 1.0f, 1.0f },
+            glm::vec3{ 0.8f, 0.8f, 0.8f },
+            glm::vec3{ 0.05f, 0.05f, 0.05f },
+
+            1.0,
+            0.65,
+            0.032
+        };
+
+        //pointLight.position = glm::vec3{ 5.0f, 5.0f, 5.0f };
+
+        //pointLight.ambient = glm::vec3{ 1.0f, 1.0f, 1.0f };
+        //pointLight.diffuse = glm::vec3{ 0.8f, 0.8f, 0.8f };
+        //pointLight.specular = glm::vec3{ 0.05f, 0.05f, 0.05f };
+
+        //pointLight.constant = 1.0;
+        //pointLight.linear = 0.65;
+        //pointLight.quadratic = 0.032;
+
+        sceneFactory.Add(pointLight);
+
         //DirectionalLight dirLight{ }; // TODO
         //sceneFactory.Add(dirLight);
 

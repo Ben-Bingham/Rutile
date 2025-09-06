@@ -9,6 +9,6 @@
 namespace Rutile {
 	struct Scene {
 		std::vector<Object> objects;
-		std::vector<std::shared_ptr<Light>> lights;
+		std::vector<std::shared_ptr<Light>> lights; // TODO make into unique_ptr
 	};
 }

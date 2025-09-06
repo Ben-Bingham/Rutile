@@ -285,72 +285,83 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::SetScene(Scene& scene) {
-        //m_Scene = scene;
-        /*
         // Lights
+        m_PointLights.clear();
+
+        for (auto& light : scene.lights) {
+            PointLight pL{ };
+
+            pL.position = light->position;
+
+            pL.constant = light->constant;
+            pL.linear = light->linear;
+            pL.quadratic = light->quadratic;
+
+            pL.diffuse = light->diffuse;
+            pL.ambient = light->ambient;
+            pL.specular = light->specular;
+
+            m_PointLights.push_back(pL);
+        }
 
         // Cleanup old Point Lights
-        for (const auto& cubeMap : m_PointLightCubeMaps) {
-            glDeleteTextures(1, &cubeMap);
-        }
+        //for (const auto& cubeMap : m_PointLightCubeMaps) {
+        //    glDeleteTextures(1, &cubeMap);
+        //}
 
-        m_PointLightCubeMaps.clear();
+        //m_PointLightCubeMaps.clear();
 
-        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
-        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
+        //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
+        //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
 
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
+        //for (auto& texture : m_CubeMapVisualizationTextures) {
+            //glDeleteTextures(1, &texture);
+        //}
 
-        m_CubeMapVisualizationTextures.clear();
+        //m_CubeMapVisualizationTextures.clear();
 
         // Create new Point Lights
-        LightIndex pointLightIndex = 0;
-        for (const auto& pointLight : App::scene.pointLights) {
+        //for (const auto& pointLight : App::scene.pointLights) {
             // Cube map
-            unsigned int cubeMap;
+            //unsigned int cubeMap;
 
-            glGenTextures(1, &cubeMap);
+            //glGenTextures(1, &cubeMap);
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-            for (int i = 0; i < 6; ++i) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth,
-                    m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            }
+            //glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+            //for (int i = 0; i < 6; ++i) {
+            //    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth,
+            //        m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            //}
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            m_PointLightCubeMaps.push_back(cubeMap);
+            //m_PointLightCubeMaps.push_back(cubeMap);
 
             // Cube map Visualization
-            unsigned int cubeMapVisualizationTexture;
+            //unsigned int cubeMapVisualizationTexture;
 
-            glGenTextures(1, &cubeMapVisualizationTexture);
-            glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            //glGenTextures(1, &cubeMapVisualizationTexture);
+            //glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
+            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
+            //m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
 
-            glBindTexture(GL_TEXTURE_2D, 0);
+            //glBindTexture(GL_TEXTURE_2D, 0);
 
-            ++pointLightIndex;
-        }
+            //++pointLightIndex;
+        //}
 
-        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
-        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
-        */
-
+        //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
+        //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
 
         // Geometry
-
         m_ObjectCount = scene.objects.size();
 
         // Clean up old objects
@@ -617,9 +628,27 @@ namespace Rutile {
 
             m_PhongShader->SetMat4("model", m_Transforms[i]);
 
-            //m_PhongShader->SetVec3("cameraPosition", App::camera.position);
+            m_PhongShader->SetVec3("cameraPosition", camera.position);
 
             //m_PhongShader->SetMat4("lightSpaceMatrix", m_LightSpaceMatrix);
+
+            m_PhongShader->SetInt("pointLightCount", static_cast<int>(m_PointLights.size()));
+            size_t j = 0;
+            for (auto& light : m_PointLights) {
+                std::string prefix = "pointLights[" + std::to_string(j) + "].";
+
+                m_PhongShader->SetVec3(prefix + "position", m_PointLights[j].position);
+
+                m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j].constant);
+                m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j].linear);
+                m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j].quadratic);
+
+
+                m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j].ambient);
+                m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j].diffuse);
+                m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j].specular);
+                ++j;
+            }
 
             glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
             glm::mat4 mvp = projection * camera.View() * m_Transforms[i];

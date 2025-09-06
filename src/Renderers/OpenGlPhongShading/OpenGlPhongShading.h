@@ -52,10 +52,49 @@ namespace Rutile {
         //void ProvideCSMVisualization() override;
 
     private:
-
-
         // Shaders
         std::unique_ptr<Shader> m_PhongShader;
+
+        // Objects
+        struct Phong {
+            glm::vec3 diffuse{ };
+            glm::vec3 ambient{ };
+            glm::vec3 specular{ };
+            float shininess{ };
+        };
+
+        size_t m_ObjectCount;
+
+        std::vector<unsigned int> m_VAOs;
+        std::vector<unsigned int> m_VBOs;
+        std::vector<unsigned int> m_EBOs;
+        std::vector<int> m_IndexCounts;
+        std::vector<Phong> m_Materials;
+        std::vector<glm::mat4> m_Transforms;
+
+        // Lights
+        struct PointLight {
+            glm::vec3 position;
+
+            float constant;
+            float linear;
+            float quadratic;
+
+            glm::vec3 ambient;
+            glm::vec3 diffuse;
+            glm::vec3 specular;
+        };
+
+        std::vector<PointLight> m_PointLights{ };
+
+
+
+
+
+
+
+
+        // OLD TODO
 
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_CubeMapVisualizationShader;
@@ -116,22 +155,7 @@ namespace Rutile {
         //void VisualizeShadowCascades();
         //void VisualizeCascadeLights();
 
-        struct Phong {
-            glm::vec3 diffuse{ };
-            glm::vec3 ambient{ };
-            glm::vec3 specular{ };
-            float shininess{ };
-        };
 
-        // Objects
-        size_t m_ObjectCount;
-
-        std::vector<unsigned int> m_VAOs;
-        std::vector<unsigned int> m_VBOs;
-        std::vector<unsigned int> m_EBOs;
-        std::vector<int> m_IndexCounts;
-        std::vector<Phong> m_Materials;
-        std::vector<glm::mat4> m_Transforms;
 
         // Shadow Map
         //unsigned int m_DepthMapFBO;
