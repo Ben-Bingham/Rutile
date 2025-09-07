@@ -123,13 +123,6 @@ namespace Rutile {
         std::unique_ptr<Shader> m_CascadingShadowMapVisualizationShader;
 
 
-
-        unsigned int m_OmnidirectionalShadowMapFBO;
-
-        std::vector<unsigned int> m_PointLightCubeMaps;
-
-
-
         //void VisualizeCubeMap(LightIndex lightIndex);
 
         // Cascading Shadow maps

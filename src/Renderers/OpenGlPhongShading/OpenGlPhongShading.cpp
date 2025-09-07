@@ -287,7 +287,7 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
-        CubeMapToTexture2D(0, i);
+        CubeMapToTexture2D(m_PointLights[i].cubeMap, i);
 
         ImGui::Text("Shadow map");
         ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[i], ImVec2{ (float)500, (float)500 }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
@@ -304,6 +304,13 @@ namespace Rutile {
         }
 
         m_CubeMapVisualizationTextures.clear();
+
+        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
+        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
+
+        m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(scene.pointLights.size());
+        m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(scene.pointLights.size());
+
 
         m_PointLights.clear();
         for (auto& pointLight : scene.pointLights) {
@@ -345,18 +352,6 @@ namespace Rutile {
         if (scene.directionalLight) {
             m_DirectionalLight = scene.directionalLight;
         }
-
-        //m_PointLightCubeMaps.clear();
-
-        //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
-        //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
-
-
-
-
-
-        //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
-        //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
 
         // Geometry
         m_ObjectCount = scene.objects.size();
@@ -1153,7 +1148,7 @@ namespace Rutile {
         m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[i]);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLights[i].cubeMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
 
         m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
 
