@@ -90,15 +90,7 @@ namespace Rutile {
 
         std::vector<PointLight> m_PointLights{ };
 
-        struct DirectionalLight {
-            glm::vec3 direction;
-
-            glm::vec3 ambient;
-            glm::vec3 diffuse;
-            glm::vec3 specular;
-        };
-
-        DirectionalLight m_DirectionalLight{ };
+        std::shared_ptr<DirectionalLight> m_DirectionalLight{ };
 
 
 

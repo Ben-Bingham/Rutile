@@ -209,7 +209,7 @@ int main() {
                 ImVec2 button_sz(100, 100); // TODO
                 float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
                 for (size_t i = 0; i < objectCount; i++) {
-                    ImGui::PushID(i);
+                    ImGui::PushID((int)i);
 
                     if (ImGui::Button(("Obj " + std::to_string(i)).c_str(), button_sz))
                         ImGui::OpenPopup("obj_popup");
@@ -234,9 +234,9 @@ int main() {
                             if (ImGui::DragFloat4("Rotation", glm::value_ptr(rotation), 0.01f)) change = true;
 
                             if (change) {
-                                if (scale.x < 0.001) scale.x = 0.001;
-                                if (scale.y < 0.001) scale.y = 0.001;
-                                if (scale.z < 0.001) scale.z = 0.001;
+                                if (scale.x < 0.001f) scale.x = 0.001f;
+                                if (scale.y < 0.001f) scale.y = 0.001f;
+                                if (scale.z < 0.001f) scale.z = 0.001f;
 
                                 Transform transform{ };
                                 transform.position = translation;

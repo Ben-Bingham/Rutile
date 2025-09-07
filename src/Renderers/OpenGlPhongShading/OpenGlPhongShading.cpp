@@ -304,6 +304,11 @@ namespace Rutile {
             m_PointLights.push_back(pL);
         }
 
+        m_DirectionalLight.reset();
+        if (scene.directionalLight) {
+            m_DirectionalLight = scene.directionalLight;
+        }
+
         // Cleanup old Point Lights
         //for (const auto& cubeMap : m_PointLightCubeMaps) {
         //    glDeleteTextures(1, &cubeMap);

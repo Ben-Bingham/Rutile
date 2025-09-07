@@ -57,7 +57,7 @@ namespace Rutile {
     }
 
     void SceneFactory::Add(const DirectionalLight& light) {
-        m_Scene.directionalLight = light;
+        m_Scene.directionalLight = std::make_unique<DirectionalLight>(light);
     }
 
     //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {

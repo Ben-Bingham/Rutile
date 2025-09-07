@@ -108,9 +108,9 @@ namespace Rutile {
             glm::vec3{ 0.8f, 0.8f, 0.8f },
             glm::vec3{ 0.05f, 0.05f, 0.05f },
 
-            1.0,
-            0.65,
-            0.032
+            1.0f,
+            0.65f,
+            0.032f
         };
 
         sceneFactory.Add(pointLight);
