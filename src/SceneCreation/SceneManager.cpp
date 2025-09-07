@@ -28,12 +28,12 @@ namespace Rutile {
             case SceneType::ORIGINAL_SCENE: {
                 return GetOriginalScene();
             }
-            //case SceneType::SHADOW_MAP_TESTING_SCENE: {
-            //    return GetShadowMapTestingScene();
-            //}
-            //case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
-            //    return GetOmnidirectionalShadowMapTestingScene();
-            //}
+            case SceneType::SHADOW_MAP_TESTING_SCENE: {
+                return GetShadowMapTestingScene();
+            }
+            case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
+                return GetOmnidirectionalShadowMapTestingScene();
+            }
             //case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
             //    return GetDoublePointLightTestScene();
             //}
@@ -198,69 +198,69 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-    /*
+    
     Scene SceneManager::GetShadowMapTestingScene() {
         SceneFactory sceneFactory{};
 
-        Material::Phong phong1{};
-        phong1.diffuse = { 0.324f, 0.474f, 0.974f };
-        phong1.ambient = { 0.275f, 0.64f, 0.234f };
-        phong1.specular = { 0.432f, 0.8367f, 0.123f };
-        phong1.shininess = 15.0f;
-        Material mat1 = MaterialFactory::Construct(phong1);
+        Material mat1{
+            { 0.324f, 0.474f, 0.974f },
+            { 0.275f, 0.64f, 0.234f },
+            { 0.432f, 0.8367f, 0.123f },
+            15.0f
+        };
 
-        Material::Phong phong2{};
-        phong2.diffuse = { 0.84f, 0.753f, 0.859f };
-        phong2.ambient = { 0.569f, 0.5638f, 0.194f };
-        phong2.specular = { 0.113f, 0.754f, 0.943f };
-        phong2.shininess = 64.0f;
-        Material mat2 = MaterialFactory::Construct(phong2);
+        Material mat2{
+            { 0.84f, 0.753f, 0.859f },
+            { 0.569f, 0.5638f, 0.194f },
+            { 0.113f, 0.754f, 0.943f },
+            64.0f
+        };
 
-        Material::Phong phong3{};
-        phong3.diffuse = { 0.129f, 0.00f, 0.333f };
-        phong3.ambient = { 0.783f, 0.356f, 0.324566f };
-        phong3.specular = { 0.012f, 0.268f, 0.73f };
-        phong3.shininess = 128.0f;
-        Material mat3 = MaterialFactory::Construct(phong3);
+        Material mat3{
+            { 0.129f, 0.00f, 0.333f },
+            { 0.783f, 0.356f, 0.324566f },
+            { 0.012f, 0.268f, 0.73f },
+            128.0f
+        };
 
-        Material::Phong phong4{};
-        phong4.diffuse = { 0.129f, 0.00f, 0.333f };
-        phong4.ambient = { 0.569f, 0.5638f, 0.194f };
-        phong4.specular = { 0.432f, 0.8367f, 0.123f };
-        phong4.shininess = 16.0f;
-        Material mat4 = MaterialFactory::Construct(phong4);
+        Material mat4{
+            { 0.129f, 0.00f, 0.333f },
+            { 0.569f, 0.5638f, 0.194f },
+            { 0.432f, 0.8367f, 0.123f },
+            16.0f
+        };
 
-        DirectionalLight dirLight{};
-        dirLight.direction = { -1.0f, -1.0f, -1.0f };
-        dirLight.diffuse = { 1.0f, 1.0f, 1.0f };
-        dirLight.ambient = { 1.0f, 1.0f, 1.0f };
-        dirLight.specular = { 1.0f, 1.0f, 1.0f };
-        sceneFactory.Add(dirLight);
+        //DirectionalLight dirLight{};
+        //dirLight.direction = { -1.0f, -1.0f, -1.0f };
+        //dirLight.diffuse = { 1.0f, 1.0f, 1.0f };
+        //dirLight.ambient = { 1.0f, 1.0f, 1.0f };
+        //dirLight.specular = { 1.0f, 1.0f, 1.0f };
+        //sceneFactory.Add(dirLight);
 
         Transform floorTransform{};
         floorTransform.position.y = -1.0f;
         floorTransform.scale = { 30.0f, 1.0f, 30.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floorTransform, mat1, "Floor");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floorTransform, mat1);
 
         Transform box1{};
         box1.position = { 3.0f, 0.0f, 3.0f };
         box1.scale = { 0.5f, 1.0f, 0.5f };
         box1.rotation = glm::angleAxis(glm::radians(45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box1, mat2, "Box 1");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box1, mat2);
 
         Transform box2{};
         box2.position = { 3.0f, 0.0f, -3.0f };
         box2.rotation = glm::angleAxis(glm::radians(30.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box2, mat3, "Box 2");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box2, mat3);
 
         Transform box3{};
         box3.position = { 3.0f, 1.0f, -3.0f };
         box3.rotation = glm::angleAxis(glm::radians(60.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box3, mat4, "Box 3");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box3, mat4);
 
         Transform box4{};
         box4.position.y = 2.0f;
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box4, mat3, "Box 4");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, box4, mat3);
 
         return sceneFactory.GetScene();
     }
@@ -269,87 +269,87 @@ namespace Rutile {
         SceneFactory sceneFactory{};
 
         Material mat1 = MaterialFactory::Construct({ 1.0f, 1.0f, 1.0f });
-        mat1.type = Material::Type::EMISSIVE;
 
         Transform lightTransform{};
         lightTransform.position = { 0.0f, 3.0f, -10.0f };
         lightTransform.scale = { 0.4f, 0.4f, 0.4f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, mat1, "Light");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, mat1);
 
-        PointLight pointLight{};
-        pointLight.diffuse = { 0.5f, 0.5f, 0.5f };
-        pointLight.ambient = { 0.5f, 0.5f, 0.5f };
-        pointLight.specular = { 0.5f, 0.5f, 0.5f };
-        pointLight.constant = 0.62f;
-        pointLight.linear = 0.175f;
-        pointLight.quadratic = 0.035f;
-        pointLight.position = lightTransform.position;
+        Light pointLight{
+            lightTransform.position,
+            { 0.5f, 0.5f, 0.5f },
+            { 0.5f, 0.5f, 0.5f },
+            { 0.5f, 0.5f, 0.5f },
+            0.62f,
+            0.175f,
+            0.035f
+        };
         sceneFactory.Add(pointLight);
 
-        Material::Phong phong2{};
-        phong2.ambient = { 1.0f, 0.5f, 0.31f };
-        phong2.diffuse = { 1.0f, 0.5f, 0.31f };
-        phong2.specular = { 0.5f, 0.5f, 0.5f };
-        phong2.shininess = 32.0f;
-        Material mat2 = MaterialFactory::Construct(phong2);
+        Material mat2{
+            { 1.0f, 0.5f, 0.31f },
+            { 1.0f, 0.5f, 0.31f },
+            { 0.5f, 0.5f, 0.5f },
+            32.0f
+        };
 
         Transform floor{};
         floor.position = { 0.0f, -1.0f, -10.0f };
         floor.scale = { 30.0f, 1.0f, 60.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floor, mat2, "Floor");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floor, mat2);
 
         Transform roof{};
         roof.position = { 0.0f, 10.0f, -10.0f };
         roof.scale = { 30.0f, 1.0f, 60.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, roof, mat2, "Roof");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, roof, mat2);
 
         Transform posXWall{};
         posXWall.position = { 10.0f, 0.0f, -10.0f };
         posXWall.scale = { 1.0f, 30.0f, 60.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, posXWall, mat2, "Positive X Wall");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, posXWall, mat2);
 
         Transform negXWall{};
         negXWall.position = { -10.0f, 0.0f, -10.0f };
         negXWall.scale = { 1.0f, 30.0f, 60.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, negXWall, mat2, "Negative X Wall");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, negXWall, mat2);
 
         Transform negZWall{};
         negZWall.position = { 0.0f, 0.0f, -20.0f };
         negZWall.scale = { 30.0f, 30.0f, 1.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, negZWall, mat2, "Negative Z Wall");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, negZWall, mat2);
 
         Transform posZWall{};
         posZWall.position = { 0.0f, 0.0f, 25.0f };
         posZWall.scale = { 30.0f, 30.0f, 1.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, posZWall, mat2, "Positive Z Wall");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, posZWall, mat2);
 
         Transform cube1{};
         cube1.position = { -5.0f, 2.0f, -12.0f };
         cube1.scale = glm::vec3{ 1.2f };
         cube1.rotation = glm::angleAxis(glm::radians(25.0f), normalize(glm::vec3{ 1.0f, 1.0f, 1.0f }));
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube1, mat2, "Box 1");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube1, mat2);
 
         Transform cube2{};
         cube2.position = { 6.0f, 7.0f, -8.0f };
         cube2.rotation = glm::angleAxis(glm::radians(71.0f), normalize(glm::vec3{ 1.0f, -1.0f, 1.0f }));
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube2, mat2, "Box 2");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube2, mat2);
 
         Transform cube3{};
         cube3.position = { 0.0f, 5.0f, 0.0f };
         cube3.scale = { 2.0f, 1.0f, 1.0f };
         cube3.rotation = glm::angleAxis(glm::radians(45.0f), normalize(glm::vec3{ 1.0f, 1.0f, 0.0f }));
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube3, mat2, "Box 3");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube3, mat2);
 
         Transform cube4{};
         cube4.position = { 3.0f, 0.0f, 12.0f };
         cube4.rotation = glm::angleAxis(glm::radians(60.0f), normalize(glm::vec3{ -1.0f, -1.0f, 1.0f }));
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube4, mat2, "Box 4");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube4, mat2);
 
         Transform cube5{};
         cube5.position = { -8.0f, 0.0f, 13.0f };
         cube5.scale = { 1.0f, 2.0f, 1.0f };
         cube5.rotation = glm::angleAxis(glm::radians(95.0f), normalize(glm::vec3{ 1.0f, 1.0f, 1.0f }));
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube5, mat2, "Box 5");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube5, mat2);
 
         float bonus = 0.0f;
         for (int i = 0; i < 10; ++i) {
@@ -362,7 +362,7 @@ namespace Rutile {
             float scaleZ = 0.5f + (float)i * (1.5f / 10.0f) + bonus;
             slit.scale = { 0.3f, 0.05f, scaleZ };
 
-            sceneFactory.Add(GeometryFactory::Primitive::CUBE, slit, mat2, "Slit " + std::to_string(i + 1));
+            sceneFactory.Add(GeometryFactory::Primitive::CUBE, slit, mat2);
         }
 
         Transform slit{ };
@@ -370,11 +370,11 @@ namespace Rutile {
         slit.scale = { 3.0f, 0.05f, 0.5f };
         slit.rotation = glm::angleAxis(glm::radians(15.0f), normalize(glm::vec3{ 0.0f, 1.0f, 0.0f }));
 
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, slit, mat2, "Board");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, slit, mat2);
 
         return sceneFactory.GetScene();
     }
-
+    /*
     Scene SceneManager::GetDoublePointLightTestScene() {
         SceneFactory sceneFactory;
 

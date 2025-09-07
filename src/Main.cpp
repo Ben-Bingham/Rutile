@@ -175,8 +175,8 @@ int main() {
                     {
                         "Hello Triangle",
                         "Original Scene",
-                        //"Shadow map Testing Scene",
-                        //"Omnidirectional Shadow map Testing Scene",
+                        "Shadow map Testing Scene",
+                        "Omnidirectional Shadow map Testing Scene",
                         //"Double Point Light Test Scene",
                         //"All Spheres",
                         //"Spheres on Spheres",
