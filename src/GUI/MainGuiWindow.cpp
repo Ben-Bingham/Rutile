@@ -5,8 +5,6 @@
 #include "RenderingSettings.h"
 #include "ShadowSettings.h"
 
-#include "SceneObjects.h"
-
 #include "Settings/App.h"
 
 namespace Rutile {
@@ -36,10 +34,6 @@ namespace Rutile {
             //        ShadowSettings();
             //    }
             //}
-
-            if (ImGui::CollapsingHeader("Scene Objects")) {
-                SceneObjects();
-            }
         }
         ImGui::End();
     }
