@@ -86,6 +86,9 @@ namespace Rutile {
             float farPlane{ 25.0f };
 
             unsigned int cubeMap{ }; // TODO use texture class
+
+            static constexpr glm::ivec2 cubeMapVisualizationSize{ 1024, 512 };
+            std::unique_ptr<Texture2D> cubeMapVisualization;
         };
 
         bool m_OmnidirectionalShadowMaps{ true };
@@ -105,11 +108,6 @@ namespace Rutile {
 
         unsigned int m_CubeMapVisualizationFBO{ 0 };
         unsigned int m_CubeMapVisualizationRBO{ 0 };
-
-        std::vector<unsigned int> m_CubeMapVisualizationTextures; // TODO move to ShadowMap point light class
-
-        int m_CubeMapVisualizationWidth{ 1024 };
-        int m_CubeMapVisualizationHeight{ 512 };
 
         std::vector<float> m_OmnidirectionalShadowMapVisualizationHorizontalOffsets{ 0.0f };
         std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };

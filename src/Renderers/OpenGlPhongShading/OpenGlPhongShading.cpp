@@ -41,7 +41,7 @@ namespace Rutile {
 
         glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
         glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, ShadowMapPointLight::cubeMapVisualizationSize.x, ShadowMapPointLight::cubeMapVisualizationSize.y);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -194,11 +194,6 @@ namespace Rutile {
         //glDeleteTextures(1, &m_CascadingShadowMapTexture);
         //glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
 
-        // Cubemap Visualization
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
-
         glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
         glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
 
@@ -290,7 +285,10 @@ namespace Rutile {
         CubeMapToTexture2D(m_PointLights[i].cubeMap, i);
 
         ImGui::Text("Shadow map");
-        ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[i], ImVec2{ (float)500, (float)500 }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+        ImGui::Image(
+            (ImTextureID)m_PointLights[i].cubeMapVisualization->Get(), 
+            ImVec2{ (float)ShadowMapPointLight::cubeMapVisualizationSize.x, (float)ShadowMapPointLight::cubeMapVisualizationSize.y}
+        );
     }
 
     void OpenGlPhongShading::SetScene(Scene scene) {
@@ -298,12 +296,6 @@ namespace Rutile {
         for (auto& pl : m_PointLights) {
             glDeleteTextures(1, &pl.cubeMap);
         }
-
-        for (auto& texture : m_CubeMapVisualizationTextures) {
-            glDeleteTextures(1, &texture);
-        }
-
-        m_CubeMapVisualizationTextures.clear();
 
         m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
         m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
@@ -332,19 +324,9 @@ namespace Rutile {
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            m_PointLights.push_back(sMPL);
+            sMPL.cubeMapVisualization = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
 
-            unsigned int cubeMapVisualizationTexture;
-
-            glGenTextures(1, &cubeMapVisualizationTexture);
-            glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
+            m_PointLights.push_back(std::move(sMPL));
         }
 
         // Directional Light
@@ -1095,7 +1077,7 @@ namespace Rutile {
     void OpenGlPhongShading::CubeMapToTexture2D(unsigned int cubemap, size_t i) { // TODO use out
         glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTextures[i], 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_PointLights[i].cubeMapVisualization->Get(), 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             std::cout << "ERROR: Framebuffer is not complete" << std::endl;
