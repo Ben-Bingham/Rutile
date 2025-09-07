@@ -30,7 +30,7 @@ namespace Rutile {
         unsigned int Get();
 
         // TODO potentially make these get passed to the constructor
-        void AddTexture(Texture2D& texture, TextureUses use);
+        void AddTexture(Texture& texture, TextureUses use);
         void AddRenderbuffer(Renderbuffer& renderbuffer, RenderbufferUses use);
 
         void NoTargets();

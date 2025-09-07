@@ -65,8 +65,10 @@ namespace Rutile {
 
         unsigned int Get();
 
+        unsigned int GetType();
+
     protected:
-        int m_TextureType;
+        unsigned int m_TextureType;
 
     private:
         unsigned int m_Handle;

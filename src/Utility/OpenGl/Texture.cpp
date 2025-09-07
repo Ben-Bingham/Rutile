@@ -43,6 +43,10 @@ namespace Rutile {
         return m_Handle;
     }
 
+    unsigned int Texture::GetType() {
+        return m_TextureType;
+    }
+
     Texture2D::Texture2D(glm::ivec2 size, TextureParameters parameters, std::vector<unsigned char> data)
         : Texture(GL_TEXTURE_2D) {
 

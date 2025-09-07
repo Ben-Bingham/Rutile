@@ -108,8 +108,9 @@ namespace Rutile {
         void CubeMapToTexture2D(unsigned int cubemap, size_t); // TODO change into cubemap class
         // TODO add Texture& back
 
-        unsigned int m_CubeMapVisualizationFBO{ 0 }; // TODO use framebuffer class
-        unsigned int m_CubeMapVisualizationRBO{ 0 };
+        Framebuffer m_CubeMapVisualizationFramebuffer{ };
+        Renderbuffer m_CubeMapVisualizationRenderbuffer{ ShadowMapPointLight::cubeMapVisualizationSize };
+
 
 
 

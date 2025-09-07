@@ -24,8 +24,8 @@ namespace Rutile {
         return m_FramebufferHandle;
     }
 
-    void Framebuffer::AddTexture(Texture2D& texture, TextureUses use) {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, (int)use, GL_TEXTURE_2D, texture.Get(), 0);
+    void Framebuffer::AddTexture(Texture& texture, TextureUses use) {
+        glFramebufferTexture2D(GL_FRAMEBUFFER, (int)use, texture.GetType(), texture.Get(), 0);
     }
 
     void Framebuffer::AddRenderbuffer(Renderbuffer& renderbuffer, RenderbufferUses use) {

@@ -36,17 +36,13 @@ namespace Rutile {
         // Cubemap Visualization
         m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.vert", "assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.frag");
 
-        glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+        m_CubeMapVisualizationFramebuffer.Bind();
+        m_CubeMapVisualizationRenderbuffer.Bind();
+        m_CubeMapVisualizationFramebuffer.AddRenderbuffer(m_CubeMapVisualizationRenderbuffer, Framebuffer::RenderbufferUses::DEPTH_STENCIL);
+        m_CubeMapVisualizationFramebuffer.Check("Cubemap visualization framebuffer (Initialize)");
 
-        glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, ShadowMapPointLight::cubeMapVisualizationSize.x, ShadowMapPointLight::cubeMapVisualizationSize.y);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //glBindTexture(GL_TEXTURE_2D, 0); // TODO remove
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        m_CubeMapVisualizationFramebuffer.Unbind();
+        m_CubeMapVisualizationRenderbuffer.Unbind();
 
 
         ////framebuffer = std::make_unique<Framebuffer>();
@@ -193,9 +189,6 @@ namespace Rutile {
         //// Cascading Shadow maps
         //glDeleteTextures(1, &m_CascadingShadowMapTexture);
         //glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
-
-        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
 
         //// Omnidirectional Shadow maps
         //for (const auto& cubeMap : m_PointLightCubeMaps) {
@@ -1068,14 +1061,12 @@ namespace Rutile {
 
 
     void OpenGlPhongShading::CubeMapToTexture2D(unsigned int cubemap, size_t i) { // TODO use out
-        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+        m_CubeMapVisualizationFramebuffer.Bind();
         glViewport(0, 0, ShadowMapPointLight::cubeMapVisualizationSize.x, ShadowMapPointLight::cubeMapVisualizationSize.y);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_PointLights[i].cubeMapVisualizationTexture->Get(), 0);
+        m_CubeMapVisualizationFramebuffer.AddTexture(*m_PointLights[i].cubeMapVisualizationTexture, Framebuffer::TextureUses::COLOR_0);
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-        }
+        m_CubeMapVisualizationFramebuffer.Check("Cubemap visualization framebuffer (pre visualize)");
 
         std::vector<Vertex> vertices = {
             //      Position                         Normal                         Uv
