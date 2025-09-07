@@ -275,7 +275,7 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
-        CubeMapToTexture2D(m_PointLights[i].cubemap->Get(), i);
+        CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
 
         ImGui::Text("Shadow map");
         ImGui::Image(
@@ -1060,13 +1060,13 @@ namespace Rutile {
     //}
 
 
-    void OpenGlPhongShading::CubeMapToTexture2D(unsigned int cubemap, size_t i) { // TODO use out
+    void OpenGlPhongShading::CubeMapToTexture2D(Cubemap& cubemap, Texture2D& texture, glm::ivec2 textureSize, glm::vec2 offset) {
         m_CubeMapVisualizationFramebuffer.Bind();
-        glViewport(0, 0, ShadowMapPointLight::cubeMapVisualizationSize.x, ShadowMapPointLight::cubeMapVisualizationSize.y);
+        glViewport(0, 0, textureSize.x, textureSize.y);
 
-        m_CubeMapVisualizationFramebuffer.AddTexture(*m_PointLights[i].cubeMapVisualizationTexture, Framebuffer::TextureUses::COLOR_0);
+        m_CubeMapVisualizationFramebuffer.AddTexture(texture, Framebuffer::TextureUses::COLOR_0);
 
-        m_CubeMapVisualizationFramebuffer.Check("Cubemap visualization framebuffer (pre visualize)");
+        m_CubeMapVisualizationFramebuffer.Check("Cubemap visualization framebuffer (about to visualize)");
 
         std::vector<Vertex> vertices = {
             //      Position                         Normal                         Uv
@@ -1111,11 +1111,11 @@ namespace Rutile {
 
         m_CubeMapVisualizationShader->Bind();
 
-        m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_PointLights[i].cubeMapVisualizationOffsets.x);
-        m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_PointLights[i].cubeMapVisualizationOffsets.y);
+        m_CubeMapVisualizationShader->SetFloat("horizontalModifier", offset.x);
+        m_CubeMapVisualizationShader->SetFloat("verticalModifier", offset.y);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+        cubemap.Bind();
 
         m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
 

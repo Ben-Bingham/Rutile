@@ -104,9 +104,8 @@ namespace Rutile {
         
         // Cubemap visualization
         std::unique_ptr<Shader> m_CubeMapVisualizationShader;
-        // TODO remove i
-        void CubeMapToTexture2D(unsigned int cubemap, size_t); // TODO change into cubemap class
-        // TODO add Texture& back
+
+        void CubeMapToTexture2D(Cubemap& cubemap, Texture2D& texture, glm::ivec2 textureSize, glm::vec2 offset = glm::vec2{ 0.0f });
 
         Framebuffer m_CubeMapVisualizationFramebuffer{ };
         Renderbuffer m_CubeMapVisualizationRenderbuffer{ ShadowMapPointLight::cubeMapVisualizationSize };
