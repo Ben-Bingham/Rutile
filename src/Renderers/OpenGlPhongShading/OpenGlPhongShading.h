@@ -90,14 +90,22 @@ namespace Rutile {
 
         std::vector<PointLight> m_PointLights{ };
 
+        struct DirectionalLight {
+            glm::vec3 direction;
+
+            glm::vec3 ambient;
+            glm::vec3 diffuse;
+            glm::vec3 specular;
+        };
+
+        DirectionalLight m_DirectionalLight{ };
 
 
 
 
 
 
-
-        // OLD TODO
+        // OLD stuff // TODO
 
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_CubeMapVisualizationShader;

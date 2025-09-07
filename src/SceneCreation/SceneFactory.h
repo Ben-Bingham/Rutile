@@ -3,7 +3,6 @@
 
 #include <assimp/scene.h>
 
-#include "RenderingAPI/Light.h"
 #include "RenderingAPI/Transform.h"
 
 #include "GeometryFactory.h"
@@ -33,7 +32,7 @@ namespace Rutile {
 		//void Add(GeometryFactory::Primitive primitive, const Transform& transform, MaterialIndex material,		 const std::string& name = "");
 
 		void Add(const Light& pointLight);
-		//void Add(const DirectionalLight& light);
+		void Add(const DirectionalLight& light);
 
 		//void Add(const std::string& path, TransformIndex transform, MaterialIndex materialIndex);
 		//void Add(const std::string& path, const Transform& transform);
@@ -44,7 +43,5 @@ namespace Rutile {
 		//void LoadAssimpNode(const aiNode* node, const aiScene* scene, TransformIndex transform, MaterialIndex materialIndex = std::numeric_limits<size_t>::max());
 
 		Scene m_Scene;
-
-		int m_ObjectNamingIndex{ 0 };
 	};
 }

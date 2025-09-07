@@ -184,12 +184,14 @@ namespace Rutile {
 
         sceneFactory.Add(pointLight2);
 
-        //DirectionalLight dirLight{ };
-        //dirLight.ambient =  { 0.6f, 0.6f, 0.6f };
-        //dirLight.specular = { 0.6f, 0.6f, 0.6f };
-        //dirLight.diffuse =  { 0.6f, 0.6f, 0.6f };
+        DirectionalLight dirLight{ 
+            { -1.0f, -1.0f, -1.0f },
+            { 0.6f, 0.6f, 0.6f },
+            { 0.6f, 0.6f, 0.6f },
+            { 0.6f, 0.6f, 0.6f },
+        };
 
-        //sceneFactory.Add(dirLight);
+        sceneFactory.Add(dirLight);
 
         Transform ball1{ };
         ball1.position = { 2.0f, 0.0f, 0.0f };
@@ -230,12 +232,7 @@ namespace Rutile {
             16.0f
         };
 
-        //DirectionalLight dirLight{};
-        //dirLight.direction = { -1.0f, -1.0f, -1.0f };
-        //dirLight.diffuse = { 1.0f, 1.0f, 1.0f };
-        //dirLight.ambient = { 1.0f, 1.0f, 1.0f };
-        //dirLight.specular = { 1.0f, 1.0f, 1.0f };
-        //sceneFactory.Add(dirLight);
+        sceneFactory.Add(DirectionalLight{ });
 
         Transform floorTransform{};
         floorTransform.position.y = -1.0f;

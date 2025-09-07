@@ -149,18 +149,16 @@ void main() {
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
     }
 
-    /*
-
-    float shadow = calculateDirectionalShadow();
+    //float shadow = calculateDirectionalShadow();
     if (haveDirectionalLight) {
         float shadow = 0.0;
-        if (directionalShadows) {
-            shadow = calculateDirectionalShadow();
-        }
+        //if (directionalShadows) {
+        //    shadow = calculateDirectionalShadow();
+        //}
     
         result += directionalLightAddition(directionalLight, norm, viewDir, shadow);
     }
-    */
+
     result = LinearToGamma(result);
 
     outFragColor = vec4(result, 1.0);

@@ -56,6 +56,10 @@ namespace Rutile {
         m_Scene.lights.push_back(std::make_shared<Light>(light));
     }
 
+    void SceneFactory::Add(const DirectionalLight& light) {
+        m_Scene.directionalLight = light;
+    }
+
     //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
     //    const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
     //    const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
@@ -90,10 +94,7 @@ namespace Rutile {
 
 
 
-    void SceneFactory::Add(const DirectionalLight& light) {
-        m_Scene.directionalLight = light;
-        m_Scene.m_EnableDirectionalLight = true;
-    }
+
 
     void SceneFactory::Add(const std::string& path, TransformIndex transform, MaterialIndex materialIndex) {
         Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
