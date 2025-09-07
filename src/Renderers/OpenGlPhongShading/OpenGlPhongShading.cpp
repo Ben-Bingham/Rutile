@@ -34,7 +34,7 @@ namespace Rutile {
         m_OmnidirectionalShadowMapsFramebuffer->Unbind();
 
         // Cubemap Visualization
-        m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
+        m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.vert", "assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.frag");
 
         glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
