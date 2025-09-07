@@ -1,5 +1,7 @@
 #include "Framebuffer.h"
 
+#include <iostream>
+
 namespace Rutile {
     Framebuffer::Framebuffer() {
         glGenFramebuffers(1, &m_FramebufferHandle);
