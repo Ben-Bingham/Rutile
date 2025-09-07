@@ -184,15 +184,6 @@ namespace Rutile {
 
         sceneFactory.Add(pointLight2);
 
-        DirectionalLight dirLight{ 
-            { -1.0f, -1.0f, -1.0f },
-            { 0.6f, 0.6f, 0.6f },
-            { 0.6f, 0.6f, 0.6f },
-            { 0.6f, 0.6f, 0.6f },
-        };
-
-        sceneFactory.Add(dirLight);
-
         Transform ball1{ };
         ball1.position = { 2.0f, 0.0f, 0.0f };
         ball1.scale = { 0.5f, 0.5f, 0.5f };

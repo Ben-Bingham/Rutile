@@ -203,7 +203,8 @@ int main() {
         } ImGui::End(); // Sidebar
 
         { ImGui::Begin("Bottombar");
-            if (ImGui::CollapsingHeader("Objects", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // TODO highlight the object and or light when selected, also hightlight the button while the popup is open
+            if (ImGui::CollapsingHeader("Objects")) {
                 ImGuiStyle& style = ImGui::GetStyle();
                 size_t objectCount = scene.objects.size();
                 ImVec2 button_sz(100, 100); // TODO
@@ -276,6 +277,61 @@ int main() {
                     float last_button_x2 = ImGui::GetItemRectMax().x;
                     float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
                     if (i + 1 < objectCount && next_button_x2 < window_visible_x2)
+                        ImGui::SameLine();
+                    ImGui::PopID();
+                }
+            }
+            if (ImGui::CollapsingHeader("Lights")) {
+                ImGuiStyle& style = ImGui::GetStyle();
+                size_t dirLightCount = scene.directionalLight ? 1 : 0;
+                size_t lightCount = scene.pointLights.size() + dirLightCount;
+                ImVec2 button_sz(100, 100); // TODO
+                float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+                for (size_t i = 0; i < lightCount; i++) {
+                    ImGui::PushID((int)i);
+
+                    if (ImGui::Button(("Light " + std::to_string(i)).c_str(), button_sz))
+                        ImGui::OpenPopup("light_popup");
+                    if (ImGui::BeginPopup("light_popup")) { 
+                        if (dirLightCount == 1 && i == lightCount - 1) {
+                            // Directional Light
+                            ImGui::Text("Directional Light");
+                            bool change{ false };
+
+                            std::shared_ptr<DirectionalLight> dirLight = scene.directionalLight;
+
+                            if (ImGui::DragFloat3("Direction", glm::value_ptr(dirLight->direction), 0.01f)) change = true;
+
+                            if (ImGui::ColorEdit3("Ambient", glm::value_ptr(dirLight->ambient))) change = true;
+                            if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(dirLight->diffuse))) change = true;
+                            if (ImGui::ColorEdit3("Specular", glm::value_ptr(dirLight->specular))) change = true;
+                        }
+                        else {
+                            // Point Light
+                            ImGui::Text("Point Light");
+                            bool change{ false };
+
+                            PointLight light = scene.pointLights[i];
+
+                            if (ImGui::DragFloat3("Position", glm::value_ptr(light.position), 0.01f)) change = true;
+
+                            if (ImGui::ColorEdit3("Ambient", glm::value_ptr(light.ambient))) change = true;
+                            if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(light.diffuse))) change = true;
+                            if (ImGui::ColorEdit3("Specular", glm::value_ptr(light.specular))) change = true;
+
+                            ImGui::Text("Attenuation"); // TODO add a 2D graph showing the attenuation
+                            if (ImGui::DragFloat("Constant", &light.constant, 0.01f, 0.0f, 1.0f)) change = true;
+                            if (ImGui::DragFloat("Linear", &light.linear, 0.001f, 0.0f, 1.0f)) change = true;
+                            if (ImGui::DragFloat("Quadratic", &light.quadratic, 0.0001f, 0.0f, 1.0f)) change = true;
+
+                            scene.pointLights[i] = light;
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    float last_button_x2 = ImGui::GetItemRectMax().x;
+                    float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x; // Expected position if next button was on same line
+                    if (i + 1 < lightCount && next_button_x2 < window_visible_x2)
                         ImGui::SameLine();
                     ImGui::PopID();
                 }
