@@ -662,11 +662,20 @@ namespace Rutile {
                 m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j].linear);
                 m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j].quadratic);
 
-
                 m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j].ambient);
                 m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j].diffuse);
                 m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j].specular);
                 ++j;
+            }
+
+            m_PhongShader->SetBool("haveDirectionalLight", m_DirectionalLight != nullptr);
+
+            if (m_DirectionalLight) {
+                m_PhongShader->SetVec3("directionalLight.direction", m_DirectionalLight->direction);
+
+                m_PhongShader->SetVec3("directionalLight.ambient", m_DirectionalLight->ambient);
+                m_PhongShader->SetVec3("directionalLight.diffuse", m_DirectionalLight->diffuse);
+                m_PhongShader->SetVec3("directionalLight.specular", m_DirectionalLight->specular);
             }
 
             glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)target.GetSize().x / (float)target.GetSize().y, camera.nearPlane, camera.farPlane);
@@ -742,27 +751,7 @@ namespace Rutile {
 
             m_PhongShader->SetInt("spotLightCount", static_cast<int>(m_SpotLights.size()));
 
-            for (size_t j = 0; j < m_SpotLights.size(); ++j) {
-                if (m_SpotLights[j] == nullptr) {
-                    continue;
-                }
 
-                std::string prefix = "spotLights[" + std::to_string(j) + "].";
-
-                m_PhongShader->SetVec3(prefix + "position", m_SpotLights[j]->position);
-                m_PhongShader->SetVec3(prefix + "direction", m_SpotLights[j]->direction);
-
-                m_PhongShader->SetFloat(prefix + "cutOff", m_SpotLights[j]->cutOff);
-                m_PhongShader->SetFloat(prefix + "outerCutOff", m_SpotLights[j]->outerCutOff);
-
-                m_PhongShader->SetFloat(prefix + "constant", m_SpotLights[j]->constant);
-                m_PhongShader->SetFloat(prefix + "linear", m_SpotLights[j]->linear);
-                m_PhongShader->SetFloat(prefix + "quadratic", m_SpotLights[j]->quadratic);
-
-                m_PhongShader->SetVec3(prefix + "ambient", m_SpotLights[j]->ambient);
-                m_PhongShader->SetVec3(prefix + "diffuse", m_SpotLights[j]->diffuse);
-                m_PhongShader->SetVec3(prefix + "specular", m_SpotLights[j]->specular);
-            }
             
             glm::mat4 mvp = m_Projection * camera.View() * transform;
 

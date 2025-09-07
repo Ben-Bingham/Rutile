@@ -162,7 +162,6 @@ void main() {
     result = LinearToGamma(result);
 
     outFragColor = vec4(result, 1.0);
-    //outFragColor = vec4(norm, 1.0);
 }
 
 vec3 pointLightAddition(PointLight light, vec3 normal, vec3 viewDir, float shadow) {
