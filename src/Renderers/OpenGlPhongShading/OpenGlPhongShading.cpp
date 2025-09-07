@@ -286,7 +286,7 @@ namespace Rutile {
 
         ImGui::Text("Shadow map");
         ImGui::Image(
-            (ImTextureID)m_PointLights[i].cubeMapVisualization->Get(), 
+            (ImTextureID)m_PointLights[i].cubeMapVisualizationTexture->Get(),
             ImVec2{ (float)ShadowMapPointLight::cubeMapVisualizationSize.x, (float)ShadowMapPointLight::cubeMapVisualizationSize.y}
         );
     }
@@ -324,7 +324,7 @@ namespace Rutile {
 
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-            sMPL.cubeMapVisualization = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
+            sMPL.cubeMapVisualizationTexture = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
 
             m_PointLights.push_back(std::move(sMPL));
         }
@@ -1077,7 +1077,7 @@ namespace Rutile {
     void OpenGlPhongShading::CubeMapToTexture2D(unsigned int cubemap, size_t i) { // TODO use out
         glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_PointLights[i].cubeMapVisualization->Get(), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_PointLights[i].cubeMapVisualizationTexture->Get(), 0);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             std::cout << "ERROR: Framebuffer is not complete" << std::endl;

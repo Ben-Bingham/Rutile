@@ -88,7 +88,7 @@ namespace Rutile {
             unsigned int cubeMap{ }; // TODO use texture class
 
             static constexpr glm::ivec2 cubeMapVisualizationSize{ 1024, 512 };
-            std::unique_ptr<Texture2D> cubeMapVisualization;
+            std::unique_ptr<Texture2D> cubeMapVisualizationTexture;
         };
 
         bool m_OmnidirectionalShadowMaps{ true };
