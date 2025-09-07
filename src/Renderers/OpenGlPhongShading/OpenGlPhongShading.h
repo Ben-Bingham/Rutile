@@ -89,6 +89,8 @@ namespace Rutile {
 
             static constexpr glm::ivec2 cubeMapVisualizationSize{ 1024, 512 };
             std::unique_ptr<Texture2D> cubeMapVisualizationTexture;
+
+            glm::vec2 cubeMapVisualizationOffsets{ 0.0f };
         };
 
         bool m_OmnidirectionalShadowMaps{ true };
@@ -106,11 +108,9 @@ namespace Rutile {
         void CubeMapToTexture2D(unsigned int cubemap, size_t); // TODO change into cubemap class
         // TODO add Texture& back
 
-        unsigned int m_CubeMapVisualizationFBO{ 0 };
+        unsigned int m_CubeMapVisualizationFBO{ 0 }; // TODO use framebuffer class
         unsigned int m_CubeMapVisualizationRBO{ 0 };
 
-        std::vector<float> m_OmnidirectionalShadowMapVisualizationHorizontalOffsets{ 0.0f };
-        std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };
 
 
 
