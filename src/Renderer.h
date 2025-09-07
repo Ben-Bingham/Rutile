@@ -21,7 +21,11 @@ namespace Rutile {
         virtual void Render(RenderTarget& target, const Camera& camera) = 0;
 
         // Called every frame, facilitates an ImGui gui
-        virtual void ProvideGUI() { }
+        virtual void ProvideGeneralGUI() { }
+
+        // Called after all default light settings, facilitates an ImGui gui
+        virtual void ProvideDirectionalLightGUI() { }
+        virtual void ProvidePointLightGUI(size_t i) { }
 
         // Replaces the entire old scene with a new one
         virtual void SetScene(Scene scene) { }
@@ -30,7 +34,8 @@ namespace Rutile {
         virtual void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) { }
         virtual void UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) { }
 
-        virtual void UpdateSceneLight() { }
+        virtual void UpdateDirectionalLight(const std::shared_ptr<DirectionalLight> newLight) { }
+        virtual void UpdatePointLight(size_t i, const PointLight& newLight) { }
 
         virtual void UpdateViewportSize() { }
 	};

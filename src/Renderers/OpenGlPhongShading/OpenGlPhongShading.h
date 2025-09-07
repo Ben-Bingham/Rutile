@@ -24,10 +24,16 @@ namespace Rutile {
 
         void Render(RenderTarget& target, const Camera& camera) override;
 
+        void ProvideDirectionalLightGUI() override;
+        void ProvidePointLightGUI(size_t i) override;
+
         void SetScene(Scene scene) override;
 
         void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
         void UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) override;
+
+        void UpdateDirectionalLight(const std::shared_ptr<DirectionalLight> newLight) override;
+        void UpdatePointLight(size_t i, const PointLight& newLight) override;
 
     private:
         glm::mat4 m_Projection{ 1.0f };

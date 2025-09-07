@@ -204,6 +204,7 @@ int main() {
 
         { ImGui::Begin("Bottombar");
             // TODO highlight the object and or light when selected, also hightlight the button while the popup is open
+            // TODO add undo button to reset the scene add a warning saying this cant be undone
             if (ImGui::CollapsingHeader("Objects")) {
                 ImGuiStyle& style = ImGui::GetStyle();
                 size_t objectCount = scene.objects.size();
@@ -305,6 +306,12 @@ int main() {
                             if (ImGui::ColorEdit3("Ambient", glm::value_ptr(dirLight->ambient))) change = true;
                             if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(dirLight->diffuse))) change = true;
                             if (ImGui::ColorEdit3("Specular", glm::value_ptr(dirLight->specular))) change = true;
+                            
+                            renderer->ProvideDirectionalLightGUI();
+
+                            if (change) {
+                                renderer->UpdateDirectionalLight(dirLight);
+                            }
                         }
                         else {
                             // Point Light
@@ -323,8 +330,13 @@ int main() {
                             if (ImGui::DragFloat("Constant", &light.constant, 0.01f, 0.0f, 1.0f)) change = true;
                             if (ImGui::DragFloat("Linear", &light.linear, 0.001f, 0.0f, 1.0f)) change = true;
                             if (ImGui::DragFloat("Quadratic", &light.quadratic, 0.0001f, 0.0f, 1.0f)) change = true;
+                            
+                            renderer->ProvidePointLightGUI(i);
 
-                            scene.pointLights[i] = light;
+                            if (change) {
+                                scene.pointLights[i] = light;
+                                renderer->UpdatePointLight(i, light);
+                            }
                         }
                         ImGui::EndPopup();
                     }
@@ -351,7 +363,7 @@ int main() {
 
         } ImGui::End(); // Viewport
 
-        if (renderer) renderer->ProvideGUI(); // TODO
+        if (renderer) renderer->ProvideGeneralGUI(); // TODO
 
         imGui.FinishFrame();
 

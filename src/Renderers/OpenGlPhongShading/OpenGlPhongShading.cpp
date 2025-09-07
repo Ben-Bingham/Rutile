@@ -280,6 +280,14 @@ namespace Rutile {
         //return targetTexture;
     }
 
+    void OpenGlPhongShading::ProvideDirectionalLightGUI() {
+
+    }
+
+    void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
+
+    }
+
     void OpenGlPhongShading::SetScene(Scene scene) {
         // Point lights
         for (auto& pl : m_PointLights) {
@@ -426,6 +434,14 @@ namespace Rutile {
         phong.shininess = newMaterial->shininess;
 
         m_Materials[i] = phong;
+    }
+
+    void OpenGlPhongShading::UpdateDirectionalLight(const std::shared_ptr<DirectionalLight> newLight) {
+        m_DirectionalLight = newLight;
+    }
+
+    void OpenGlPhongShading::UpdatePointLight(size_t i, const PointLight& newLight) {
+        // TODO
     }
 
     void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
