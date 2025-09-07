@@ -101,7 +101,7 @@ namespace Rutile {
 
         sceneFactory.Add(mesh, glm::mat4{ 1.0 }, redMat);
 
-        Light pointLight{ 
+        PointLight pointLight{ 
             glm::vec3{ 5.0f, 5.0f, 5.0f },
 
             glm::vec3{ 1.0f, 1.0f, 1.0f },
@@ -156,7 +156,7 @@ namespace Rutile {
         transform7.position = { 0.0f, 0.0f, -2.0f };
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, transform7, mat4);
 
-        Light pointLight { 
+        PointLight pointLight {
             { 0.0f, 0.0f, 1.0f },
 
             { 0.05f, 0.05f, 0.05f },
@@ -170,7 +170,7 @@ namespace Rutile {
 
         sceneFactory.Add(pointLight);
 
-        Light pointLight2{
+        PointLight pointLight2{
             { -2.0f, 0.0f, 1.0f },
 
             { 0.05f, 0.05f, 0.05f },
@@ -272,7 +272,7 @@ namespace Rutile {
         lightTransform.scale = { 0.4f, 0.4f, 0.4f };
         sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, mat1);
 
-        Light pointLight{
+        PointLight pointLight{
             lightTransform.position,
             { 0.5f, 0.5f, 0.5f },
             { 0.5f, 0.5f, 0.5f },

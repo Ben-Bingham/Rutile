@@ -287,22 +287,7 @@ namespace Rutile {
     void OpenGlPhongShading::SetScene(Scene scene) {
         // Lights
         m_PointLights.clear();
-
-        for (auto& light : scene.lights) {
-            PointLight pL{ };
-
-            pL.position = light->position;
-
-            pL.constant = light->constant;
-            pL.linear = light->linear;
-            pL.quadratic = light->quadratic;
-
-            pL.diffuse = light->diffuse;
-            pL.ambient = light->ambient;
-            pL.specular = light->specular;
-
-            m_PointLights.push_back(pL);
-        }
+        m_PointLights = scene.pointLights;
 
         m_DirectionalLight.reset();
         if (scene.directionalLight) {

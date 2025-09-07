@@ -52,12 +52,12 @@ namespace Rutile {
         Add(primitive, transform, std::make_shared<Material>(material));
     }
 
-    void SceneFactory::Add(const Light& light) {
-        m_Scene.lights.push_back(std::make_shared<Light>(light));
+    void SceneFactory::Add(const PointLight& light) {
+        m_Scene.pointLights.push_back(light);
     }
 
     void SceneFactory::Add(const DirectionalLight& light) {
-        m_Scene.directionalLight = std::make_unique<DirectionalLight>(light);
+        m_Scene.directionalLight = std::make_shared<DirectionalLight>(light);
     }
 
     //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
