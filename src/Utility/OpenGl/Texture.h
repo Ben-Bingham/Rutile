@@ -1,4 +1,6 @@
 #pragma once
+
+#include <array>
 #include <vector>
 #include <string>
 
@@ -11,7 +13,8 @@ namespace Rutile {
     enum class TextureFormat {
         R = GL_RED,
         RGB = GL_RGB,
-        RGBA = GL_RGBA
+        RGBA = GL_RGBA,
+        DEPTH_COMPONENT = GL_DEPTH_COMPONENT
     };
 
     enum class TextureStorageType {
@@ -20,7 +23,8 @@ namespace Rutile {
     };
 
     enum class TextureWrapMode {
-        REPEAT = GL_REPEAT
+        REPEAT = GL_REPEAT,
+        CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE
     };
 
     enum class TextureFilteringMode {
@@ -80,7 +84,19 @@ namespace Rutile {
         Texture2D_Array(const std::vector<std::string>& paths, TextureParameters parameters = TextureParameters{ }, bool flip = true);
     };
 
-    //class Cubemap : Texture {
-    //public:
-    //};
+    class Cubemap : public Texture {
+    public:
+        Cubemap(
+            glm::ivec2 size, 
+            TextureParameters parameters = TextureParameters{ }, 
+            std::array<std::vector<unsigned char>, 6> data = std::array<std::vector<unsigned char>, 6>{ 
+                std::vector<unsigned char>{ }, 
+                std::vector<unsigned char>{ }, 
+                std::vector<unsigned char>{ }, 
+                std::vector<unsigned char>{ }, 
+                std::vector<unsigned char>{ }, 
+                std::vector<unsigned char>{ } 
+            }
+        );
+    };
 }

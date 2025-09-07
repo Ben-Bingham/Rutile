@@ -282,7 +282,7 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
-        CubeMapToTexture2D(m_PointLights[i].cubeMap, i);
+        CubeMapToTexture2D(m_PointLights[i].cubemap->Get(), i);
 
         ImGui::Text("Shadow map");
         ImGui::Image(
@@ -303,29 +303,19 @@ namespace Rutile {
 
     void OpenGlPhongShading::SetScene(Scene scene) {
         // Point lights
-        for (auto& pl : m_PointLights) {
-            glDeleteTextures(1, &pl.cubeMap);
-        }
-
         m_PointLights.clear();
         for (auto& pointLight : scene.pointLights) {
             ShadowMapPointLight sMPL{ pointLight };
 
             // Cube map
-            glGenTextures(1, &sMPL.cubeMap);
+            TextureParameters parameters{ 
+                TextureFormat::DEPTH_COMPONENT,
+                TextureStorageType::FLOAT,
+                TextureWrapMode::CLAMP_TO_EDGE,
+                TextureFilteringMode::NEAREST
+            };
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, sMPL.cubeMap);
-            for (int i = 0; i < 6; ++i) {
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, sMPL.shadowMapSize.x,
-                    sMPL.shadowMapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            }
-
-            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            sMPL.cubemap = std::make_unique<Cubemap>(sMPL.shadowMapSize, parameters);
 
             sMPL.cubeMapVisualizationTexture = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
 
@@ -458,8 +448,8 @@ namespace Rutile {
             glViewport(0, 0, pointLight.shadowMapSize.x, pointLight.shadowMapSize.y);
             m_OmnidirectionalShadowMapsFramebuffer->Bind();
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight.cubeMap);
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, pointLight.cubeMap, 0);
+            pointLight.cubemap->Bind();
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, pointLight.cubemap->Get(), 0);
 
             glClear(GL_DEPTH_BUFFER_BIT);
             m_OmnidirectionalShadowMappingShader->Bind();

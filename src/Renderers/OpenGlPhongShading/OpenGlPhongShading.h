@@ -85,10 +85,10 @@ namespace Rutile {
             float nearPlane{ 1.0f };
             float farPlane{ 25.0f };
 
-            unsigned int cubeMap{ }; // TODO use texture class
+            std::unique_ptr<Cubemap> cubemap{ };
 
             static constexpr glm::ivec2 cubeMapVisualizationSize{ 1024, 512 };
-            std::unique_ptr<Texture2D> cubeMapVisualizationTexture;
+            std::unique_ptr<Texture2D> cubeMapVisualizationTexture{ };
 
             glm::vec2 cubeMapVisualizationOffsets{ 0.0f };
         };

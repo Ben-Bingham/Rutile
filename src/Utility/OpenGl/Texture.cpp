@@ -140,4 +140,25 @@ namespace Rutile {
 
         glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
     }
+
+    Cubemap::Cubemap(glm::ivec2 size, TextureParameters parameters, std::array<std::vector<unsigned char>, 6> data)
+        : Texture(GL_TEXTURE_CUBE_MAP) {
+
+        for (int i = 0; i < 6; ++i) {
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, (int)parameters.horizontalWrapMode);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, (int)parameters.verticalWrapMode);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, (int)parameters.depthWrapMode);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, (int)parameters.magFilter);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, (int)parameters.minFilter);
+
+            if (data[i].empty()) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, (int)parameters.imageFormat, size.x,
+                    size.y, 0, (int)parameters.imageFormat, (int)parameters.internalStorageType, nullptr);
+            }
+            else {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, (int)parameters.imageFormat, size.x,
+                    size.y, 0, (int)parameters.imageFormat, (int)parameters.internalStorageType, data[i].data());
+            }
+        }
+    }
 }
