@@ -18,33 +18,35 @@
 namespace Rutile {
     OpenGlPhongShading::OpenGlPhongShading() {
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\phong.vert", "assets\\shaders\\OpenGlPhongShading\\phong.frag");
-        m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.vert", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.frag", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.geom");
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        //m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
 
         //m_CascadingShadowMapShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.geom");
         //m_CascadingShadowMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.frag");
 
         // Omnidirectional Shadow maps
+        m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.vert", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.frag", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.geom");
+
         m_OmnidirectionalShadowMapsFramebuffer = std::make_unique<Framebuffer>();
         m_OmnidirectionalShadowMapsFramebuffer->NoTargets();
         m_OmnidirectionalShadowMapsFramebuffer->Unbind();
 
-        //// Cubemap Visualization
-        //glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
-        //glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+        // Cubemap Visualization
+        m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
 
-        //glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
-        //glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
-        //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
-        //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+        glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
 
-        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        ////glBindTexture(GL_TEXTURE_2D, 0);
-        //glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glGenRenderbuffers(1, &m_CubeMapVisualizationRBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_CubeMapVisualizationRBO);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0); // TODO remove
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 
         ////framebuffer = std::make_unique<Framebuffer>();
@@ -192,13 +194,13 @@ namespace Rutile {
         //glDeleteTextures(1, &m_CascadingShadowMapTexture);
         //glDeleteFramebuffers(1, &m_CascadingShadowMapFBO);
 
-        //// Cubemap Visualization
-        //for (auto& texture : m_CubeMapVisualizationTextures) {
-        //    glDeleteTextures(1, &texture);
-        //}
+        // Cubemap Visualization
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
 
-        //glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
-        //glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
+        glDeleteFramebuffers(1, &m_CubeMapVisualizationFBO);
+        glDeleteRenderbuffers(1, &m_CubeMapVisualizationRBO);
 
         //// Omnidirectional Shadow maps
         //for (const auto& cubeMap : m_PointLightCubeMaps) {
@@ -285,7 +287,10 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
+        CubeMapToTexture2D(0, i);
 
+        ImGui::Text("Shadow map");
+        ImGui::Image((ImTextureID)m_CubeMapVisualizationTextures[i], ImVec2{ (float)500, (float)500 }, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
     }
 
     void OpenGlPhongShading::SetScene(Scene scene) {
@@ -293,6 +298,12 @@ namespace Rutile {
         for (auto& pl : m_PointLights) {
             glDeleteTextures(1, &pl.cubeMap);
         }
+
+        for (auto& texture : m_CubeMapVisualizationTextures) {
+            glDeleteTextures(1, &texture);
+        }
+
+        m_CubeMapVisualizationTextures.clear();
 
         m_PointLights.clear();
         for (auto& pointLight : scene.pointLights) {
@@ -315,6 +326,18 @@ namespace Rutile {
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
             m_PointLights.push_back(sMPL);
+
+            unsigned int cubeMapVisualizationTexture;
+
+            glGenTextures(1, &cubeMapVisualizationTexture);
+            glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         // Directional Light
@@ -328,29 +351,9 @@ namespace Rutile {
         //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.clear();
         //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.clear();
 
-        //for (auto& texture : m_CubeMapVisualizationTextures) {
-            //glDeleteTextures(1, &texture);
-        //}
 
-        //m_CubeMapVisualizationTextures.clear();
 
-        // Create new Point Lights
-        //for (const auto& pointLight : App::scene.pointLights) {
-            // Cube map Visualization
-            //unsigned int cubeMapVisualizationTexture;
 
-            //glGenTextures(1, &cubeMapVisualizationTexture);
-            //glBindTexture(GL_TEXTURE_2D, cubeMapVisualizationTexture);
-            //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_CubeMapVisualizationWidth, m_CubeMapVisualizationHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            //m_CubeMapVisualizationTextures.push_back(cubeMapVisualizationTexture);
-
-            //glBindTexture(GL_TEXTURE_2D, 0);
-
-            //++pointLightIndex;
-        //}
 
         //m_OmnidirectionalShadowMapVisualizationHorizontalOffsets.resize(App::scene.pointLights.size());
         //m_OmnidirectionalShadowMapVisualizationVerticalOffsets.resize(App::scene.pointLights.size());
@@ -836,74 +839,6 @@ namespace Rutile {
     //    }
     //}
 
-    //void OpenGlRenderer::VisualizeCubeMap(LightIndex lightIndex) {
-    //    glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
-
-    //    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTextures[lightIndex], 0);
-
-    //    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    //        std::cout << "ERROR: Framebuffer is not complete" << std::endl;
-    //    }
-
-    //    std::vector<Vertex> vertices = {
-    //        //      Position                         Normal                         Uv
-    //        Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
-    //        Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
-    //        Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
-    //        Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
-    //    };
-
-    //    std::vector<unsigned int> indices = {
-    //        2, 1, 0,
-    //        3, 2, 0
-    //    };
-
-    //    unsigned int VAO;
-    //    unsigned int VBO;
-    //    unsigned int EBO;
-
-    //    glGenVertexArrays(1, &VAO);
-    //    glGenBuffers(1, &VBO);
-    //    glGenBuffers(1, &EBO);
-
-    //    glBindVertexArray(VAO);
-
-    //    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
-
-    //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    //    glEnableVertexAttribArray(0);
-
-    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    //    glEnableVertexAttribArray(1);
-
-    //    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-    //    glEnableVertexAttribArray(2);
-
-    //    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    //    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    //    m_CubeMapVisualizationShader->Bind();
-
-    //    m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_OmnidirectionalShadowMapVisualizationVerticalOffsets[lightIndex]);
-    //    m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[lightIndex]);
-
-    //    glActiveTexture(GL_TEXTURE0);
-    //    glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[lightIndex]);
-
-    //    m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
-
-    //    glBindVertexArray(VAO);
-    //    glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
-
-    //    glDeleteBuffers(1, &VBO);
-    //    glDeleteBuffers(1, &EBO);
-    //    glDeleteVertexArrays(1, &VAO);
-    //}
-
     //void OpenGlRenderer::VisualizeCascadeShadowMap(int layer) {
     //    glBindFramebuffer(GL_FRAMEBUFFER, m_ShadowCascadesVisualizationFBO);
 
@@ -1160,4 +1095,75 @@ namespace Rutile {
     //    glDisable(GL_BLEND);
     //    glEnable(GL_CULL_FACE);
     //}
+
+
+    void OpenGlPhongShading::CubeMapToTexture2D(unsigned int cubemap, size_t i) { // TODO use out
+        glBindFramebuffer(GL_FRAMEBUFFER, m_CubeMapVisualizationFBO);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_CubeMapVisualizationTextures[i], 0);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "ERROR: Framebuffer is not complete" << std::endl;
+        }
+
+        std::vector<Vertex> vertices = {
+            //      Position                         Normal                         Uv
+            Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 0.0f } },
+            Vertex{ glm::vec3{ -1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 0.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f,  1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 1.0f } },
+            Vertex{ glm::vec3{  1.0f, -1.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 1.0f }, glm::vec2{ 1.0f, 0.0f } },
+        };
+
+        std::vector<unsigned int> indices = {
+            2, 1, 0,
+            3, 2, 0
+        };
+
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
+
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(Index), indices.data(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+        glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glEnableVertexAttribArray(2);
+
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        m_CubeMapVisualizationShader->Bind();
+
+        m_CubeMapVisualizationShader->SetFloat("horizontalModifier", m_OmnidirectionalShadowMapVisualizationVerticalOffsets[i]);
+        m_CubeMapVisualizationShader->SetFloat("verticalModifier", m_OmnidirectionalShadowMapVisualizationHorizontalOffsets[i]);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLights[i].cubeMap);
+
+        m_CubeMapVisualizationShader->SetInt("cubeMap", 0);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, (int)indices.size(), GL_UNSIGNED_INT, nullptr);
+
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &VAO);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }

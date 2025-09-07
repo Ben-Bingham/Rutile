@@ -58,7 +58,6 @@ namespace Rutile {
     private:
         // Shaders
         std::unique_ptr<Shader> m_PhongShader;
-        std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
 
         // Objects
         struct Phong {
@@ -77,7 +76,7 @@ namespace Rutile {
         std::vector<Phong> m_Materials;
         std::vector<glm::mat4> m_Transforms;
 
-        // Lights
+        // Point Lights
         struct ShadowMapPointLight : public PointLight {
             ShadowMapPointLight(const PointLight& light);
 
@@ -92,38 +91,44 @@ namespace Rutile {
         bool m_OmnidirectionalShadowMaps{ true };
         std::vector<ShadowMapPointLight> m_PointLights{ };
 
+        std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Framebuffer> m_OmnidirectionalShadowMapsFramebuffer;
 
-
+        // Directional Light
         std::shared_ptr<DirectionalLight> m_DirectionalLight{ };
+        
+        // Cubemap visualization
+        std::unique_ptr<Shader> m_CubeMapVisualizationShader;
+        // TODO remove i
+        void CubeMapToTexture2D(unsigned int cubemap, size_t); // TODO change into cubemap class
+        // TODO add Texture& back
 
+        unsigned int m_CubeMapVisualizationFBO{ 0 };
+        unsigned int m_CubeMapVisualizationRBO{ 0 };
 
+        std::vector<unsigned int> m_CubeMapVisualizationTextures; // TODO move to ShadowMap point light class
 
+        int m_CubeMapVisualizationWidth{ 1024 };
+        int m_CubeMapVisualizationHeight{ 512 };
+
+        std::vector<float> m_OmnidirectionalShadowMapVisualizationHorizontalOffsets{ 0.0f };
+        std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };
 
 
 
         // OLD stuff // TODO
 
-        std::unique_ptr<Shader> m_CubeMapVisualizationShader;
 
         std::unique_ptr<Shader> m_CascadingShadowMapShader;
         std::unique_ptr<Shader> m_CascadingShadowMapVisualizationShader;
 
-        // Omnidirectional Shadow maps
-        std::vector<float> m_OmnidirectionalShadowMapVisualizationHorizontalOffsets{ 0.0f };
-        std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };
+
 
         unsigned int m_OmnidirectionalShadowMapFBO;
 
         std::vector<unsigned int> m_PointLightCubeMaps;
 
-        unsigned int m_CubeMapVisualizationFBO{ 0 };
-        unsigned int m_CubeMapVisualizationRBO{ 0 };
 
-        std::vector<unsigned int> m_CubeMapVisualizationTextures;
-
-        int m_CubeMapVisualizationWidth{ 1024 };
-        int m_CubeMapVisualizationHeight{ 512 };
 
         //void VisualizeCubeMap(LightIndex lightIndex);
 
