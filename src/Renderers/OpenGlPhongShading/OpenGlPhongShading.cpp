@@ -18,23 +18,20 @@
 namespace Rutile {
     OpenGlPhongShading::OpenGlPhongShading() {
         m_PhongShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\phong.vert", "assets\\shaders\\OpenGlPhongShading\\phong.frag");
+        m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.vert", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.frag", "assets\\shaders\\OpenGlPhongShading\\omnidirectionalShadowMapping.geom");
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        //m_OmnidirectionalShadowMappingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\omnidirectionalShadowMapping.geom");
         //m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cubemapVisualization.frag");
 
         //m_CascadingShadowMapShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.frag", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapping.geom");
         //m_CascadingShadowMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.vert", "assets\\shaders\\renderers\\OpenGl\\cascadingShadowMapVisualization.frag");
 
-        //// Omnidirectional Shadow maps
-        //glGenFramebuffers(1, &m_OmnidirectionalShadowMapFBO);
-
-        //glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
-        //glDrawBuffer(GL_NONE);
-        //glReadBuffer(GL_NONE);
-        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // Omnidirectional Shadow maps
+        m_OmnidirectionalShadowMapsFramebuffer = std::make_unique<Framebuffer>();
+        m_OmnidirectionalShadowMapsFramebuffer->NoTargets();
+        m_OmnidirectionalShadowMapsFramebuffer->Unbind();
 
         //// Cubemap Visualization
         //glGenFramebuffers(1, &m_CubeMapVisualizationFBO);
@@ -264,8 +261,7 @@ namespace Rutile {
         //}
         */
 
-        // TODO call this
-        //RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
+        RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
         //if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
@@ -285,19 +281,39 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::SetScene(Scene scene) {
-        // Lights
-        m_PointLights.clear();
-        m_PointLights = scene.pointLights;
+        // Point lights
+        for (auto& pl : m_PointLights) {
+            glDeleteTextures(1, &pl.cubeMap);
+        }
 
+        m_PointLights.clear();
+        for (auto& pointLight : scene.pointLights) {
+            ShadowMapPointLight sMPL{ pointLight };
+
+            // Cube map
+            glGenTextures(1, &sMPL.cubeMap);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, sMPL.cubeMap);
+            for (int i = 0; i < 6; ++i) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, sMPL.shadowMapSize.x,
+                    sMPL.shadowMapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            }
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+            m_PointLights.push_back(sMPL);
+        }
+
+        // Directional Light
         m_DirectionalLight.reset();
         if (scene.directionalLight) {
             m_DirectionalLight = scene.directionalLight;
         }
-
-        // Cleanup old Point Lights
-        //for (const auto& cubeMap : m_PointLightCubeMaps) {
-        //    glDeleteTextures(1, &cubeMap);
-        //}
 
         //m_PointLightCubeMaps.clear();
 
@@ -312,26 +328,6 @@ namespace Rutile {
 
         // Create new Point Lights
         //for (const auto& pointLight : App::scene.pointLights) {
-            // Cube map
-            //unsigned int cubeMap;
-
-            //glGenTextures(1, &cubeMap);
-
-            //glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-            //for (int i = 0; i < 6; ++i) {
-            //    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, m_OmnidirectionalShadowMapWidth,
-            //        m_OmnidirectionalShadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            //    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            //}
-
-            //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-            //m_PointLightCubeMaps.push_back(cubeMap);
-
             // Cube map Visualization
             //unsigned int cubeMapVisualizationTexture;
 
@@ -407,7 +403,7 @@ namespace Rutile {
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            m_IndexCounts[i] = indices.size();
+            m_IndexCounts[i] = (int)indices.size();
 
             m_Materials[i].diffuse = scene.objects[i].material->diffuse;
             m_Materials[i].ambient = scene.objects[i].material->ambient;
@@ -433,62 +429,60 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
-        /*
-        if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
-            glCullFace(GL_FRONT);
-        } else {
-            glCullFace(GL_BACK);
-        }
+        //if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
+        //    glCullFace(GL_FRONT);
+        //} else {
+        //    glCullFace(GL_BACK);
+        //}
 
-        LightIndex pointLightIndex = 0;
-        for (const auto& pointLight : App::scene.pointLights) {
-            float aspect = (float)m_OmnidirectionalShadowMapWidth / (float)m_OmnidirectionalShadowMapHeight;
-            glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, pointLight.shadowMapNearPlane, pointLight.shadowMapFarPlane);
+        size_t i = 0;
+        for (const auto& pointLight : m_PointLights) {
+            float aspect = (float)pointLight.shadowMapSize.x / (float)pointLight.shadowMapSize.y;
+            glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, pointLight.nearPlane, pointLight.farPlane);
 
-            glm::vec3 lightPosition = pointLight.position;
+            glm::vec3 pos = pointLight.position;
 
             std::vector<glm::mat4> shadowTransforms;
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ 1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+                glm::lookAt(pos, pos + glm::vec3{  1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ -1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+                glm::lookAt(pos, pos + glm::vec3{ -1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ 0.0,  1.0,  0.0 }, glm::vec3{ 0.0,  0.0,  1.0 }));
+                glm::lookAt(pos, pos + glm::vec3{  0.0,  1.0,  0.0 }, glm::vec3{ 0.0,  0.0,  1.0 }));
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ 0.0, -1.0,  0.0 }, glm::vec3{ 0.0,  0.0, -1.0 }));
+                glm::lookAt(pos, pos + glm::vec3{  0.0, -1.0,  0.0 }, glm::vec3{ 0.0,  0.0, -1.0 }));
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ 0.0,  0.0,  1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+                glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0,  1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
             shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(lightPosition, lightPosition + glm::vec3{ 0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+                glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
 
-            glViewport(0, 0, m_OmnidirectionalShadowMapWidth, m_OmnidirectionalShadowMapHeight);
-            glBindFramebuffer(GL_FRAMEBUFFER, m_OmnidirectionalShadowMapFBO);
+            glViewport(0, 0, pointLight.shadowMapSize.x, pointLight.shadowMapSize.y);
+            m_OmnidirectionalShadowMapsFramebuffer->Bind();
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, m_PointLightCubeMaps[pointLightIndex]);
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_PointLightCubeMaps[pointLightIndex], 0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, pointLight.cubeMap);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, pointLight.cubeMap, 0);
 
             glClear(GL_DEPTH_BUFFER_BIT);
             m_OmnidirectionalShadowMappingShader->Bind();
 
             // Render
-            for (const auto& object : App::scene.objects) {
-                m_OmnidirectionalShadowMappingShader->SetMat4("model", App::scene.transformBank[object.transform].matrix);
+            for (size_t i = 0; i < m_ObjectCount; ++i) {
+                m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]);
 
                 for (int i = 0; i < 6; ++i) {
                     m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
                 }
 
-                m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", lightPosition);
-                m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", pointLight.shadowMapFarPlane);
+                m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", pos);
+                m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", pointLight.farPlane);
 
-                glBindVertexArray(m_VAOs[object.geometry]);
-                glDrawElements(GL_TRIANGLES, (int)App::scene.geometryBank[object.geometry].indices.size(), GL_UNSIGNED_INT, nullptr);
+                glBindVertexArray(m_VAOs[i]);
+                glDrawElements(GL_TRIANGLES, m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
             }
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            ++pointLightIndex;
+            ++i;
         }
-        */
     }
 
     void OpenGlPhongShading::RenderCascadingShadowMaps() {
@@ -766,6 +760,11 @@ namespace Rutile {
 
         return frustumCorners;
     }
+
+    OpenGlPhongShading::ShadowMapPointLight::ShadowMapPointLight(const PointLight& light) 
+        : PointLight(light) { }
+
+    
 
     //void OpenGlRenderer::ProjectionMatrixUpdate() {
     //    m_Projection = glm::mat4{ 1.0f };

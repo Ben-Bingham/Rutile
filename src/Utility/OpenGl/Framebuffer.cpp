@@ -30,6 +30,11 @@ namespace Rutile {
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, (int)use, GL_RENDERBUFFER, renderbuffer.Get());
     }
 
+    void Framebuffer::NoTargets() {
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
+    }
+
     bool Framebuffer::Check(const std::string& framebufferName) {
         Bind();
 

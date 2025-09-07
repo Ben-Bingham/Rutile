@@ -7,9 +7,11 @@ namespace Rutile {
 	public:
 		PointLight(
 			glm::vec3 position = glm::vec3{ 0.0f, 0.0f, 0.0f },
+
 			glm::vec3 diffuse = glm::vec3{ 1.0f, 1.0f, 1.0f },
 			glm::vec3 ambient = glm::vec3{ 1.0f, 1.0f, 1.0f },
 			glm::vec3 specular = glm::vec3{ 1.0f, 1.0f, 1.0f },
+
 			float constant = 0.62f, 
 			float linear = 0.175f, 
 			float quadratic = 0.035f

@@ -41,11 +41,6 @@ namespace Rutile {
         std::vector<glm::vec4> GetFrustumCornersInWorldSpace(const glm::mat4& frustum);
 
 	public:
-        //std::unique_ptr<Framebuffer> framebuffer{ };
-        //std::unique_ptr<Renderbuffer> renderbuffer{ };
-        //glm::ivec2 fbSize{ 800, 600 };
-
-        //std::shared_ptr<Texture2D> targetTexture{ };
         // Events
         //void ProjectionMatrixUpdate() override;
 
@@ -57,6 +52,7 @@ namespace Rutile {
     private:
         // Shaders
         std::unique_ptr<Shader> m_PhongShader;
+        std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
 
         // Objects
         struct Phong {
@@ -76,7 +72,22 @@ namespace Rutile {
         std::vector<glm::mat4> m_Transforms;
 
         // Lights
-        std::vector<PointLight> m_PointLights{ };
+        struct ShadowMapPointLight : public PointLight {
+            ShadowMapPointLight(const PointLight& light);
+
+            glm::ivec2 shadowMapSize{ 1024, 1024 };
+
+            float nearPlane{ 1.0f };
+            float farPlane{ 25.0f };
+
+            unsigned int cubeMap{ }; // TODO use texture class
+        };
+
+        bool m_OmnidirectionalShadowMaps{ true };
+        std::vector<ShadowMapPointLight> m_PointLights{ };
+
+        std::unique_ptr<Framebuffer> m_OmnidirectionalShadowMapsFramebuffer;
+
 
         std::shared_ptr<DirectionalLight> m_DirectionalLight{ };
 
@@ -87,7 +98,6 @@ namespace Rutile {
 
         // OLD stuff // TODO
 
-        std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Shader> m_CubeMapVisualizationShader;
 
         std::unique_ptr<Shader> m_CascadingShadowMapShader;
@@ -98,9 +108,6 @@ namespace Rutile {
         std::vector<float> m_OmnidirectionalShadowMapVisualizationVerticalOffsets{ 0.0f };
 
         unsigned int m_OmnidirectionalShadowMapFBO;
-
-        int m_OmnidirectionalShadowMapWidth{ 1024 };
-        int m_OmnidirectionalShadowMapHeight{ 1024 };
 
         std::vector<unsigned int> m_PointLightCubeMaps;
 

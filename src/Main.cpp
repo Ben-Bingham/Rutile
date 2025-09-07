@@ -52,7 +52,7 @@ int main() {
     bool restartRenderer{ true };
 
     // The current scene type on any given frame
-    SceneType currentSceneType{ SceneType::ORIGINAL_SCENE };
+    SceneType currentSceneType{ SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE };
     Scene scene{ };
 
     // If the scene type is changed part way through a frame, this values is updated to reflect the new type
