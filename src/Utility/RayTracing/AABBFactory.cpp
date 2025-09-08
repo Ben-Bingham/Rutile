@@ -53,26 +53,17 @@ namespace Rutile {
 
         return AABB{ newMin, newMax };
     }
-    /*
-    AABB AABBFactory::Construct(const Geometry& geometry, Transform transform) {
-        if (geometry.type == Geometry::GeometryType::SPHERE) {
-            const glm::vec3 sphereCenter = transform.position;
-            const glm::vec3 radius = transform.scale;
 
-            return AABB{ sphereCenter - radius, sphereCenter + radius };
-        }
-
-        const std::vector<Vertex> vertices = geometry.vertices;
-        const std::vector<Index> indices = geometry.indices;
+    AABB AABBFactory::Construct(const Mesh& mesh, glm::mat4 transform) {
+        const std::vector<Vertex> vertices = mesh.vertices;
+        const std::vector<Index> indices = mesh.indices;
 
         std::vector<Triangle> triangles;
 
-        transform.CalculateMatrix();
-
         for (size_t i = 0; i < indices.size(); i += 3) {
-            glm::vec3 p1 = glm::vec3{ transform.matrix * glm::vec4{ vertices[indices[i + 0]].position, 1.0f } };
-            glm::vec3 p2 = glm::vec3{ transform.matrix * glm::vec4{ vertices[indices[i + 1]].position, 1.0f } };
-            glm::vec3 p3 = glm::vec3{ transform.matrix * glm::vec4{ vertices[indices[i + 2]].position, 1.0f } };
+            glm::vec3 p1 = glm::vec3{ transform * glm::vec4{ vertices[indices[i + 0]].position, 1.0f } };
+            glm::vec3 p2 = glm::vec3{ transform * glm::vec4{ vertices[indices[i + 1]].position, 1.0f } };
+            glm::vec3 p3 = glm::vec3{ transform * glm::vec4{ vertices[indices[i + 2]].position, 1.0f } };
 
             triangles.push_back(Triangle{ p1, p2, p3 });
         }
@@ -87,7 +78,7 @@ namespace Rutile {
 
         return mainBbox;
     }
-    */
+    
     AABB AABBFactory::Construct(const Triangle& triangle) {
         glm::vec3 min{ std::numeric_limits<float>::max() };
         glm::vec3 max{ -std::numeric_limits<float>::max() };
@@ -117,9 +108,9 @@ namespace Rutile {
         return AABB{ min, max };
     }
 
-    /*
+    
     AABB AABBFactory::Construct(const Object& object) {
-        return Construct(App::scene.geometryBank[object.geometry], App::scene.transformBank[object.transform]);
+        return Construct(object.mesh, object.transform);
     }
 
     AABB AABBFactory::Construct(const std::vector<Object>& objects) {
@@ -133,7 +124,7 @@ namespace Rutile {
 
         return mainBbox;
     }
-    */
+    
     AABB AABBFactory::Construct(const std::vector<Triangle>& triangles) {
         AABB mainBbox{ };
 

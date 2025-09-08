@@ -14,6 +14,7 @@
 #include "renderers/OpenGlSolidShading/OpenGlSolidShading.h"
 #include "renderers/OpenGlPhongShading/OpenGlPhongShading.h"
 #include "Renderers/CPU-Ray-Tracing/CPURayTracing.h"
+#include "Renderers/GPU-Ray-Tracing/GPURayTracing.h"
 
 #include "SceneCreation/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -90,6 +91,7 @@ int main() {
                 case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlSolidShading>(); break;
                 case RendererType::OPENGL_PHONG_SHADING: renderer = std::make_unique<OpenGlPhongShading>(); break;
                 case RendererType::CPU_RAY_TRACING: renderer = std::make_unique<CPURayTracing>(); break;
+                case RendererType::GPU_RAY_TRACING: renderer = std::make_unique<GPURayTracing>(); break;
             }
 
             currentRendererType = newRendererType;
@@ -162,7 +164,12 @@ int main() {
 
                 RadioButtons(
                     "Select Renderer",
-                    { "OpenGl Solid Shading", "OpenGl Phong Shading", "CPU Ray Tracing" },
+                    { 
+                        "OpenGl Solid Shading", 
+                        "OpenGl Phong Shading", 
+                        "CPU Ray Tracing", 
+                        "GPU Ray Tracing" 
+                    },
                     (int*)&tempRendererType
                 );
 
@@ -383,7 +390,11 @@ int main() {
 
         imGui.FinishFrame();
 
-        renderer->UpdatePointLight(changedPointLightIndex, scene.pointLights[changedPointLightIndex]);
+        if (pointLightChanged && renderer) {
+            renderer->UpdatePointLight(changedPointLightIndex, scene.pointLights[changedPointLightIndex]);
+
+            pointLightChanged = false;
+        }
 
         // After ImGui has rendered its frame, we resize the framebuffer if needed for next frame
         if (newViewportSize != lastFrameViewportSize) {
