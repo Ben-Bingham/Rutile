@@ -3,7 +3,7 @@
 
 #include <assimp/scene.h>
 
-#include "RenderingAPI/Transform.h"
+#include "Utility/Transform.h"
 
 #include "GeometryFactory.h"
 #include "MaterialFactory.h"

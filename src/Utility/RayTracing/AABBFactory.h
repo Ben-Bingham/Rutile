@@ -3,7 +3,7 @@
 #include "Triangle.h"
 
 //#include "RenderingAPI/Geometry.h"
-#include "RenderingAPI/Transform.h"
+#include "Utility/Transform.h"
 
 namespace Rutile {
     class AABBFactory {
