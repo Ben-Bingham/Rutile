@@ -18,7 +18,7 @@ struct PointLight {
     vec3 diffuse;
     vec3 specular;
 
-    float farPlane; // TODO
+    float farPlane;
 };
 
 struct DirectionalLight {
@@ -144,9 +144,10 @@ void main() {
     for (int i = 0; i < pointLightCount; ++i) {
         float shadow = 0.0;
         //if (omnidirectionalShadowMaps) {
-            //shadow = calculateOmnidirectionalShadow(i, fragPosition);
+            shadow = calculateOmnidirectionalShadow(i, fragPosition);
         //}
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
+        //result = vec3(shadow);
     }
 
     //float shadow = calculateDirectionalShadow();
@@ -238,10 +239,12 @@ float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition) {
 
     float currentDepth = length(fragmentToLight);
 
-    float bias    = omnidirectionalShadowMapBias; 
+    //float bias = omnidirectionalShadowMapBias; 
+    float bias = 0.01;
 
-    if (omnidirectionalShadowMapPCFMode == 0) {
+    //if (omnidirectionalShadowMapPCFMode == 0) {
         shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+        /*
     } else if (omnidirectionalShadowMapPCFMode == 1) {
         float samples = float(omnidirectionalShadowMapSampleCount);
         float offset  = 0.1;
@@ -314,7 +317,7 @@ float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition) {
         }
         shadow /= float(samples); 
     }
-
+    */
     return shadow;
 }
 

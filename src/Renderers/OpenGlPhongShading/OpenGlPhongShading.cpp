@@ -251,7 +251,6 @@ namespace Rutile {
         //}
         */
 
-        //RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
         //if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
@@ -623,6 +622,13 @@ namespace Rutile {
                 m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j].ambient);
                 m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j].diffuse);
                 m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j].specular);
+
+                m_PhongShader->SetFloat(prefix + "farPlane", m_PointLights[j].farPlane);
+
+                glActiveTexture(GL_TEXTURE1 + (unsigned int)j);
+                m_PointLights[j].cubemap->Bind();
+                m_PhongShader->SetInt("pointLightCubeMap" + std::to_string(j), (int)j + 1);
+
                 ++j;
             }
 
@@ -670,19 +676,6 @@ namespace Rutile {
                 if (m_PointLights[j] == nullptr) {
                     continue;
                 }
-
-                std::string prefix = "pointLights[" + std::to_string(j) + "].";
-
-                m_PhongShader->SetVec3(prefix + "position", m_PointLights[j]->position);
-
-                m_PhongShader->SetFloat(prefix + "constant", m_PointLights[j]->constant);
-                m_PhongShader->SetFloat(prefix + "linear", m_PointLights[j]->linear);
-                m_PhongShader->SetFloat(prefix + "quadratic", m_PointLights[j]->quadratic);
-
-
-                m_PhongShader->SetVec3(prefix + "ambient", m_PointLights[j]->ambient);
-                m_PhongShader->SetVec3(prefix + "diffuse", m_PointLights[j]->diffuse);
-                m_PhongShader->SetVec3(prefix + "specular", m_PointLights[j]->specular);
 
 
                 prefix = "omnidirectionalShadowMaps[" + std::to_string(j) + "]";
