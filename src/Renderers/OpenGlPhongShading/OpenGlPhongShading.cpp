@@ -281,8 +281,6 @@ namespace Rutile {
             ImVec2{ (float)ShadowMapPointLight::cubeMapVisualizationSize.x, (float)ShadowMapPointLight::cubeMapVisualizationSize.y }
         );
 
-        ImGui::Text(std::to_string(m_PointLights[i].cubeMapVisualizationTexture->Get()).c_str());
-
         float vertical = glm::degrees(m_PointLights[i].cubeMapVisualizationOffsets.x);
         float horizontal = glm::degrees(m_PointLights[i].cubeMapVisualizationOffsets.y);
         
@@ -301,21 +299,7 @@ namespace Rutile {
         // Point lights
         m_PointLights.clear();
         for (auto& pointLight : scene.pointLights) {
-            ShadowMapPointLight sMPL{ pointLight };
-
-            // Cube map
-            TextureParameters parameters{ 
-                TextureFormat::DEPTH_COMPONENT,
-                TextureStorageType::FLOAT,
-                TextureWrapMode::CLAMP_TO_EDGE,
-                TextureFilteringMode::NEAREST
-            };
-
-            sMPL.cubemap = std::make_unique<Cubemap>(sMPL.shadowMapSize, parameters);
-
-            sMPL.cubeMapVisualizationTexture = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
-
-            m_PointLights.push_back(std::move(sMPL));
+            m_PointLights.push_back(InitializePointLight(pointLight));
         }
 
         // Directional Light
@@ -416,7 +400,11 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::UpdatePointLight(size_t i, const PointLight& newLight) {
-        // TODO
+        m_PointLights[i] = InitializePointLight(newLight);
+
+        RenderOmnidirectionalShadowMaps();
+
+        CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
     }
 
     void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
@@ -755,7 +743,23 @@ namespace Rutile {
     OpenGlPhongShading::ShadowMapPointLight::ShadowMapPointLight(const PointLight& light) 
         : PointLight(light) { }
 
-    
+    OpenGlPhongShading::ShadowMapPointLight OpenGlPhongShading::InitializePointLight(const PointLight& light) {
+        ShadowMapPointLight sMPL{ light };
+
+        // Cube map
+        TextureParameters parameters{
+            TextureFormat::DEPTH_COMPONENT,
+            TextureStorageType::FLOAT,
+            TextureWrapMode::CLAMP_TO_EDGE,
+            TextureFilteringMode::NEAREST
+        };
+
+        sMPL.cubemap = std::make_unique<Cubemap>(sMPL.shadowMapSize, parameters);
+
+        sMPL.cubeMapVisualizationTexture = std::make_unique<Texture2D>(ShadowMapPointLight::cubeMapVisualizationSize);
+
+        return sMPL;
+    }
 
     //void OpenGlRenderer::ProjectionMatrixUpdate() {
     //    m_Projection = glm::mat4{ 1.0f };

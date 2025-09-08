@@ -99,6 +99,8 @@ namespace Rutile {
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Framebuffer> m_OmnidirectionalShadowMapsFramebuffer;
 
+        ShadowMapPointLight InitializePointLight(const PointLight& light);
+
         // Directional Light
         std::shared_ptr<DirectionalLight> m_DirectionalLight{ };
         
