@@ -56,9 +56,9 @@ namespace Rutile {
             //case SceneType::CORNELL_BOX_VERSION_2: {
             //    return GetCornellBoxVersion2();
             //}
-            //case SceneType::DRAGON_8K: {
-            //    return GetDragon8K();
-            //}
+            case SceneType::DRAGON_8K: {
+                return GetDragon8K();
+            }
             //case SceneType::DRAGON_80K: {
             //    return GetDragon80K();
             //}
@@ -800,22 +800,19 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-
+    */
     Scene SceneManager::GetDragon8K() {
         SceneFactory sceneFactory;
 
-        App::camera.pitch = -15.0f;
-        App::camera.position = { 0.0f, 2.4f, 7.5f };
-        App::updateCameraVectors = true;
-
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
-        dragonMaterial.type = Material::Type::MIRROR;
-        dragonMaterial.fuzz = 0.1f;
+        //dragonMaterial.type = Material::Type::MIRROR;
+        //dragonMaterial.fuzz = 0.1f;
 
         Transform dragonTransform{ };
         dragonTransform.scale = glm::vec3{ 10.0f };
         dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform, dragonMaterial);
+        dragonTransform.CalculateMatrix();
+        sceneFactory.Add("assets\\models\\dragon8k\\Dragon_8K.obj", dragonTransform.matrix, dragonMaterial);
 
         PointLight pointLight;
         pointLight.position = { -2.3f, 3.0f, 3.0f };
@@ -824,6 +821,7 @@ namespace Rutile {
         return sceneFactory.GetScene();
     }
 
+    /*
     Scene SceneManager::GetDragon80K() {
         SceneFactory sceneFactory;
 

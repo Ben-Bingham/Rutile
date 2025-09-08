@@ -197,7 +197,7 @@ int main() {
                         //"Cornell Box",
                         //"Backpack",
                         //"Cornell Box 2.0",
-                        //"8K Triangle Dragon",
+                        "8K Triangle Dragon",
                         //"80K Triangle Dragon",
                         //"800K Triangle Dragon",
                         //"Sports Car Front 3/4",
