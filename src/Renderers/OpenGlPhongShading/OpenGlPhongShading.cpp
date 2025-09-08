@@ -251,7 +251,7 @@ namespace Rutile {
         //}
         */
 
-        RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
+        //RenderOmnidirectionalShadowMaps(); // TODO this should be called sparingly
 
         //if (App::scene.HasDirectionalLight() && App::settings.directionalShadows && !App::settings.lockCascadeCamera) {
         //    RenderCascadingShadowMaps(); // TODO this should be called sparingly
@@ -275,23 +275,26 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::ProvidePointLightGUI(size_t i) {
-        CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
-
         ImGui::Text("Shadow map");
         ImGui::Image(
             (ImTextureID)m_PointLights[i].cubeMapVisualizationTexture->Get(),
             ImVec2{ (float)ShadowMapPointLight::cubeMapVisualizationSize.x, (float)ShadowMapPointLight::cubeMapVisualizationSize.y }
         );
 
+        ImGui::Text(std::to_string(m_PointLights[i].cubeMapVisualizationTexture->Get()).c_str());
+
         float vertical = glm::degrees(m_PointLights[i].cubeMapVisualizationOffsets.x);
         float horizontal = glm::degrees(m_PointLights[i].cubeMapVisualizationOffsets.y);
         
+        bool change{ false };
         // TODO Make is so that you can drag around the image to shift instead of sliders
-        ImGui::DragFloat("Vertical Shift", &vertical, 1.0f, -360.0f, 360.0f);
-        ImGui::DragFloat("Horizontal Shift", &horizontal, 1.0f, -360.0f, 360.0f);
+        if (ImGui::DragFloat("Vertical Shift", &vertical, 1.0f, -360.0f, 360.0f)) change = true;
+        if (ImGui::DragFloat("Horizontal Shift", &horizontal, 1.0f, -360.0f, 360.0f)) change = true;
         
         m_PointLights[i].cubeMapVisualizationOffsets.x = glm::radians(vertical);
         m_PointLights[i].cubeMapVisualizationOffsets.y = glm::radians(horizontal);
+
+        if (change) CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
     }
 
     void OpenGlPhongShading::SetScene(Scene scene) {
@@ -385,6 +388,12 @@ namespace Rutile {
             m_Materials[i].shininess = scene.objects[i].material->shininess;
 
             m_Transforms[i] = scene.objects[i].transform;
+        }
+        
+        RenderOmnidirectionalShadowMaps();
+
+        for (size_t i = 0; i < m_PointLights.size(); ++i) {
+            CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
         }
     }
 
@@ -1064,6 +1073,7 @@ namespace Rutile {
         m_CubeMapVisualizationFramebuffer.Bind();
         glViewport(0, 0, textureSize.x, textureSize.y);
 
+        texture.Bind();
         m_CubeMapVisualizationFramebuffer.AddTexture(texture, Framebuffer::TextureUses::COLOR_0);
 
         m_CubeMapVisualizationFramebuffer.Check("Cubemap visualization framebuffer (about to visualize)");
@@ -1126,6 +1136,8 @@ namespace Rutile {
         glDeleteBuffers(1, &EBO);
         glDeleteVertexArrays(1, &VAO);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_CubeMapVisualizationFramebuffer.Unbind();
+        cubemap.Unbind();
+        texture.Unbind();
     }
 }

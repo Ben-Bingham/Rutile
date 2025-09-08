@@ -134,6 +134,7 @@ int main() {
         imGui.StartNewFrame();
 
         //ImGui::ShowDemoWindow();
+        //ImGui::ShowMetricsWindow();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
