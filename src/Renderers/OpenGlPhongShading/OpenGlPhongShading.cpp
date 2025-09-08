@@ -14,6 +14,7 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "Utility/OpenGl/GLDebug.h"
+#include "GUI/ImGuiUtil.h"
 
 namespace Rutile {
     OpenGlPhongShading::OpenGlPhongShading() {
@@ -32,6 +33,15 @@ namespace Rutile {
         m_OmnidirectionalShadowMapsFramebuffer = std::make_unique<Framebuffer>();
         m_OmnidirectionalShadowMapsFramebuffer->NoTargets();
         m_OmnidirectionalShadowMapsFramebuffer->Unbind();
+
+        // Inital PointLight shadow settings
+        m_PhongShader->Bind();
+        m_PhongShader->SetBool("omnidirectionalShadowMaps", m_PointLightShadowSettings.enable);
+        m_PhongShader->SetFloat("omnidirectionalShadowMapBias", m_PointLightShadowSettings.bias);
+        m_PhongShader->SetInt("omnidirectionalShadowMapPCFMode", (int)m_PointLightShadowSettings.pcfMode);
+        m_PhongShader->SetInt("omnidirectionalShadowMapSampleCount", m_PointLightShadowSettings.sampleCount);
+        m_PhongShader->SetInt("omnidirectionalShadowMapDiskRadiusMode", (int)m_PointLightShadowSettings.diskRadiusMode);
+        m_PhongShader->SetFloat("omnidirectionalShadowMapDiskRadius", m_PointLightShadowSettings.radius);
 
         // Cubemap Visualization
         m_CubeMapVisualizationShader = std::make_unique<Shader>("assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.vert", "assets\\shaders\\OpenGlPhongShading\\cubemapVisualization.frag");
@@ -267,6 +277,40 @@ namespace Rutile {
         //}
 
         //return targetTexture;
+    }
+
+    void OpenGlPhongShading::ProvideGeneralGUI() {
+        ImGui::Text("Point light Shadow settings");
+        m_PhongShader->Bind();
+
+        if (ImGui::Checkbox("Enable", &m_PointLightShadowSettings.enable)) m_PhongShader->SetBool("omnidirectionalShadowMaps", m_PointLightShadowSettings.enable);
+
+        if (m_PointLightShadowSettings.enable) {
+            if (ImGui::DragFloat("Bias##omni", &m_PointLightShadowSettings.bias, 0.0001f, 0.0f, 100.0f)) m_PhongShader->SetFloat("omnidirectionalShadowMapBias", m_PointLightShadowSettings.bias);
+
+            RadioButtons(
+                "Omnidirectional Shadow maps PCF mode", 
+                { "No PCF", "Fixed Sample Count", "Fixed Sample Directions" }, 
+                (int*)&m_PointLightShadowSettings.pcfMode,
+                [this] { m_PhongShader->SetInt("omnidirectionalShadowMapPCFMode", (int)m_PointLightShadowSettings.pcfMode); }
+            );
+
+            if (m_PointLightShadowSettings.pcfMode == PointLightShadowSettings::PCFModes::FIXED_SAMPLE_COUNT) {
+                if (ImGui::DragInt("Sample Count", &m_PointLightShadowSettings.sampleCount, 0.01f)) { m_PhongShader->SetInt("omnidirectionalShadowMapSampleCount", m_PointLightShadowSettings.sampleCount); }
+            }
+            else if (m_PointLightShadowSettings.pcfMode == PointLightShadowSettings::PCFModes::FIXED_SAMPLE_DIRECTIONS) {
+                RadioButtons(
+                    "Disk Radius mode", 
+                    { "Static", "Vary with Distance" }, 
+                    (int*)&m_PointLightShadowSettings.diskRadiusMode,
+                    [this] { m_PhongShader->SetInt("omnidirectionalShadowMapDiskRadiusMode", (int)m_PointLightShadowSettings.diskRadiusMode); }
+                );
+
+                if (m_PointLightShadowSettings.diskRadiusMode == PointLightShadowSettings::DiskRadiusModes::STATIC) {
+                    if (ImGui::DragFloat("Disk Radius", &m_PointLightShadowSettings.radius, 0.001f)) { m_PhongShader->SetFloat("omnidirectionalShadowMapDiskRadius", m_PointLightShadowSettings.radius); }
+                }
+            }
+        }
     }
 
     void OpenGlPhongShading::ProvideDirectionalLightGUI() {

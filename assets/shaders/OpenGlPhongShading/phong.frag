@@ -51,14 +51,11 @@ vec3 directionalLightAddition(DirectionalLight light, vec3 normal, vec3 viewDir,
 // Omnidirectional Shadow Maps
 float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition);
 
+// Settings
 uniform bool omnidirectionalShadowMaps;
-
 uniform float omnidirectionalShadowMapBias;
-
 uniform int omnidirectionalShadowMapPCFMode;
-
 uniform int omnidirectionalShadowMapSampleCount;
-
 uniform int omnidirectionalShadowMapDiskRadiusMode;
 uniform float omnidirectionalShadowMapDiskRadius;
 
@@ -85,16 +82,9 @@ uniform mat4 lightSpaceMatrices[10];
 
 uniform float farPlane;
 
-//vec3 spotLightAddition       (SpotLight light,        vec3 normal, vec3 viewDir, float shadow);
-
 /*
 // Omnidirectional Shadow Maps
-uniform samplerCube omnidirectionalShadowMaps[MAX_LIGHTS];
 
-// TODO make this an array
-uniform float farPlane;
-
-uniform float omnidirectionalShadowMapBias;
 
 uniform int omnidirectionalShadowMapPCFMode;
 
@@ -143,11 +133,10 @@ void main() {
 
     for (int i = 0; i < pointLightCount; ++i) {
         float shadow = 0.0;
-        //if (omnidirectionalShadowMaps) {
+        if (omnidirectionalShadowMaps) {
             shadow = calculateOmnidirectionalShadow(i, fragPosition);
-        //}
+        }
         result += pointLightAddition(pointLights[i], norm, viewDir, shadow);
-        //result = vec3(shadow);
     }
 
     //float shadow = calculateDirectionalShadow();
@@ -239,12 +228,10 @@ float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition) {
 
     float currentDepth = length(fragmentToLight);
 
-    //float bias = omnidirectionalShadowMapBias; 
-    float bias = 0.01;
+    float bias = omnidirectionalShadowMapBias; 
 
-    //if (omnidirectionalShadowMapPCFMode == 0) {
+    if (omnidirectionalShadowMapPCFMode == 0) {
         shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-        /*
     } else if (omnidirectionalShadowMapPCFMode == 1) {
         float samples = float(omnidirectionalShadowMapSampleCount);
         float offset  = 0.1;
@@ -317,7 +304,7 @@ float calculateOmnidirectionalShadow(int pointLightIndex, vec3 fragPosition) {
         }
         shadow /= float(samples); 
     }
-    */
+    
     return shadow;
 }
 

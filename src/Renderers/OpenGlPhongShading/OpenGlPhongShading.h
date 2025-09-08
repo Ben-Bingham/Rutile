@@ -24,6 +24,8 @@ namespace Rutile {
 
         void Render(RenderTarget& target, const Camera& camera) override;
 
+        void ProvideGeneralGUI() override;
+
         void ProvideDirectionalLightGUI() override;
         void ProvidePointLightGUI(size_t i) override;
 
@@ -93,13 +95,34 @@ namespace Rutile {
             glm::vec2 cubeMapVisualizationOffsets{ 0.0f };
         };
 
-        bool m_OmnidirectionalShadowMaps{ true };
+        ShadowMapPointLight InitializePointLight(const PointLight& light);
+
         std::vector<ShadowMapPointLight> m_PointLights{ };
 
         std::unique_ptr<Shader> m_OmnidirectionalShadowMappingShader;
         std::unique_ptr<Framebuffer> m_OmnidirectionalShadowMapsFramebuffer;
 
-        ShadowMapPointLight InitializePointLight(const PointLight& light);
+        struct PointLightShadowSettings {
+            bool enable{ true };
+
+            float bias{ 0.05f };
+
+            enum class PCFModes {
+                NONE,
+                FIXED_SAMPLE_COUNT,
+                FIXED_SAMPLE_DIRECTIONS
+            } pcfMode{ PCFModes::FIXED_SAMPLE_COUNT };
+
+            int sampleCount{ 4 };
+
+            enum class DiskRadiusModes {
+                STATIC,
+                DYNAMIC
+            } diskRadiusMode{ DiskRadiusModes::STATIC };
+
+            float radius{ 0.05f };
+
+        } m_PointLightShadowSettings;
 
         // Directional Light
         std::shared_ptr<DirectionalLight> m_DirectionalLight{ };

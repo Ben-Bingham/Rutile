@@ -201,6 +201,12 @@ int main() {
                 }
             }
 
+            if (renderer) {
+                if (ImGui::CollapsingHeader("Renderer Specific Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    renderer->ProvideGeneralGUI();
+                }
+            }
+
         } ImGui::End(); // Sidebar
 
         // Keep track of this so that we can make these changes after the imgui frame is finished
@@ -368,8 +374,6 @@ int main() {
             viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 
         } ImGui::End(); // Viewport
-
-        if (renderer) renderer->ProvideGeneralGUI(); // TODO
 
         imGui.FinishFrame();
 
