@@ -38,7 +38,7 @@ namespace Rutile {
     private:
         glm::mat4 m_Projection{ 1.0f };
 
-        void RenderOmnidirectionalShadowMaps();
+        void RenderOmnidirectionalShadowMaps(size_t i);
 
         void RenderCascadingShadowMaps();
 

@@ -203,6 +203,10 @@ int main() {
 
         } ImGui::End(); // Sidebar
 
+        // Keep track of this so that we can make these changes after the imgui frame is finished
+        size_t changedPointLightIndex{ 0 };
+        bool pointLightChanged{ false };
+
         { ImGui::Begin("Bottombar");
             // TODO highlight the object and or light when selected, also hightlight the button while the popup is open
             // TODO add undo button to reset the scene add a warning saying this cant be undone
@@ -335,8 +339,9 @@ int main() {
                             renderer->ProvidePointLightGUI(i);
 
                             if (change) {
+                                pointLightChanged = true;
+                                changedPointLightIndex = i;
                                 scene.pointLights[i] = light;
-                                renderer->UpdatePointLight(i, light);
                             }
                         }
                         ImGui::EndPopup();
@@ -367,6 +372,8 @@ int main() {
         if (renderer) renderer->ProvideGeneralGUI(); // TODO
 
         imGui.FinishFrame();
+
+        renderer->UpdatePointLight(changedPointLightIndex, scene.pointLights[changedPointLightIndex]);
 
         // After ImGui has rendered its frame, we resize the framebuffer if needed for next frame
         if (newViewportSize != lastFrameViewportSize) {

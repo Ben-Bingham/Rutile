@@ -373,10 +373,10 @@ namespace Rutile {
 
             m_Transforms[i] = scene.objects[i].transform;
         }
-        
-        RenderOmnidirectionalShadowMaps();
 
         for (size_t i = 0; i < m_PointLights.size(); ++i) {
+            RenderOmnidirectionalShadowMaps(i);
+
             CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
         }
     }
@@ -400,68 +400,68 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::UpdatePointLight(size_t i, const PointLight& newLight) {
-        m_PointLights[i] = InitializePointLight(newLight);
+        m_PointLights[i].position = newLight.position;
 
-        RenderOmnidirectionalShadowMaps();
+        m_PointLights[i].diffuse = newLight.diffuse;
+        m_PointLights[i].ambient = newLight.ambient;
+        m_PointLights[i].specular = newLight.specular;
+
+        m_PointLights[i].constant = newLight.constant;
+        m_PointLights[i].linear = newLight.linear;
+        m_PointLights[i].quadratic = newLight.quadratic;
+
+        RenderOmnidirectionalShadowMaps(i);
 
         CubeMapToTexture2D(*m_PointLights[i].cubemap, *m_PointLights[i].cubeMapVisualizationTexture, m_PointLights[i].cubeMapVisualizationSize, m_PointLights[i].cubeMapVisualizationOffsets);
     }
 
-    void OpenGlPhongShading::RenderOmnidirectionalShadowMaps() {
-        //if (App::settings.culledFaceDuringOmnidirectionalShadowMapping == GeometricFace::FRONT) {
-        //    glCullFace(GL_FRONT);
-        //} else {
-        //    glCullFace(GL_BACK);
-        //}
+    void OpenGlPhongShading::RenderOmnidirectionalShadowMaps(size_t i) {
+        ShadowMapPointLight& pointLight = m_PointLights[i];
 
-        size_t i = 0;
-        for (const auto& pointLight : m_PointLights) {
-            float aspect = (float)pointLight.shadowMapSize.x / (float)pointLight.shadowMapSize.y;
-            glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, pointLight.nearPlane, pointLight.farPlane);
+        float aspect = (float)pointLight.shadowMapSize.x / (float)pointLight.shadowMapSize.y;
+        glm::mat4 shadowMapProjection = glm::perspective(glm::radians(90.0f), aspect, pointLight.nearPlane, pointLight.farPlane);
 
-            glm::vec3 pos = pointLight.position;
+        glm::vec3 pos = pointLight.position;
 
-            std::vector<glm::mat4> shadowTransforms;
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{  1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{ -1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{  0.0,  1.0,  0.0 }, glm::vec3{ 0.0,  0.0,  1.0 }));
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{  0.0, -1.0,  0.0 }, glm::vec3{ 0.0,  0.0, -1.0 }));
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0,  1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
-            shadowTransforms.push_back(shadowMapProjection *
-                glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+        std::vector<glm::mat4> shadowTransforms;
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{  1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{ -1.0,  0.0,  0.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{  0.0,  1.0,  0.0 }, glm::vec3{ 0.0,  0.0,  1.0 }));
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{  0.0, -1.0,  0.0 }, glm::vec3{ 0.0,  0.0, -1.0 }));
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0,  1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
+        shadowTransforms.push_back(shadowMapProjection *
+            glm::lookAt(pos, pos + glm::vec3{  0.0,  0.0, -1.0 }, glm::vec3{ 0.0, -1.0,  0.0 }));
 
-            glViewport(0, 0, pointLight.shadowMapSize.x, pointLight.shadowMapSize.y);
-            m_OmnidirectionalShadowMapsFramebuffer->Bind();
+        glViewport(0, 0, pointLight.shadowMapSize.x, pointLight.shadowMapSize.y);
+        m_OmnidirectionalShadowMapsFramebuffer->Bind();
 
-            pointLight.cubemap->Bind();
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, pointLight.cubemap->Get(), 0);
+        pointLight.cubemap->Bind();
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, pointLight.cubemap->Get(), 0);
 
-            glClear(GL_DEPTH_BUFFER_BIT);
-            m_OmnidirectionalShadowMappingShader->Bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+        m_OmnidirectionalShadowMappingShader->Bind();
 
-            // Render
-            for (size_t i = 0; i < m_ObjectCount; ++i) {
-                m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]);
+        // Render
+        for (size_t i = 0; i < m_ObjectCount; ++i) {
+            m_OmnidirectionalShadowMappingShader->SetMat4("model", m_Transforms[i]);
 
-                for (int i = 0; i < 6; ++i) {
-                    m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-                }
-
-                m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", pos);
-                m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", pointLight.farPlane);
-
-                glBindVertexArray(m_VAOs[i]);
-                glDrawElements(GL_TRIANGLES, m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
+            for (int i = 0; i < 6; ++i) {
+                m_OmnidirectionalShadowMappingShader->SetMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
             }
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            ++i;
+            m_OmnidirectionalShadowMappingShader->SetVec3("lightPosition", pos);
+            m_OmnidirectionalShadowMappingShader->SetFloat("farPlane", pointLight.farPlane);
+
+            glBindVertexArray(m_VAOs[i]);
+            glDrawElements(GL_TRIANGLES, m_IndexCounts[i], GL_UNSIGNED_INT, nullptr);
         }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void OpenGlPhongShading::RenderCascadingShadowMaps() {
