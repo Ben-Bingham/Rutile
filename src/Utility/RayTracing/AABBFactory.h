@@ -3,7 +3,6 @@
 #include "Triangle.h"
 
 //#include "RenderingAPI/Geometry.h"
-#include "RenderingAPI/Object.h"
 #include "RenderingAPI/Transform.h"
 
 namespace Rutile {
