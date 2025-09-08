@@ -83,6 +83,16 @@ namespace Rutile {
     void GPURayTracing::Render(RenderTarget& target, const Camera& camera) {
         ++m_FrameCount;
 
+        if (m_Camera.position != camera.position ||
+            m_Camera.frontVector != camera.frontVector ||
+            m_Camera.rightVector != camera.rightVector ||
+            m_Camera.upVector != camera.upVector ||
+            m_Camera.rightVector != camera.rightVector) {
+            m_ResetAccumulatedPixelData = true;
+        }
+
+        m_Camera = camera;
+
         if (!m_CreatedAccumulationBuffer) {
             CreateAccumulationBuffer(target.GetSize());
 
@@ -246,17 +256,6 @@ namespace Rutile {
 
     //        ResetAccumulatedPixelData();
     //    }
-    //}
-
-    //void GPURayTracing::ProjectionMatrixUpdate() {
-    //    ResetAccumulatedPixelData();
-    //}
-
-    //void GPURayTracing::SignalRayTracingSettingsChange() {
-    //    m_RayTracingShader->Bind();
-    //    m_RayTracingShader->SetInt("maxBounces", App::settings.maxBounces);
-
-    //    ResetAccumulatedPixelData();
     //}
 
     void GPURayTracing::CreateAccumulationBuffer(glm::ivec2 screenSize) {
