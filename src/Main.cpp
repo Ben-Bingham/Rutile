@@ -13,6 +13,7 @@
 #include "Renderers/RendererType.h"
 #include "renderers/OpenGlSolidShading/OpenGlSolidShading.h"
 #include "renderers/OpenGlPhongShading/OpenGlPhongShading.h"
+#include "Renderers/CPU-Ray-Tracing/CPURayTracing.h"
 
 #include "SceneCreation/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -28,7 +29,7 @@
 #include "imgui.h"
 
 #include "Utility/OpenGl/RenderTarget.h"
-#include "RenderingAPI/Transform.h"
+#include "Utility/Transform.h"
 
 using namespace Rutile;
 
@@ -52,7 +53,7 @@ int main() {
     bool restartRenderer{ true };
 
     // The current scene type on any given frame
-    SceneType currentSceneType{ SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE };
+    SceneType currentSceneType{ SceneType::TRIANGLE_SCENE };
     Scene scene{ };
 
     // If the scene type is changed part way through a frame, this values is updated to reflect the new type
@@ -88,6 +89,7 @@ int main() {
             switch (newRendererType) {
                 case RendererType::OPENGL_SOLID_SHADING: renderer = std::make_unique<OpenGlSolidShading>(); break;
                 case RendererType::OPENGL_PHONG_SHADING: renderer = std::make_unique<OpenGlPhongShading>(); break;
+                case RendererType::CPU_RAY_TRACING: renderer = std::make_unique<CPURayTracing>(); break;
             }
 
             currentRendererType = newRendererType;
@@ -160,7 +162,7 @@ int main() {
 
                 RadioButtons(
                     "Select Renderer",
-                    { "OpenGl Solid Shading", "OpenGl Phong Shading"},
+                    { "OpenGl Solid Shading", "OpenGl Phong Shading", "CPU Ray Tracing" },
                     (int*)&tempRendererType
                 );
 

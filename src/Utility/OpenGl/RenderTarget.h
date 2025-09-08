@@ -16,7 +16,6 @@ namespace Rutile {
 		RenderTarget& operator=(RenderTarget&& other) noexcept = default;
 		~RenderTarget();
 
-
 		void Resize(const glm::ivec2& newSize);
 
 		void Bind();
