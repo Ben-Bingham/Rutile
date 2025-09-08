@@ -22,33 +22,31 @@ namespace Rutile {
         return glm::vec3{ LinearToGamma(color.r), LinearToGamma(color.g), LinearToGamma(color.b) };
     }
 
-    glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate, const Camera& camera, glm::ivec2 screenSize, Scene scene) {
-        glm::vec2 normalizedPixelCoordinate = { (float)pixelCoordinate.x / (float)screenSize.x, (float)pixelCoordinate.y / (float)screenSize.y };
+    glm::vec4 RenderPixel(
+        glm::vec2 normalizedPixelCoordinate,
+        const Camera& camera, 
+        Scene& scene,
+        const glm::vec2& normalizedPixelSize,
+        const glm::mat4& inverseCameraProjection,
+        const glm::mat4& inverseView
+    ) {
+        normalizedPixelCoordinate.x += normalizedPixelSize.x / 2.0f;
+        normalizedPixelCoordinate.y += normalizedPixelSize.y / 2.0f;
 
-        const float normalizedPixelWidth = 1.0f / (float)screenSize.x;
-        const float normalizedPixelHeight = 1.0f / (float)screenSize.y;
-
-        normalizedPixelCoordinate.x += normalizedPixelWidth / 2.0f;
-        normalizedPixelCoordinate.y += normalizedPixelHeight / 2.0f;
-
-        const float widthJitter = (RandomFloat() - 0.5f) * normalizedPixelWidth;
-        const float heightJitter = (RandomFloat() - 0.5f) * normalizedPixelHeight;
+        const float widthJitter = (RandomFloat() - 0.5f) * normalizedPixelSize.x;
+        const float heightJitter = (RandomFloat() - 0.5f) * normalizedPixelSize.y;
 
         normalizedPixelCoordinate.x += widthJitter;
         normalizedPixelCoordinate.y += heightJitter;
 
-        Ray ray;
-
-        const glm::mat4 cameraProjection = glm::perspective(glm::radians(camera.fov), (float)screenSize.x / (float)screenSize.y, camera.nearPlane, camera.farPlane);
-        const glm::mat4 inverseProjection = glm::inverse(cameraProjection);
-
-        const glm::mat4 inverseView = glm::inverse(camera.View());
 
         // This coordinate is the target of the ray, it starts in screen space, but this line brings it into clip space
         normalizedPixelCoordinate = normalizedPixelCoordinate * 2.0f - 1.0f; // Bring into the range [-1, 1]
 
         // Here we bring the target of the ray from clip space into view space
-        const glm::vec4 target = inverseProjection * glm::vec4(normalizedPixelCoordinate.x, normalizedPixelCoordinate.y, 1, 1);
+        const glm::vec4 target = inverseCameraProjection * glm::vec4(normalizedPixelCoordinate.x, normalizedPixelCoordinate.y, 1, 1);
+
+        Ray ray;
 
         // Finally we bring the ray target from view space into world space
         ray.direction = glm::normalize(glm::vec3{ inverseView * glm::vec4{ glm::normalize(glm::vec3{ target } / target.w), 0 } });
@@ -67,8 +65,24 @@ namespace Rutile {
         int x = (int)section->startIndex % section->screenSize.x;
         int y = (int)section->startIndex / section->screenSize.x;
 
+        const glm::vec2 normalizedPixelSize{ 1.0f / (float)section->screenSize.x, 1.0f / (float)section->screenSize.y };
+
+        const glm::mat4 cameraProjection = glm::perspective(glm::radians(section->camera.fov), (float)section->screenSize.x / (float)section->screenSize.y, section->camera.nearPlane, section->camera.farPlane);
+        const glm::mat4 inverseProjection = glm::inverse(cameraProjection);
+
+        const glm::mat4 inverseView = glm::inverse(section->camera.View());
+
         for (size_t i = section->startIndex; i < section->startIndex + section->length; ++i) {
-            section->pixels[i - section->startIndex] = RenderPixel(glm::u32vec2{ x, y }, section->camera, section->screenSize, section->scene);
+            glm::vec2 normalizedPixelCoordinate = { (float)x / (float)section->screenSize.x, (float)y / (float)section->screenSize.y };
+
+            section->pixels[i - section->startIndex] = RenderPixel(
+                normalizedPixelCoordinate,
+                section->camera, 
+                section->scene, 
+                normalizedPixelSize,
+                inverseProjection,
+                inverseView
+            );
 
             ++x;
             if (x == section->screenSize.x) {
@@ -270,8 +284,6 @@ namespace Rutile {
     void CPURayTracing::Render(RenderTarget& target, const Camera& camera) {
         ++m_FrameCount;
 
-        target.Bind();
-
         if (m_SectionCountChange) {
             CalculateSections(target.GetSize());
             m_SectionCountChange = false;
@@ -295,7 +307,6 @@ namespace Rutile {
         }
 
         m_ThreadPool->WaitForCompletion();
-
         m_PixelRenderTime = std::chrono::steady_clock::now() - pixelRenderStart;
 
         // Section combining
@@ -329,6 +340,8 @@ namespace Rutile {
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
+
+        target.Bind();
 
         glUseProgram(m_ShaderProgram);
         glBindVertexArray(m_VAO);

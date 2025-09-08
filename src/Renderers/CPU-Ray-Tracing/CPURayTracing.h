@@ -22,7 +22,15 @@ namespace Rutile {
         Scene scene; // TODO this is expensive probably
     };
 
-    glm::vec4 RenderPixel(glm::u32vec2 pixelCoordinate, const Camera& camera, glm::ivec2 screenSize, Scene scene);
+    glm::vec4 RenderPixel(
+        glm::vec2 normalizedPixelCoordinate,
+        const Camera& camera, 
+        Scene& scene,
+        const glm::vec2& normalizedPixelSize,
+        const glm::mat4& inverseCameraProjection,
+        const glm::mat4& inverseView
+    );
+
     void RenderSection(Section* section);
 
     struct Ray {
