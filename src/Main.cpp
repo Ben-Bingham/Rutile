@@ -75,6 +75,8 @@ int main() {
     std::chrono::duration<double> renderTime{ };
     std::chrono::duration<double> rendererStartupTime{ };
 
+    bool mouseOverViewPort{ false };
+
     while (window.IsOpen()) {
         if (restartRenderer) {
             reApplyScene = true;
@@ -126,7 +128,7 @@ int main() {
 
         glm::ivec2 mousePositionWRTViewport{ Statics::mousePosition.x - viewportOffset.x, lastFrameViewportSize.y - (viewportOffset.y - Statics::mousePosition.y) };
 
-        MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize);
+        MoveCamera(camera, window, static_cast<float>(frameTime.count()), mousePositionWRTViewport, lastFrameViewportSize, mouseOverViewPort);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -370,6 +372,8 @@ int main() {
 
             // Display the frame with the last frames viewport size (The same size it was rendered with)
             ImGui::Image((ImTextureID)rendererTarget.GetTexture().Get(), ImVec2{(float)lastFrameViewportSize.x, (float)lastFrameViewportSize.y}, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+
+            mouseOverViewPort = ImGui::IsItemHovered();
 
             viewportOffset = glm::ivec2{ (int)ImGui::GetCursorPos().x, (int)ImGui::GetCursorPos().y }; // TODO
 

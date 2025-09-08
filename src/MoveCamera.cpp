@@ -1,7 +1,7 @@
 #include "MoveCamera.h"
 
 namespace Rutile {
-    void MoveCamera(Camera& camera, Window& window, float dt, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize) {
+    void MoveCamera(Camera& camera, Window& window, float dt, const glm::ivec2& mousePositionWRTViewport, const glm::ivec2& viewportSize, bool mouseOverViewport) {
         static bool mouseDown{ false };
         static bool hasMoved{ false };
         static glm::ivec2 lastMousePosition{ };
@@ -52,11 +52,6 @@ namespace Rutile {
         if (glfwGetMouseButton(window.Get(), GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
             mouseDown = false;
         }
-
-        bool mouseOverViewport = mousePositionWRTViewport.x >= 0 &&
-            mousePositionWRTViewport.y >= 0 &&
-            mousePositionWRTViewport.x < viewportSize.x &&
-            mousePositionWRTViewport.y < viewportSize.y;
 
         if (!mouseOverViewport) {
             hasMoved = false;
