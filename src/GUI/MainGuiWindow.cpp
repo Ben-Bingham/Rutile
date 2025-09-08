@@ -5,8 +5,6 @@
 #include "RenderingSettings.h"
 #include "ShadowSettings.h"
 
-#include "Settings/App.h"
-
 namespace Rutile {
     void MainGuiWindow() {
         //ImGui::ShowDemoWindow();

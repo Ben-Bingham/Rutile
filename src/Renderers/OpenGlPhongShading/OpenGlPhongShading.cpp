@@ -1,5 +1,4 @@
 #include "OpenGlPhongShading.h"
-#include "Settings/App.h"
 #include "imgui.h"
 
 #include <iostream>

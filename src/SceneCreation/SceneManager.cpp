@@ -6,8 +6,6 @@
 #include <glm/ext/quaternion_trigonometric.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "Settings/App.h"
-
 #include "MaterialFactory.h"
 #include "GeometryFactory.h"
 #include "Utility/Random.h"

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <array>
 
-#include "Settings/App.h"
-
 #include "Utility/RayTracing/AABBFactory.h"
 
 namespace Rutile {

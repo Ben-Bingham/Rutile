@@ -1,7 +1,5 @@
 #include "GLFW.h"
 
-#include "Settings/App.h"
-
 #include <iostream>
 
 #include "Statics.h"

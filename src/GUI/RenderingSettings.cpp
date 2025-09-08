@@ -4,7 +4,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Settings/App.h"
+//#include "Settings/App.h"
 
 namespace Rutile {
     void RenderingSettings() {

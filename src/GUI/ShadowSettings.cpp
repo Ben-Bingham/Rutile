@@ -2,10 +2,9 @@
 #include "imgui.h"
 #include "ImGuiUtil.h"
 
-#include "Settings/App.h"
-
 namespace Rutile {
     void ShadowSettings() {
+        /*
         // Directional
         ImGui::Text("Directional Shadow maps");
 
@@ -79,5 +78,6 @@ namespace Rutile {
                 }
             }
         }
+        */
     }
 }

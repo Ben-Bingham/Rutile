@@ -3,8 +3,6 @@
 #include <array>
 #include <iostream>
 
-#include "Settings/App.h"
-
 namespace Rutile {
     AABB AABBFactory::Construct(const AABB& bbox1, const AABB& bbox2) {
         glm::vec3 newMin{ std::numeric_limits<float>::max() };
