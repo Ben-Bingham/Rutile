@@ -276,38 +276,50 @@ namespace Rutile {
     }
 
     CPURayTracing::~CPURayTracing() {
+        if (m_WaitingForThreads) {
+            m_ThreadPool->WaitForCompletion();
+        }
+
         m_ThreadPool.reset();
 
         glDeleteTextures(1, &m_ScreenTexture);
     }
 
     void CPURayTracing::Render(RenderTarget& target, const Camera& camera) {
-        ++m_FrameCount;
+        if (!m_WaitingForThreads) {
+            if (m_SectionCountChange) {
+                CalculateSections(target.GetSize());
+                m_SectionCountChange = false;
+            }
 
-        if (m_SectionCountChange) {
-            CalculateSections(target.GetSize());
-            m_SectionCountChange = false;
+            if (m_ResetAccumulatedPixelData) {
+                ResetAccumulatedPixelData(target.GetSize());
+                m_ResetAccumulatedPixelData = false;
+            }
+
+            ++m_FrameCount;
+
+            // Pixel Rendering
+            //const auto pixelRenderStart = std::chrono::steady_clock::now(); // TODO
+            for (auto& section : m_Sections) {
+                section.pixels.clear();
+                section.pixels.resize(section.length);
+                section.screenSize = target.GetSize();
+                section.camera = camera;
+                section.scene = m_Scene;
+
+                m_ThreadPool->QueueJob(RenderSection, &section);
+            }
+            m_WaitingForThreads = true;
         }
 
-        if (m_ResetAccumulatedPixelData) {
-            ResetAccumulatedPixelData(target.GetSize());
-            m_ResetAccumulatedPixelData = false;
+        if (!m_ThreadPool->WaitForCompletionOrTime(std::chrono::duration<double, std::chrono::milliseconds::period>{ })) {
+            return;
         }
 
-        // Pixel Rendering
-        const auto pixelRenderStart = std::chrono::steady_clock::now();
-        for (auto& section : m_Sections) {
-            section.pixels.clear();
-            section.pixels.resize(section.length);
-            section.screenSize = target.GetSize();
-            section.camera = camera;
-            section.scene = m_Scene;
+        m_WaitingForThreads = false;
 
-            m_ThreadPool->QueueJob(RenderSection, &section);
-        }
-
-        m_ThreadPool->WaitForCompletion();
-        m_PixelRenderTime = std::chrono::steady_clock::now() - pixelRenderStart;
+        //m_PixelRenderTime = std::chrono::steady_clock::now() - pixelRenderStart;
 
         // Section combining
         const auto sectionCombinationStart = std::chrono::steady_clock::now();

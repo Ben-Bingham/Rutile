@@ -92,6 +92,17 @@ namespace Rutile {
             }
         }
 
+        bool WaitForCompletionOrTime(std::chrono::duration<double> time) {
+            bool out;
+
+            {
+                std::unique_lock lock{ m_QueueMutex };
+                out = m_AllJobsCompleted.wait_for(lock, time, [this] { return m_Jobs.empty() && m_JobsInProgress == 0; });
+            }
+
+            return out;
+        }
+
     private:
         std::vector<std::thread> m_Threads;
         std::queue<Job> m_Jobs;

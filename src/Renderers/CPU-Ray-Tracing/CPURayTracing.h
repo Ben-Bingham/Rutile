@@ -92,5 +92,7 @@ namespace Rutile {
         unsigned int m_EBO{ 0 };
 
         unsigned int m_ScreenTexture{ 0 };
+
+        bool m_WaitingForThreads{ false };
     };
 }
