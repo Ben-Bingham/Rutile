@@ -31,8 +31,8 @@ namespace Rutile {
             0, 2, 3
         };
 
-        m_RayTracingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\GPURayTracing\\GPURayTracing.vert", "assets\\shaders\\renderers\\GPURayTracing\\GPURayTracing.frag");
-        m_RenderingShader = std::make_unique<Shader>("assets\\shaders\\renderers\\GPURayTracing\\Rendering.vert", "assets\\shaders\\renderers\\GPURayTracing\\Rendering.frag");
+        m_RayTracingShader = std::make_unique<Shader>("assets\\shaders\\GPURayTracing\\GPURayTracing.vert", "assets\\shaders\\GPURayTracing\\GPURayTracing.frag");
+        m_RenderingShader = std::make_unique<Shader>("assets\\shaders\\GPURayTracing\\Rendering.vert", "assets\\shaders\\GPURayTracing\\Rendering.frag");
 
         // Screen Rectangle
         glGenVertexArrays(1, &m_VAO);
@@ -91,7 +91,13 @@ namespace Rutile {
             m_ResetAccumulatedPixelData = true;
         }
 
+        if (m_ScreenSize != target.GetSize()) {
+            m_ResetAccumulatedPixelData = true;
+            m_CreatedAccumulationBuffer = false;
+        }
+
         m_Camera = camera;
+        m_ScreenSize = target.GetSize();
 
         if (!m_CreatedAccumulationBuffer) {
             CreateAccumulationBuffer(target.GetSize());

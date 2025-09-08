@@ -34,6 +34,7 @@ namespace Rutile {
 
         Scene m_Scene;
 
+        glm::ivec2 m_ScreenSize;
         Camera m_Camera;
 
         bool m_CreatedAccumulationBuffer{ false };
