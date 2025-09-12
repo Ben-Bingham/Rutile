@@ -412,6 +412,7 @@ namespace Rutile {
     */
     Scene SceneManager::GetAllSpheresScene() {
         SceneFactory sceneFactory;
+        sceneFactory.SetBackgroundColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
 
         Material mat1 = MaterialFactory::Construct({ 1.0f, 0.0f, 0.0f });
 

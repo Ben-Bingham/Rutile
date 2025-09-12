@@ -311,7 +311,7 @@ vec3 FireRayIntoScene(Ray r) {
             throughput *= scatterInfo.throughput;
         }
         else { // Missed everything, stop collecting new color
-            color += throughput * 1.0;
+            //color += throughput;
             color += backgroundColor * throughput;
             break;
         }
