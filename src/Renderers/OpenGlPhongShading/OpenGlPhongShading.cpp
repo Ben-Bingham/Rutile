@@ -408,10 +408,10 @@ namespace Rutile {
 
             m_IndexCounts[i] = (int)indices.size();
 
-            m_Materials[i].diffuse = scene.objects[i].material->diffuse;
-            m_Materials[i].ambient = scene.objects[i].material->ambient;
-            m_Materials[i].specular = scene.objects[i].material->specular;
-            m_Materials[i].shininess = scene.objects[i].material->shininess;
+            m_Materials[i].diffuse = scene.objects[i].material.diffuse;
+            m_Materials[i].ambient = scene.objects[i].material.ambient;
+            m_Materials[i].specular = scene.objects[i].material.specular;
+            m_Materials[i].shininess = scene.objects[i].material.shininess;
 
             m_Transforms[i] = scene.objects[i].transform;
         }
@@ -427,12 +427,12 @@ namespace Rutile {
         m_Transforms[i] = newTransform;
     }
 
-    void OpenGlPhongShading::UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) {
+    void OpenGlPhongShading::UpdateObjectMaterial(size_t i, const Material newMaterial) {
         Phong phong{ };
-        phong.diffuse = newMaterial->diffuse;
-        phong.ambient = newMaterial->ambient;
-        phong.specular = newMaterial->specular;
-        phong.shininess = newMaterial->shininess;
+        phong.diffuse = newMaterial.diffuse;
+        phong.ambient = newMaterial.ambient;
+        phong.specular = newMaterial.specular;
+        phong.shininess = newMaterial.shininess;
 
         m_Materials[i] = phong;
     }

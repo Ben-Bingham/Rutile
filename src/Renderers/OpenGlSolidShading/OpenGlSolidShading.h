@@ -24,7 +24,7 @@ namespace Rutile {
         void SetScene(Scene scene) override;
 
         void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
-        void UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) override;
+        void UpdateObjectMaterial(size_t i, const Material newMaterial) override;
 
     private:
         // Shaders

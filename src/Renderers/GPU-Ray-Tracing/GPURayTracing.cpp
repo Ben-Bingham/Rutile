@@ -317,7 +317,7 @@ namespace Rutile {
             mat.type = 0; // TODO type
             mat.fuzz = 0.0f; // TODO fuzz
             mat.indexOfRefraction = 0.5f; // TODO IOR
-            mat.color = glm::vec4{ m_Scene.objects[i].material->diffuse, 1.0};
+            mat.color = glm::vec4{ m_Scene.objects[i].material.diffuse, 1.0};
 
             localMats.emplace_back(mat);
         }

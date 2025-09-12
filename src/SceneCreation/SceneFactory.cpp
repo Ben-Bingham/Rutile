@@ -19,7 +19,7 @@ namespace Rutile {
         return m_Scene;
     }
 
-    void SceneFactory::Add(Mesh mesh, glm::mat4 transform, std::shared_ptr<Material> material) {
+    void SceneFactory::Add(Mesh mesh, glm::mat4 transform, Material material) {
         Object obj;
 
         obj.mesh = mesh;
@@ -28,12 +28,8 @@ namespace Rutile {
 
         m_Scene.objects.push_back(obj);
     }
-    
-    void SceneFactory::Add(Mesh mesh, glm::mat4 transform, Material material) {
-        Add(mesh, transform, std::make_shared<Material>(material));
-    }
 
-    void SceneFactory::Add(GeometryFactory::Primitive primitive, Transform transform, std::shared_ptr<Material> material) {
+    void SceneFactory::Add(GeometryFactory::Primitive primitive, Transform transform, Material material) {
         Object obj;
 
         obj.mesh = GeometryFactory::Construct(primitive);
@@ -44,10 +40,6 @@ namespace Rutile {
         obj.material = material;
 
         m_Scene.objects.push_back(obj);
-    }
-
-    void SceneFactory::Add(GeometryFactory::Primitive primitive, Transform transform, Material material) {
-        Add(primitive, transform, std::make_shared<Material>(material));
     }
 
     void SceneFactory::Add(const PointLight& light) {

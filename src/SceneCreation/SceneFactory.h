@@ -15,10 +15,8 @@ namespace Rutile {
 	public:
 		Scene& GetScene();
 
-		void Add(Mesh mesh, glm::mat4 transform, std::shared_ptr<Material> material);
 		void Add(Mesh mesh, glm::mat4 transform, Material material);
 
-		void Add(GeometryFactory::Primitive primitive, Transform transform, std::shared_ptr<Material> material);
 		void Add(GeometryFactory::Primitive primitive, Transform transform, Material material);
 
 		//void Add(const Geometry& geometry,			   const Transform& transform, const Material& material,     const std::string& name = "");

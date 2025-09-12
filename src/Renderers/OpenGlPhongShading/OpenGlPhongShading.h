@@ -32,7 +32,7 @@ namespace Rutile {
         void SetScene(Scene scene) override;
 
         void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
-        void UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) override;
+        void UpdateObjectMaterial(size_t i, const Material newMaterial) override;
 
         void UpdateDirectionalLight(const std::shared_ptr<DirectionalLight> newLight) override;
         void UpdatePointLight(size_t i, const PointLight& newLight) override;

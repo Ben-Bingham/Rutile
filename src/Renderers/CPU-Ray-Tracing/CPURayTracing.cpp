@@ -135,7 +135,7 @@ namespace Rutile {
             float lengthAlongRayWorldSpace = length(hitPointWorldSpace - ray.origin);
 
             if (lengthAlongRayWorldSpace < std::numeric_limits<float>::max()) {
-                return object.material->diffuse;
+                return object.material.diffuse;
             }
         }
 
@@ -394,7 +394,7 @@ namespace Rutile {
         m_ResetAccumulatedPixelData = true;
     }
 
-    void CPURayTracing::UpdateObjectMaterial(size_t i, const std::shared_ptr<Material> newMaterial) {
+    void CPURayTracing::UpdateObjectMaterial(size_t i, const Material newMaterial) {
         m_ResetAccumulatedPixelData = true;
     }
 
