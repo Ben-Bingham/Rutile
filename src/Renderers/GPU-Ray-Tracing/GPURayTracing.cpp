@@ -314,9 +314,9 @@ namespace Rutile {
         std::vector<LocalMaterial> localMats{ };
         for (size_t i = 0; i < m_Scene.objects.size(); ++i) {
             LocalMaterial mat{ };
-            mat.type = 0; // TODO type
-            mat.fuzz = 0.0f; // TODO fuzz
-            mat.indexOfRefraction = 0.5f; // TODO IOR
+            mat.type = (int)m_Scene.objects[i].material.type;
+            mat.fuzz = m_Scene.objects[i].material.fuzz;
+            mat.indexOfRefraction = m_Scene.objects[i].material.indexOfRefraction;
             mat.color = glm::vec4{ m_Scene.objects[i].material.diffuse, 1.0};
 
             localMats.emplace_back(mat);

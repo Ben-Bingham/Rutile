@@ -255,6 +255,7 @@ namespace Rutile {
         SceneFactory sceneFactory{};
 
         Material mat1 = MaterialFactory::Construct({ 1.0f, 1.0f, 1.0f });
+        mat1.type = Material::Type::EMISSIVE;
 
         Transform lightTransform{};
         lightTransform.position = { 0.0f, 3.0f, -10.0f };
@@ -805,8 +806,8 @@ namespace Rutile {
         SceneFactory sceneFactory;
 
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
-        //dragonMaterial.type = Material::Type::MIRROR;
-        //dragonMaterial.fuzz = 0.1f;
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
 
         Transform dragonTransform{ };
         dragonTransform.scale = glm::vec3{ 10.0f };
