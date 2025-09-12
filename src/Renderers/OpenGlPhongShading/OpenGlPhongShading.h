@@ -58,6 +58,8 @@ namespace Rutile {
         //void ProvideCSMVisualization() override;
 
     private:
+        glm::vec4 m_ClearColor{ 0.0f };
+
         // Shaders
         std::unique_ptr<Shader> m_PhongShader;
 

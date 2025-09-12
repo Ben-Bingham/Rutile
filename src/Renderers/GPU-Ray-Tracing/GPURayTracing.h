@@ -30,6 +30,8 @@ namespace Rutile {
         void SetScene(Scene scene) override;
 
     private:
+        glm::vec3 m_BackgroundColour{ 0.0f };
+
         int m_MaxBounces{ 5 }; // TODO make this adjustable
 
         Scene m_Scene;

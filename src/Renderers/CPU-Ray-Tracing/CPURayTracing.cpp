@@ -139,7 +139,7 @@ namespace Rutile {
             }
         }
 
-        return CPURayTracing::backgroundColour;
+        return scene.backgroundColor;
     }
 
     const char* vertexShaderSource = \

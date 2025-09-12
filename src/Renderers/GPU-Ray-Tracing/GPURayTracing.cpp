@@ -133,7 +133,7 @@ namespace Rutile {
         m_RayTracingShader->SetMat4("invProjection", inverseProjection);
         m_RayTracingShader->SetVec3("cameraPosition", camera.position);
 
-        m_RayTracingShader->SetVec3("backgroundColor", glm::vec3{ 0.5f }); // TODO background colour
+        m_RayTracingShader->SetVec3("backgroundColor", m_BackgroundColour);
 
         m_RayTracingShader->SetInt("objectCount", (int)m_Scene.objects.size());
 
@@ -227,6 +227,8 @@ namespace Rutile {
     }
 
     void GPURayTracing::SetScene(Scene scene) {
+        m_BackgroundColour = scene.backgroundColor;
+
         TimeScope setSceneTimeScope{ nullptr, "GPU Ray Tracing Set Scene" };
         m_Scene = scene;
 

@@ -18,7 +18,7 @@ namespace Rutile {
     void OpenGlSolidShading::Render(RenderTarget& target, const Camera& camera) {
         target.Bind();
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_SolidShader->Bind();
@@ -39,6 +39,8 @@ namespace Rutile {
     }
 
     void OpenGlSolidShading::SetScene(Scene scene) {
+        m_ClearColor = glm::vec4{ scene.backgroundColor, 1.0f };
+
         m_ObjectCount = scene.objects.size();
 
         // Clean up old objects
@@ -94,7 +96,7 @@ namespace Rutile {
             glBindVertexArray(0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-            m_IndexCounts[i] = indices.size();
+            m_IndexCounts[i] = (int)indices.size();
 
             // TODO make this a weighted average, specular is too significant
             m_Colours[i] = scene.objects[i].material.ambient + scene.objects[i].material.diffuse + scene.objects[i].material.specular;

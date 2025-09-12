@@ -61,8 +61,6 @@ namespace Rutile {
         void UpdateObjectTransform(size_t i, const glm::mat4& newTransform) override;
         void UpdateObjectMaterial(size_t i, const Material newMaterial) override;
 
-        static inline glm::vec3 backgroundColour{ 0.5f }; // TODO make this not static
-
     private:
         Scene m_Scene;
 

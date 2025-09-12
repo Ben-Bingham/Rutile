@@ -36,6 +36,8 @@ namespace Rutile {
 		//void Add(const std::string& path, const Transform& transform);
 		//void Add(const std::string& path, const Transform& transform, MaterialIndex material);
 
+		void SetBackgroundColor(glm::vec3 color);
+
 	private:
 		void LoadAssimpNode(const aiNode* node, const aiScene* scene, glm::mat4 transform, const Material& material);
 

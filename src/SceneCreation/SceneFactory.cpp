@@ -129,6 +129,10 @@ namespace Rutile {
         Assimp::DefaultLogger::kill();
     }
 
+    void SceneFactory::SetBackgroundColor(glm::vec3 color) {
+        m_Scene.backgroundColor = color;
+    }
+
     void SceneFactory::LoadAssimpNode(const aiNode* node, const aiScene* scene, glm::mat4 transform, const Material& material) {
         for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];

@@ -338,6 +338,8 @@ namespace Rutile {
     }
 
     void OpenGlPhongShading::SetScene(Scene scene) {
+        m_ClearColor = glm::vec4{ scene.backgroundColor, 1.0f };
+
         // Point lights
         m_PointLights.clear();
         for (auto& pointLight : scene.pointLights) {
@@ -634,7 +636,7 @@ namespace Rutile {
     void OpenGlPhongShading::RenderScene(RenderTarget& target, const Camera& camera) {
         target.Bind();
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_PhongShader->Bind();

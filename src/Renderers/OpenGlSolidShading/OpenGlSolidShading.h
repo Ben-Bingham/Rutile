@@ -40,5 +40,7 @@ namespace Rutile {
         std::vector<int> m_IndexCounts;
         std::vector<glm::vec3> m_Colours;
         std::vector<glm::mat4> m_Transforms;
+
+        glm::vec4 m_ClearColor{ 0.0f };
 	};
 }
