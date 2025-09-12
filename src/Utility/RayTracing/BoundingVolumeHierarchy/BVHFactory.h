@@ -95,7 +95,7 @@ namespace Rutile {
                     continue;
                 }
 
-                constexpr int divisions = 2;
+                constexpr int divisions = 8;
                 const float scale = (maxBound - minBound) / (float)divisions;
 
                 for (int i = 0; i < divisions; ++i) {

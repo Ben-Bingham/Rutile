@@ -29,6 +29,11 @@ namespace Rutile {
         m_Scene.objects.push_back(obj);
     }
 
+    void SceneFactory::Add(Mesh mesh, Transform transform, Material material) {
+        transform.CalculateMatrix();
+        return Add(mesh, transform.matrix, material);
+    }
+
     void SceneFactory::Add(GeometryFactory::Primitive primitive, Transform transform, Material material) {
         Object obj;
 
@@ -127,6 +132,16 @@ namespace Rutile {
         LoadAssimpNode(scene->mRootNode, scene, transform, material);
 
         Assimp::DefaultLogger::kill();
+    }
+
+    void SceneFactory::Add(const std::string& path, Transform transform) {
+        transform.CalculateMatrix();
+        return Add(path, transform.matrix, MaterialFactory::Construct(RandomUnitVec3()));
+    }
+
+    void SceneFactory::Add(const std::string& path, Transform transform, Material material) {
+        transform.CalculateMatrix();
+        return Add(path, transform.matrix, material);
     }
 
     void SceneFactory::SetBackgroundColor(glm::vec3 color) {

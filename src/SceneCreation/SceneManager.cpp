@@ -47,15 +47,15 @@ namespace Rutile {
             case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
                 return GetRayTracingInOneWeekendScene();
             }
-            //case SceneType::CORNELL_BOX: {
-            //    return GetCornellBoxScene();
-            //}
-            //case SceneType::BACKPACK: {
-            //    return GetBackpackScene();
-            //}
-            //case SceneType::CORNELL_BOX_VERSION_2: {
-            //    return GetCornellBoxVersion2();
-            //}
+            case SceneType::CORNELL_BOX: {
+                return GetCornellBoxScene();
+            }
+            case SceneType::BACKPACK: {
+                return GetBackpackScene();
+            }
+            case SceneType::CORNELL_BOX_VERSION_2: {
+                return GetCornellBoxVersion2();
+            }
             case SceneType::DRAGON_8K: {
                 return GetDragon8K();
             }
@@ -596,21 +596,22 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-    /*
+    
     Scene SceneManager::GetCornellBoxScene() {
         SceneFactory sceneFactory;
+        sceneFactory.SetBackgroundColor(glm::vec3{ 1.0f, 1.0f, 1.0f });
 
         Material red   = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
-        red.phong.shininess = 0.0f;
+        red.shininess = 0.0f;
 
         Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
-        white.phong.shininess = 0.0f;
+        white.shininess = 0.0f;
 
         Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
-        green.phong.shininess = 0.0f;
+        green.shininess = 0.0f;
 
         Material light = MaterialFactory::Construct(glm::vec3{ 100.0f });
-        light.phong.shininess = 0.0f;
+        light.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
@@ -618,57 +619,54 @@ namespace Rutile {
             glm::vec3{ 0.0f,  5.55f, 0.0f },
             glm::vec3{ 5.55f, 5.55f, 0.0f },
             glm::vec3{ 5.55,  0.0f,  0.0f }
-        ), Transform{}, white, "Back Wall");
+        ), Transform{}, white);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f, 0.0f  },
             glm::vec3{ 5.55f, 0.0f, 0.0f  },
             glm::vec3{ 5.55f, 0.0f, 5.55f },
             glm::vec3{ 0.0f,  0.0f, 5.55f }
-        ), Transform{}, white, "Floor");
+        ), Transform{}, white);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  5.55f, 0.0f  },
             glm::vec3{ 0.0f,  5.55f, 5.55f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 5.55f, 5.55f, 0.0f  }
-        ), Transform{}, white, "Roof");
+        ), Transform{}, white);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 5.55f, 0.0f,  0.0f  },
             glm::vec3{ 5.55f, 5.55f, 0.0f  },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 5.55f, 0.0f,  5.55f }
-        ), Transform{}, red, "Right Wall");
+        ), Transform{}, red);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f, 0.0f,  0.0f  },
             glm::vec3{ 0.0f, 0.0f,  5.55f },
             glm::vec3{ 0.0f, 5.55f, 5.55f },
             glm::vec3{ 0.0f, 5.55f, 0.0f  }
-        ), Transform{}, green, "Left Wall");
+        ), Transform{}, green);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 2.13f, 5.549f, 2.27f },
             glm::vec3{ 2.13f, 5.549f, 3.32f },
             glm::vec3{ 3.43f, 5.549f, 3.32f },
             glm::vec3{ 3.43f, 5.549f, 2.27f }
-        ), Transform{}, light, "Light");
+        ), Transform{}, light);
 
         Transform smallBoxTransform{ };
         smallBoxTransform.position = { 2.65f + 0.825f, 1.65f / 2.0f, 2.95f + 0.825f };
         smallBoxTransform.scale = { 1.65f, 1.65f, 1.65f };
         smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white, "Small Box");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, white);
 
         Transform bigBoxTransform{ };
         bigBoxTransform.position = { 1.3f + 0.825f, 1.65f, 0.65f + 0.825f };
         bigBoxTransform.scale = { 1.65f, 3.3f, 1.65f };
         bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white, "Big Box");
-
-        App::camera.position = { 2.78f, 2.78f, 13.5f };
-        App::settings.fieldOfView = 40.0f;
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, white);
 
         PointLight pointLight;
         pointLight.position = { (3.43f + 2.13f) / 2.0f, 5.549f, (3.32f + 3.27f) / 2.0f };
@@ -691,28 +689,23 @@ namespace Rutile {
 
     Scene SceneManager::GetCornellBoxVersion2() {
         SceneFactory sceneFactory;
-
-        App::camera.pitch = -6.4f;
-        App::camera.yaw = -45.0f;
-        App::camera.position = { -7.0f, 4.0f, 12.55f };
-        App::settings.fieldOfView = 31.4f;
-        App::updateCameraVectors = true;
+        sceneFactory.SetBackgroundColor(glm::vec3{ 0.0f });
 
         Material red = MaterialFactory::Construct({ 0.65f, 0.05f, 0.05f });
-        red.phong.shininess = 0.0f;
+        red.shininess = 0.0f;
 
         Material green = MaterialFactory::Construct({ 0.12f, 0.45f, 0.15f });
-        green.phong.shininess = 0.0f;
+        green.shininess = 0.0f;
 
         Material white = MaterialFactory::Construct({ 0.73f, 0.73f, 0.73f });
-        white.phong.shininess = 0.0f;
+        white.shininess = 0.0f;
 
         Material oneWayMirror = MaterialFactory::Construct({ 0.13f, 0.23f, 0.33f });
-        oneWayMirror.phong.shininess = 0.0f;
+        oneWayMirror.shininess = 0.0f;
         oneWayMirror.type = Material::Type::ONE_WAY_MIRROR;
 
         Material light = MaterialFactory::Construct(glm::vec3{ 10.0f });
-        light.phong.shininess = 0.0f;
+        light.shininess = 0.0f;
         light.type = Material::Type::EMISSIVE;
 
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
@@ -728,55 +721,55 @@ namespace Rutile {
             glm::vec3{ 0.0f,  5.55f, 0.0f },
             glm::vec3{ 5.55f, 5.55f, 0.0f },
             glm::vec3{ 5.55,  0.0f,  0.0f }
-        ), Transform{}, oneWayMirror, "Back Wall");
+        ), Transform{}, oneWayMirror);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f, 0.0f },
             glm::vec3{ 5.55f, 0.0f, 0.0f },
             glm::vec3{ 5.55f, 0.0f, 5.55f },
             glm::vec3{ 0.0f,  0.0f, 5.55f }
-        ), Transform{}, white, "Floor");
+        ), Transform{}, white);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  5.55f, 0.0f },
             glm::vec3{ 0.0f,  5.55f, 5.55f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 5.55f, 5.55f, 0.0f }
-        ), Transform{}, white, "Roof");
+        ), Transform{}, white);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 5.55f, 0.0f,  0.0f },
             glm::vec3{ 5.55f, 5.55f, 0.0f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 5.55f, 0.0f,  5.55f }
-        ), Transform{}, oneWayMirror, "Right Wall");
+        ), Transform{}, oneWayMirror);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f, 0.0f,  0.0f },
             glm::vec3{ 0.0f, 0.0f,  5.55f },
             glm::vec3{ 0.0f, 5.55f, 5.55f },
             glm::vec3{ 0.0f, 5.55f, 0.0f }
-        ), Transform{}, oneWayMirror, "Left Wall");
+        ), Transform{}, oneWayMirror);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 1.55f, 5.549f, 1.55f },
             glm::vec3{ 1.55f, 5.549f, 4.0f },
             glm::vec3{ 4.0f,  5.549f, 4.0f },
             glm::vec3{ 4.0f,  5.549f, 1.55f }
-        ), Transform{}, light, "Light");
+        ), Transform{}, light);
 
         sceneFactory.Add(GeometryFactory::ConstructQuad(
             glm::vec3{ 0.0f,  0.0f,  5.55f },
             glm::vec3{ 5.55,  0.0f,  5.55f },
             glm::vec3{ 5.55f, 5.55f, 5.55f },
             glm::vec3{ 0.0f,  5.55f, 5.55f }
-        ), Transform{}, oneWayMirror, "Front Wall");
+        ), Transform{}, oneWayMirror);
 
         Transform smallBoxTransform{ };
         smallBoxTransform.position = { 2.65f + 0.825f, 0.5f, 2.95f + 0.825f };
         smallBoxTransform.scale = { 1.65f, 1.0f, 1.65f };
         smallBoxTransform.rotation = glm::angleAxis(-0.314f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, red, "Small Box");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, smallBoxTransform, red);
 
         Transform teapotTransform{ };
         teapotTransform.scale = glm::vec3{ 0.02f };
@@ -788,7 +781,7 @@ namespace Rutile {
         bigBoxTransform.position = { 1.3f + 0.825f, 1.3, 0.65f + 0.825f };
         bigBoxTransform.scale = { 1.65f, 2.6f, 1.65f };
         bigBoxTransform.rotation = glm::angleAxis(0.3925f, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, green, "Big Box");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, bigBoxTransform, green);
 
         Transform dragonTransform{ };
         dragonTransform.position = { 2.15f, 3.15f, 1.47f };
@@ -802,7 +795,7 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-    */
+    
     Scene SceneManager::GetDragon8K() {
         SceneFactory sceneFactory;
         sceneFactory.SetBackgroundColor(glm::vec3{ 1.0f, 1.0f, 1.0f });
