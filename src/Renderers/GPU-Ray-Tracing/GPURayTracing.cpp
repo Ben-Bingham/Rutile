@@ -1,6 +1,7 @@
 #include "GPURayTracing.h"
 #include "imgui.h"
 #include <iostream>
+#include <memory>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <GLFW/glfw3native.h>
@@ -231,6 +232,7 @@ namespace Rutile {
         CreateAndUploadMaterialBuffer();
 
         CreateAndUploadBVHAndMeshAndObjectBuffers();
+
     }
 
     //void GPURayTracing::Notify(Event* event) {
