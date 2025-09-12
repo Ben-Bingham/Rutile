@@ -805,6 +805,7 @@ namespace Rutile {
     */
     Scene SceneManager::GetDragon8K() {
         SceneFactory sceneFactory;
+        sceneFactory.SetBackgroundColor(glm::vec3{ 1.0f, 1.0f, 1.0f });
 
         Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
         dragonMaterial.type = Material::Type::MIRROR;

@@ -164,6 +164,12 @@ namespace Rutile {
     }
 
     void GPURayTracing::ProvideGeneralGUI() {
+        if (ImGui::SliderInt("Max Bounces", &m_MaxBounces, 1, 25)) {
+            m_RayTracingShader->Bind();
+            m_RayTracingShader->SetInt("maxBounces", m_MaxBounces);
+            m_ResetAccumulatedPixelData = true;
+        }
+
         static int maxBboxChecks = 100;
         static int maxSphereChecks = 100;
         static int maxTriangleChecks = 100;

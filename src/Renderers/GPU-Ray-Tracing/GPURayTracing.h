@@ -32,7 +32,7 @@ namespace Rutile {
     private:
         glm::vec3 m_BackgroundColour{ 0.0f };
 
-        int m_MaxBounces{ 5 }; // TODO make this adjustable
+        int m_MaxBounces{ 5 };
 
         Scene m_Scene;
 
