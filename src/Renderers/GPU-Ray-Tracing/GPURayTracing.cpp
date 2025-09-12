@@ -15,6 +15,8 @@
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHBank.h"
 #include "Utility/RayTracing/BoundingVolumeHierarchy/BVHFactory.h"
 
+#include "Utility/TimeScope.h"
+
 namespace Rutile {
     GPURayTracing::GPURayTracing() {
         m_RendererLoadTime = std::chrono::steady_clock::now();
@@ -225,6 +227,7 @@ namespace Rutile {
     }
 
     void GPURayTracing::SetScene(Scene scene) {
+        TimeScope setSceneTimeScope{ nullptr, "GPU Ray Tracing Set Scene" };
         m_Scene = scene;
 
         m_ResetAccumulatedPixelData = true;
@@ -232,7 +235,6 @@ namespace Rutile {
         CreateAndUploadMaterialBuffer();
 
         CreateAndUploadBVHAndMeshAndObjectBuffers();
-
     }
 
     //void GPURayTracing::Notify(Event* event) {

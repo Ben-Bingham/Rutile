@@ -35,18 +35,18 @@ namespace Rutile {
             //case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
             //    return GetDoublePointLightTestScene();
             //}
-            //case SceneType::ALL_SPHERES: {
-            //    return GetAllSpheresScene();
-            //}
-            //case SceneType::SPHERES_ON_SPHERES: {
-            //    return GetSpheresOnSpheresScene();
-            //}
-            //case SceneType::HOLLOW_GLASS_SPHERE: {
-            //    return GetHollowGlassSphereScene();
-            //}
-            //case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
-            //    return GetRayTracingInOneWeekendScene();
-            //}
+            case SceneType::ALL_SPHERES: {
+                return GetAllSpheresScene();
+            }
+            case SceneType::SPHERES_ON_SPHERES: {
+                return GetSpheresOnSpheresScene();
+            }
+            case SceneType::HOLLOW_GLASS_SPHERE: {
+                return GetHollowGlassSphereScene();
+            }
+            case SceneType::RAY_TRACING_IN_ONE_WEEKEND: {
+                return GetRayTracingInOneWeekendScene();
+            }
             //case SceneType::CORNELL_BOX: {
             //    return GetCornellBoxScene();
             //}
@@ -409,7 +409,7 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-
+    */
     Scene SceneManager::GetAllSpheresScene() {
         SceneFactory sceneFactory;
 
@@ -433,29 +433,29 @@ namespace Rutile {
 
         Transform ball1{ };
         ball1.position = { 0.0f, 0.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Diffuse Ball");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1);
 
         Transform ball2{ };
         ball2.position = { 0.0f, 0.0f, -2.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mirrorMat, "Mirror Ball 1");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mirrorMat);
 
         Transform ball3{ };
         ball3.position = { 2.0f, 0.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, metal, "Mirror Ball 2");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, metal);
 
         Transform ball4{ };
         ball4.position = { -2.0f, 0.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball4, dielectric, "Dielectric Ball");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball4, dielectric);
 
         Transform floor{ };
         floor.position = { 0.0f, -251.0f, -1.0f };
         floor.scale = { 250.0f, 250.0f, 250.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat, "Floor");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat);
 
         Transform lightTransform{ };
         lightTransform.position = { 0.0f, 3.0f, 0.0f };
         lightTransform.scale = { 2.0f, 0.2f, 2.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, lightMat, "Light");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, lightTransform, lightMat);
 
         DirectionalLight dirLight{ };
         sceneFactory.Add(dirLight);
@@ -466,11 +466,11 @@ namespace Rutile {
     Scene SceneManager::GetSpheresOnSpheresScene() {
         SceneFactory sceneFactory;
 
-        Material mat1 = MaterialFactory::Construct({ 245.0f / 255.0f, 66.0f / 255.0f, 203.0f / 255.0f }, "Main Ball Material");
+        Material mat1 = MaterialFactory::Construct({ 245.0f / 255.0f, 66.0f / 255.0f, 203.0f / 255.0f });
 
         Transform mainBall{ };
         mainBall.scale = { 3.0f, 3.0f, 3.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, mainBall, mat1, "Main Ball");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, mainBall, mat1);
 
         for (int i = 0; i < 99; ++i) {
             Material mat = MaterialFactory::Construct(RandomVec3());
@@ -479,7 +479,7 @@ namespace Rutile {
             transform.position = RandomUnitVec3() * 4.5f;
             float radius = RandomFloat(0.7f, 1.3f);
             transform.scale = { radius, radius, radius };
-            sceneFactory.Add(GeometryFactory::Primitive::SPHERE, transform, mat, "Ball " + std::to_string(i));
+            sceneFactory.Add(GeometryFactory::Primitive::SPHERE, transform, mat);
         }
 
         return sceneFactory.GetScene();
@@ -501,21 +501,21 @@ namespace Rutile {
 
         Transform ball1{ };
         ball1.position = { 0.0f, 0.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Diffuse Ball");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1);
 
         Transform glassTransform{ };
         glassTransform.position = { -2.0f, 0.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, glassTransform, glass, "Glass Ball");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, glassTransform, glass);
 
         Transform airBubbleTransform{ };
         airBubbleTransform.position = { -2.0f, 0.0f, 0.0f };
         airBubbleTransform.scale = { 0.8f, 0.8f, 0.8f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, airBubbleTransform, airBubble, "Air Bubble");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, airBubbleTransform, airBubble);
 
         Transform floor{ };
         floor.position = { 0.0f, -251.0f, -1.0f };
         floor.scale = { 250.0f, 250.0f, 250.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat, "Floor");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floor, floorMat);
 
         return sceneFactory.GetScene();
     }
@@ -530,7 +530,7 @@ namespace Rutile {
         floorTransform.position = { 0.0f, -1000.0f, 0.0f };
         floorTransform.scale = { 1000.0f, 1000.0f, 1000.0f };
 
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floorTransform, groundMaterial, "Ground");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, floorTransform, groundMaterial);
 
         int i = 0;
         for (int a = -11; a < 11; a++) {
@@ -564,7 +564,7 @@ namespace Rutile {
                         sphereMaterial.indexOfRefraction = 1.5f;
                     }
 
-                    sceneFactory.Add(GeometryFactory::Primitive::SPHERE, sphereTransform, sphereMaterial, "Tiny Sphere #" + std::to_string(i));
+                    sceneFactory.Add(GeometryFactory::Primitive::SPHERE, sphereTransform, sphereMaterial);
                 }
                 ++i;
             }
@@ -576,14 +576,14 @@ namespace Rutile {
 
         Transform ball1{ };
         ball1.position = { 0.0f, 1.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1, "Ball 1");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball1, mat1);
 
         Material mat2 = MaterialFactory::Construct({ 0.4f, 0.2f, 0.1f });
         mat2.type = Material::Type::DIFFUSE;
 
         Transform ball2{ };
         ball2.position = { -4.0f, 1.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mat2, "Ball 2");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball2, mat2);
 
         Material mat3 = MaterialFactory::Construct({ 0.7f, 0.6f, 0.5f });
         mat3.type = Material::Type::MIRROR;
@@ -591,11 +591,11 @@ namespace Rutile {
 
         Transform ball3{ };
         ball3.position = { 4.0f, 1.0f, 0.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3, "Ball 3");
+        sceneFactory.Add(GeometryFactory::Primitive::SPHERE, ball3, mat3);
 
         return sceneFactory.GetScene();
     }
-
+    /*
     Scene SceneManager::GetCornellBoxScene() {
         SceneFactory sceneFactory;
 
