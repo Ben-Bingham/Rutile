@@ -23,4 +23,8 @@ namespace Rutile {
     glm::vec3 BVHUtility::Center(const AABB& bbox) {
         return (bbox.min + bbox.max) / 2.0f;
     }
+
+    glm::vec3 BVHUtility::Center(const Obj& obj) {
+        return Center(Object{ obj.transform, Obj::m_Meshs[obj.mesh] });
+    }
 }

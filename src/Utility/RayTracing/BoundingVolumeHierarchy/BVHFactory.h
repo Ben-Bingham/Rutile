@@ -10,12 +10,15 @@
 
 #include "Scene/Object.h"
 
+#include "Renderers/GPU-Ray-Tracing/Obj.h"
+
 namespace Rutile {
     class BVHUtility {
     public:
         static glm::vec3 Center(const Triangle& triangle);
         static glm::vec3 Center(const Object& object);
         static glm::vec3 Center(const AABB& bbox);
+        static glm::vec3 Center(const Obj& obj);
     };
 
     template<typename T>

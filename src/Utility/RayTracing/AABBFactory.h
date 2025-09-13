@@ -6,6 +6,8 @@
 #include "Scene/Mesh.h"
 #include "Scene/Object.h"
 
+#include "Renderers/GPU-Ray-Tracing/Obj.h"
+
 namespace Rutile {
     class AABBFactory {
     public:
@@ -13,7 +15,9 @@ namespace Rutile {
         static AABB Construct(const Mesh& mesh, glm::mat4 transform);
         static AABB Construct(const Triangle& triangle);
         static AABB Construct(const Object& object);
+        static AABB Construct(const Obj& object);
         static AABB Construct(const std::vector<Object>& objects);
         static AABB Construct(const std::vector<Triangle>& triangles);
+        static AABB Construct(const std::vector<Obj>& objects);
     };
 }

@@ -13,6 +13,8 @@
 
 #include "Scene/Scene.h"
 
+#include "Obj.h"
+
 namespace Rutile {
     class GPURayTracing : public Renderer {
     public:
@@ -30,11 +32,14 @@ namespace Rutile {
         void SetScene(Scene scene) override;
 
     private:
+        std::vector<Obj> m_Objects{ };
+
+
         glm::vec3 m_BackgroundColour{ 0.0f };
 
         int m_MaxBounces{ 5 };
 
-        Scene m_Scene;
+        //Scene m_Scene;
 
         glm::ivec2 m_ScreenSize;
         Camera m_Camera;

@@ -113,6 +113,10 @@ namespace Rutile {
         return Construct(object.mesh, object.transform);
     }
 
+    AABB AABBFactory::Construct(const Obj& object) {
+        return Construct(Object{ object.transform, Obj::m_Meshs[object.mesh] });
+    }
+
     AABB AABBFactory::Construct(const std::vector<Object>& objects) {
         AABB mainBbox{ };
 
@@ -130,6 +134,18 @@ namespace Rutile {
 
         for (auto triangle : triangles) {
             AABB bbox = Construct(triangle);
+
+            mainBbox = Construct(mainBbox, bbox);
+        }
+
+        return mainBbox;
+    }
+
+    AABB AABBFactory::Construct(const std::vector<Obj>& objects) {
+        AABB mainBbox{ };
+
+        for (auto obj : objects) {
+            AABB bbox = Construct(obj);
 
             mainBbox = Construct(mainBbox, bbox);
         }

@@ -135,7 +135,7 @@ namespace Rutile {
 
         m_RayTracingShader->SetVec3("backgroundColor", m_BackgroundColour);
 
-        m_RayTracingShader->SetInt("objectCount", (int)m_Scene.objects.size());
+        m_RayTracingShader->SetInt("objectCount", (int)m_Objects.size());
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
@@ -233,10 +233,27 @@ namespace Rutile {
     }
 
     void GPURayTracing::SetScene(Scene scene) {
+        m_Objects.clear();
+        Obj::m_Meshs.clear();
+        Obj::m_Materials.clear();
+
+        for (auto object : scene.objects) {
+            Obj obj{ };
+
+            obj.transform = object.transform;
+
+            Obj::m_Materials.push_back(object.material);
+            obj.mat = Obj::m_Materials.size() - 1;
+
+            Obj::m_Meshs.push_back(object.mesh);
+            obj.mesh = Obj::m_Meshs.size() - 1;
+
+            m_Objects.push_back(obj);
+        }
+
         m_BackgroundColour = scene.backgroundColor;
 
         TimeScope setSceneTimeScope{ nullptr, "GPU Ray Tracing Set Scene" };
-        m_Scene = scene;
 
         m_ResetAccumulatedPixelData = true;
 
@@ -291,12 +308,12 @@ namespace Rutile {
         m_RayTracingShader->Bind();
 
         std::vector<LocalMaterial> localMats{ };
-        for (size_t i = 0; i < m_Scene.objects.size(); ++i) {
+        for (size_t i = 0; i < m_Objects.size(); ++i) {
             LocalMaterial mat{ };
-            mat.type = (int)m_Scene.objects[i].material.type;
-            mat.fuzz = m_Scene.objects[i].material.fuzz;
-            mat.indexOfRefraction = m_Scene.objects[i].material.indexOfRefraction;
-            mat.color = glm::vec4{ m_Scene.objects[i].material.diffuse, 1.0};
+            mat.type = (int)Obj::m_Materials[m_Objects[i].mat].type;
+            mat.fuzz = Obj::m_Materials[m_Objects[i].mat].fuzz;
+            mat.indexOfRefraction = Obj::m_Materials[m_Objects[i].mat].indexOfRefraction;
+            mat.color = glm::vec4{ Obj::m_Materials[m_Objects[i].mat].diffuse, 1.0};
 
             localMats.emplace_back(mat);
         }
@@ -309,8 +326,9 @@ namespace Rutile {
     void GPURayTracing::CreateAndUploadBVHAndMeshAndObjectBuffers() {
         m_RayTracingShader->Bind();
 
-        std::vector<Object> objects = m_Scene.objects;
-        auto nodes = TemplateBVHFactory<Object>::Construct(objects, 1);
+        std::vector<Obj> objects = m_Objects; 
+        // VERY IMPORTANT: TemplateBVHFactory reorders the objects list
+        auto nodes = TemplateBVHFactory<Obj>::Construct(objects, 1);
 
         std::vector<LocalTLASNode> TLASNodes;
 
@@ -340,8 +358,8 @@ namespace Rutile {
         std::vector<LocalBLASNode> blasNodes;
         std::vector<int> startingIndices;
 
-        for (size_t i = 0; i < m_Scene.objects.size(); ++i) {
-            Mesh& mesh = m_Scene.objects[i].mesh;
+        for (size_t i = 0; i < m_Objects.size(); ++i) {
+            Mesh& mesh = Obj::m_Meshs[m_Objects[i].mesh];
 
             std::vector<Triangle> tris;
             for (size_t i = 0; i < mesh.indices.size(); i += 3) {
@@ -437,12 +455,10 @@ namespace Rutile {
                 glm::inverse(object.transform),
                 glm::mat4{ glm::transpose(glm::inverse(glm::mat3{ object.transform })) },
                 glm::mat4{ glm::transpose(glm::mat3{ object.transform }) },
-                (int)i,
+                (int)object.mat,
                 geoType,
-                startingIndices[i]
+                startingIndices[object.mesh]
             });
-
-            ++i;
         }
 
         m_ObjectBank->SetData(localObjects);
