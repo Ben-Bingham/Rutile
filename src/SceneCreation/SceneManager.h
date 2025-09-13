@@ -7,7 +7,7 @@ namespace Rutile {
         ORIGINAL_SCENE,
         SHADOW_MAP_TESTING_SCENE,
         OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE,
-        //DOUBLE_POINT_LIGHT_TEST_SCENE,
+        DOUBLE_POINT_LIGHT_TEST_SCENE,
         ALL_SPHERES,
         SPHERES_ON_SPHERES,
         HOLLOW_GLASS_SPHERE,
@@ -31,7 +31,7 @@ namespace Rutile {
         static Scene GetOriginalScene();
         static Scene GetShadowMapTestingScene();
         static Scene GetOmnidirectionalShadowMapTestingScene();
-        //static Scene GetDoublePointLightTestScene();
+        static Scene GetDoublePointLightTestScene();
         static Scene GetAllSpheresScene();
         static Scene GetSpheresOnSpheresScene();
         static Scene GetHollowGlassSphereScene();

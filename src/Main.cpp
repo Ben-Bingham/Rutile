@@ -189,7 +189,7 @@ int main() {
                         "Original Scene",
                         "Shadow map Testing Scene",
                         "Omnidirectional Shadow map Testing Scene",
-                        //"Double Point Light Test Scene",
+                        "Double Point Light Test Scene",
                         "All Spheres",
                         "Spheres on Spheres",
                         "Hollow Glass Sphere",

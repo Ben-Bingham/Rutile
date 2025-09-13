@@ -32,9 +32,9 @@ namespace Rutile {
             case SceneType::OMNIDIRECTIONAL_SHADOW_MAP_TESTING_SCENE: {
                 return GetOmnidirectionalShadowMapTestingScene();
             }
-            //case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
-            //    return GetDoublePointLightTestScene();
-            //}
+            case SceneType::DOUBLE_POINT_LIGHT_TEST_SCENE: {
+                return GetDoublePointLightTestScene();
+            }
             case SceneType::ALL_SPHERES: {
                 return GetAllSpheresScene();
             }
@@ -361,7 +361,7 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-    /*
+
     Scene SceneManager::GetDoublePointLightTestScene() {
         SceneFactory sceneFactory;
 
@@ -370,16 +370,16 @@ namespace Rutile {
 
         Transform floor{ };
         floor.scale = { 11.0f, 1.0f, 11.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floor, mat2, "Floor");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, floor, mat2);
 
         Transform wall{ };
         wall.position = { 0.0f, 5.0f, -5.0f };
         wall.scale = { 11.0f, 11.0f, 1.0f };
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, wall, mat2, "Wall");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, wall, mat2);
 
         Transform cube{ };
         cube.position.y = 2.0f;
-        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube, mat1, "Cube");
+        sceneFactory.Add(GeometryFactory::Primitive::CUBE, cube, mat1);
 
         PointLight pointLight{ };
         pointLight.position = { 3.0f, 4.0f, 0.0f };
@@ -409,7 +409,7 @@ namespace Rutile {
 
         return sceneFactory.GetScene();
     }
-    */
+
     Scene SceneManager::GetAllSpheresScene() {
         SceneFactory sceneFactory;
         sceneFactory.SetBackgroundColor(glm::vec3{ 0.0f, 0.0f, 0.0f });
