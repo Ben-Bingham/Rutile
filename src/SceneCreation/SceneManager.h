@@ -19,7 +19,8 @@ namespace Rutile {
         DRAGON_80K,
         DRAGON_800K,
         SPORTS_CAR_FRONT,
-        MINECRAFT_WORLD
+        MINECRAFT_WORLD,
+        MODEL_MANIA
     };
 
     class SceneManager {
@@ -44,5 +45,6 @@ namespace Rutile {
         static Scene GetDragon800K();
         static Scene GetSportsCarFront();
         static Scene GetMinecraftWorld();
+        static Scene GetModelMania();
     };
 }

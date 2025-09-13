@@ -71,6 +71,9 @@ namespace Rutile {
             case SceneType::MINECRAFT_WORLD: {
                 return GetMinecraftWorld();
             }
+            case SceneType::MODEL_MANIA: {
+                return GetModelMania();
+            }
         }
     }
 
@@ -874,6 +877,32 @@ namespace Rutile {
         Transform rungholtTransform{ };
         rungholtTransform.scale = glm::vec3{ 0.01f };
         sceneFactory.Add("assets\\models\\minecraftWorld\\rungholt.obj", rungholtTransform);
+
+        PointLight pointLight;
+        pointLight.position = { -2.3f, 3.0f, 3.0f };
+        sceneFactory.Add(pointLight);
+
+        return sceneFactory.GetScene();
+    }
+
+    Scene SceneManager::GetModelMania() {
+        SceneFactory sceneFactory;
+
+        Material dragonMaterial = MaterialFactory::Construct(glm::vec3{ 227.0f / 255.0f, 156.0f / 255.0f, 34.0f / 255.0f });
+        dragonMaterial.type = Material::Type::MIRROR;
+        dragonMaterial.fuzz = 0.1f;
+
+        Material carMaterial = MaterialFactory::Construct(glm::vec3{  });
+        carMaterial.type = Material::Type::DIELECTRIC;
+        carMaterial.indexOfRefraction = 0.67f;
+
+        Transform dragonTransform{ };
+        dragonTransform.scale = glm::vec3{ 10.0f };
+        dragonTransform.rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+        sceneFactory.Add("assets\\models\\dragon80k\\Dragon_80k.obj", dragonTransform, dragonMaterial);
+
+        Transform carTransform{ };
+        sceneFactory.Add("assets\\models\\sportsCar\\sportsCar.obj", carTransform, carMaterial);
 
         PointLight pointLight;
         pointLight.position = { -2.3f, 3.0f, 3.0f };

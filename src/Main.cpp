@@ -54,7 +54,7 @@ int main() {
     bool restartRenderer{ true };
 
     // The current scene type on any given frame
-    SceneType currentSceneType{ SceneType::TRIANGLE_SCENE };
+    SceneType currentSceneType{ SceneType::ORIGINAL_SCENE };
     Scene scene{ };
 
     // If the scene type is changed part way through a frame, this values is updated to reflect the new type
@@ -201,7 +201,8 @@ int main() {
                         "80K Triangle Dragon",
                         "800K Triangle Dragon",
                         "Sports Car Front 3/4",
-                        "Minecraft World"
+                        "Minecraft World",
+                        "Model Mania"
                     },
                     (int*)&tempSceneType
                 );
