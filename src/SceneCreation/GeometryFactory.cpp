@@ -176,12 +176,10 @@ namespace Rutile {
 
         return mesh;
     }
-    /*
 
-    Geometry GeometryFactory::Construct(const AABB& aabb) {
-        Geometry geo;
 
-        geo.name = "Bounding Box";
+    Mesh GeometryFactory::Construct(const AABB& aabb) {
+        Mesh geo;
 
         geo.vertices = {
             //      Position                         Normal                             Uv
@@ -236,9 +234,6 @@ namespace Rutile {
             20, 23, 22,
         };
 
-        geo.type = Geometry::GeometryType::CUBE;
-
         return geo;
     }
-    */
 }

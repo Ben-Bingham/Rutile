@@ -245,37 +245,6 @@ namespace Rutile {
         CreateAndUploadBVHAndMeshAndObjectBuffers();
     }
 
-    //void GPURayTracing::Notify(Event* event) {
-    //    if (EVENT_IS(event, ObjectTransformUpdate)) {
-    //        CreateAndUploadBVHAndMeshAndObjectBuffers(); // TODO we really only need to change the object transforms,
-    //        // TODO but because the objects need starting indices, and we do all of it at once, we just call this
-    //    }
-    //    if (EVENT_IS(event, ObjectMaterialUpdate)) {
-    //        CreateAndUploadMaterialBuffer();
-    //    }
-    //    if (EVENT_IS(event, WindowResize)) {
-    //        glBindFramebuffer(GL_FRAMEBUFFER, m_AccumulationFrameBuffer);
-    //        glBindTexture(GL_TEXTURE_2D, m_AccumulationTexture);
-
-    //        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, App::screenWidth, App::screenHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-
-    //        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_AccumulationTexture, 0);
-
-    //        glBindRenderbuffer(GL_RENDERBUFFER, m_AccumulationRBO);
-
-    //        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, App::screenWidth, App::screenHeight);
-    //        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_AccumulationRBO);
-
-    //        ResetAccumulatedPixelData();
-    //    }
-    //    if (EVENT_IS(event, CameraUpdate)          || 
-    //        EVENT_IS(event, ObjectTransformUpdate) || 
-    //        EVENT_IS(event, ObjectMaterialUpdate)) {
-
-    //        ResetAccumulatedPixelData();
-    //    }
-    //}
-
     void GPURayTracing::CreateAccumulationBuffer(glm::ivec2 screenSize) {
         // Accumulation Framebuffer
         glGenFramebuffers(1, &m_AccumulationFrameBuffer);
@@ -331,6 +300,8 @@ namespace Rutile {
 
             localMats.emplace_back(mat);
         }
+
+        std::cout << "Local mats size: " << localMats.size() << std::endl;
 
         m_MaterialBank->SetData(localMats);
     }
@@ -457,6 +428,7 @@ namespace Rutile {
 
         std::vector<LocalObject> localObjects{ };
         int i = 0;
+
         for (auto object : objects) {
             int geoType = 1;
 
