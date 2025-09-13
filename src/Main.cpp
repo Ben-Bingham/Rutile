@@ -198,10 +198,10 @@ int main() {
                         "Backpack",
                         "Cornell Box 2.0",
                         "8K Triangle Dragon",
-                        //"80K Triangle Dragon",
-                        //"800K Triangle Dragon",
-                        //"Sports Car Front 3/4",
-                        //"Minecraft World"
+                        "80K Triangle Dragon",
+                        "800K Triangle Dragon",
+                        "Sports Car Front 3/4",
+                        "Minecraft World"
                     },
                     (int*)&tempSceneType
                 );

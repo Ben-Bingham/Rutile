@@ -16,10 +16,10 @@ namespace Rutile {
         BACKPACK,
         CORNELL_BOX_VERSION_2,
         DRAGON_8K,
-        //DRAGON_80K,
-        //DRAGON_800K,
-        //SPORTS_CAR_FRONT,
-        //MINECRAFT_WORLD
+        DRAGON_80K,
+        DRAGON_800K,
+        SPORTS_CAR_FRONT,
+        MINECRAFT_WORLD
     };
 
     class SceneManager {
@@ -40,9 +40,9 @@ namespace Rutile {
         static Scene GetBackpackScene();
         static Scene GetCornellBoxVersion2();
         static Scene GetDragon8K();
-        //static Scene GetDragon80K();
-        //static Scene GetDragon800K();
-        //static Scene GetSportsCarFront();
-        //static Scene GetMinecraftWorld();
+        static Scene GetDragon80K();
+        static Scene GetDragon800K();
+        static Scene GetSportsCarFront();
+        static Scene GetMinecraftWorld();
     };
 }
