@@ -318,8 +318,6 @@ namespace Rutile {
             localMats.emplace_back(mat);
         }
 
-        std::cout << "Local mats size: " << localMats.size() << std::endl;
-
         m_MaterialBank->SetData(localMats);
     }
 

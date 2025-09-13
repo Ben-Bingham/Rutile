@@ -15,6 +15,7 @@
 #include "renderers/OpenGlPhongShading/OpenGlPhongShading.h"
 #include "Renderers/CPU-Ray-Tracing/CPURayTracing.h"
 #include "Renderers/GPU-Ray-Tracing/GPURayTracing.h"
+#include "Renderers/Voxel-Ray-Tracing/VoxelRayTracing.h"
 
 #include "SceneCreation/SceneManager.h"
 #include "Utility/TimeScope.h"
@@ -92,6 +93,7 @@ int main() {
                 case RendererType::OPENGL_PHONG_SHADING: renderer = std::make_unique<OpenGlPhongShading>(); break;
                 case RendererType::CPU_RAY_TRACING: renderer = std::make_unique<CPURayTracing>(); break;
                 case RendererType::GPU_RAY_TRACING: renderer = std::make_unique<GPURayTracing>(); break;
+                case RendererType::VOXEL_RAY_TRACING: renderer = std::make_unique<VoxelRayTracing>(); break;
             }
 
             currentRendererType = newRendererType;
@@ -168,7 +170,8 @@ int main() {
                         "OpenGl Solid Shading", 
                         "OpenGl Phong Shading", 
                         "CPU Ray Tracing", 
-                        "GPU Ray Tracing" 
+                        "GPU Ray Tracing",
+                        "Voxel Ray Tracing"
                     },
                     (int*)&tempRendererType
                 );

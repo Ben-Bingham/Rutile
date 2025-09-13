@@ -34,12 +34,9 @@ namespace Rutile {
     private:
         std::vector<Obj> m_Objects{ };
 
-
         glm::vec3 m_BackgroundColour{ 0.0f };
 
         int m_MaxBounces{ 5 };
-
-        //Scene m_Scene;
 
         glm::ivec2 m_ScreenSize;
         Camera m_Camera;

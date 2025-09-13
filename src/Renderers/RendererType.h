@@ -5,6 +5,7 @@ namespace Rutile {
         OPENGL_SOLID_SHADING,
         OPENGL_PHONG_SHADING,
         CPU_RAY_TRACING,
-        GPU_RAY_TRACING
+        GPU_RAY_TRACING,
+        VOXEL_RAY_TRACING
     };
 }
