@@ -55,42 +55,6 @@ namespace Rutile {
         m_Scene.directionalLight = std::make_shared<DirectionalLight>(light);
     }
 
-    //void SceneFactory::Add(const Geometry& geometry, const Transform& transform, const Material& material, const std::string& name) {
-    //    const GeometryIndex geoIndex = m_Scene.geometryBank.Add(geometry);
-    //    const TransformIndex transformIndex = m_Scene.transformBank.Add(transform);
-    //    const MaterialIndex materialIndex = m_Scene.materialBank.Add(material);
-
-    //    Add(geoIndex, transformIndex, materialIndex, name);
-    //}
-
-    //void SceneFactory::Add(GeometryIndex geometry, const Transform& transform, const Material& material, const std::string& name) {
-    //    Add(geometry, m_Scene.transformBank.Add(transform), m_Scene.materialBank.Add(material), name);
-    //}
-
-    //void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, const Material& material, const std::string& name) {
-    //    Add(GeometryFactory::Construct(primitive), transform, material, name);
-    //}
-    /*
-    void SceneFactory::Add(const Geometry& geometry, const Transform& transform, MaterialFactory::Color color, const std::string& name) {
-        Add(geometry, transform, MaterialFactory::Construct(color), name);
-    }
-
-    void SceneFactory::Add(const Geometry& geometry, const Transform& transform, MaterialIndex material, const std::string& name) {
-        Add(m_Scene.geometryBank.Add(geometry), m_Scene.transformBank.Add(transform), material, name);
-    }
-
-    void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, MaterialFactory::Color color, const std::string& name) {
-        Add(GeometryFactory::Construct(primitive), transform, MaterialFactory::Construct(color), name);
-    }
-
-    void SceneFactory::Add(GeometryFactory::Primitive primitive, const Transform& transform, MaterialIndex material, const std::string& name) {
-        Add(m_Scene.geometryBank.Add(GeometryFactory::Construct(primitive)), m_Scene.transformBank.Add(transform), material, name);
-    }
-
-
-
-
-    */
     void SceneFactory::Add(const std::string& path, glm::mat4 transform, const Material& material) {
         Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
 
